@@ -331,6 +331,13 @@ public bool IsPlayerEligibleForCap(int client)
 	if (!IsClientInGame(client) || IsFakeClient(client) || IsClientSourceTV(client))
 		return false;
 
+	// In debug mode, skip First 12 rule - all real players are eligible
+	if (capDebugMode)
+	{
+		PrintToServer("[Cap Debug] Client %d is eligible (debug mode)", client);
+		return true;
+	}
+
 	// If First 12 rule is OFF, all real players are eligible
 	if (first12Set == 0)
 		return true;
@@ -369,6 +376,10 @@ public void CapGenerateCaptainPairs()
 		if (IsPlayerEligibleForCap(i))
 			players.Push(i);
 	}
+
+	// Debug output
+	if (capDebugMode)
+		PrintToServer("[Cap Debug] Found %d eligible captain candidates", players.Length);
 
 	// Generate all unique pairs
 	int count = players.Length;
@@ -639,10 +650,10 @@ public void CapVoteUpdateHud()
 	if (strlen(capTName) > 12) capTName[12] = '\0';
 	if (strlen(capCTName) > 12) capCTName[12] = '\0';
 
-	PrintHintTextToAll("------ CAP VOTE ------\n%s vs %s\n \nYES [%s] %d%%\nNO  [%s] %d%%\n \n%d/%d voted - %ds",
+	PrintHintTextToAll("------ CAP VOTE ------\n%s vs %s\n \nYES [%s]\nNO  [%s]\n \n%d/%d voted - %ds",
 		capTName, capCTName,
-		yesBar, yesPercent,
-		noBar, noPercent,
+		yesBar,
+		noBar,
 		voted, capVoteTotal, capVoteCountdown);
 }
 
@@ -804,11 +815,29 @@ public int CapVoteMenuHandler(Menu menu, MenuAction action, int client, int choi
 		// Check for early end - if outcome is already determined
 		CapCheckEarlyVoteEnd();
 	}
+	else if (action == MenuAction_Cancel)
+	{
+		// If player closed menu without voting and vote is still active, reopen after short delay
+		if (capVoteActive && capPlayerVote[client] == 0)
+		{
+			CreateTimer(0.5, TimerReopenVoteMenu, client);
+		}
+	}
 	else if (action == MenuAction_End)
 	{
 		delete menu;
 	}
 	return 0;
+}
+
+public Action TimerReopenVoteMenu(Handle timer, int client)
+{
+	// Only reopen if vote still active and player hasn't voted
+	if (capVoteActive && IsClientInGame(client) && capPlayerVote[client] == 0)
+	{
+		CapShowVoteMenu(client);
+	}
+	return Plugin_Stop;
 }
 
 public void CapCheckEarlyVoteEnd()

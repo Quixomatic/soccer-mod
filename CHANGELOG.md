@@ -1,5 +1,21 @@
 # Soccer Mod Changelog
 
+## 1.4.11
+
+### New
+- Configurable team size (2v2, 3v3, 4v4, 5v5, 6v6)
+- Config setting: `soccer_mod_match_max_players` in Match Settings
+- Map defaults support: `default_max_players` per map
+- Admin menu: Settings → Misc → Team Size submenu
+- Vote menu auto-reopens if closed without voting
+
+### Changes
+- Team size affects autocap, picking, join/leave notifications, First N rule
+- Simplified vote HUD (removed percentage numbers)
+- Debug mode now bypasses First 12 rule for captain eligibility
+
+---
+
 ## 1.4.10
 
 ### New

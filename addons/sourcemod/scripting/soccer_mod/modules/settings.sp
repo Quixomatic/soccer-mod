@@ -94,7 +94,9 @@ public void OpenMenuMiscSettings(int client)
 
 	menu.SetTitle("Soccer Mod - Admin - Settings - Misc");
 
-	char ReadyString[32], DamageString[32], DissolveString[32], DJString[32], JoinString[32], RankString[32], HostString[32], DefaultString[32], FeedString[32], GKString[32], RankModeString[32], CelebrateString[32], WallString[32], First12String[32], JoinLeaveString[48], JoinLeaveVolString[48];
+	char ReadyString[32], DamageString[32], DissolveString[32], DJString[32], JoinString[32], RankString[32], HostString[32], DefaultString[32], FeedString[32], GKString[32], RankModeString[32], CelebrateString[32], WallString[32], First12String[32], JoinLeaveString[48], JoinLeaveVolString[48], TeamSizeString[32];
+	Format(TeamSizeString, sizeof(TeamSizeString), "Team Size: %dv%d", matchMaxPlayers, matchMaxPlayers);
+
 	if(matchReadyCheck == 0)			ReadyString = "Ready Check: OFF";
 	else if (matchReadyCheck == 1)		ReadyString = "Ready Check: AUTO";
 	else if (matchReadyCheck == 2)		ReadyString = "Ready Check: ON USE";
@@ -146,6 +148,7 @@ public void OpenMenuMiscSettings(int client)
 	Format(JoinLeaveVolString, sizeof(JoinLeaveVolString), "Join/Leave Volume: %.2f", joinLeaveVolume);
 	Format(RankString, sizeof(RankString), "!rank Cooldown: %i", rankingCDTime);
 	
+	menu.AddItem("teamsize", TeamSizeString);
 	menu.AddItem("classchoice", JoinString);
 	menu.AddItem("loaddefaults", DefaultString);
 	menu.AddItem("dissolve", DissolveString);
@@ -175,14 +178,18 @@ public int MenuHandlerMiscSettings(Menu menu, MenuAction action, int client, int
 		char menuItem[32];
 		menu.GetItem(choice, menuItem, sizeof(menuItem));
 
-		if (StrEqual(menuItem, "ready"))
+		if (StrEqual(menuItem, "teamsize"))
 		{
-			if(matchReadyCheck < 2) 
+			OpenMenuTeamSize(client);
+		}
+		else if (StrEqual(menuItem, "ready"))
+		{
+			if(matchReadyCheck < 2)
 			{
 				matchReadyCheck++;
 				UpdateConfigInt("Match Settings", "soccer_mod_match_readycheck", matchReadyCheck);
 			}
-			else 
+			else
 			{
 				matchReadyCheck = 0;
 				UpdateConfigInt("Match Settings", "soccer_mod_match_readycheck", matchReadyCheck);
@@ -403,6 +410,58 @@ public int MenuHandlerMiscSettings(Menu menu, MenuAction action, int client, int
 	else if (action == MenuAction_End)					  menu.Close();
 }
 
+
+// *******************************************************************************************************************
+// ************************************************** TEAM SIZE MENU *************************************************
+// *******************************************************************************************************************
+public void OpenMenuTeamSize(int client)
+{
+	Menu menu = new Menu(MenuHandlerTeamSize);
+	menu.SetTitle("Soccer Mod - Team Size\nCurrent: %dv%d (%d players)", matchMaxPlayers, matchMaxPlayers, matchMaxPlayers * 2);
+
+	char item2[16], item3[16], item4[16], item5[16], item6[16];
+	Format(item2, sizeof(item2), "2v2 (4 players)%s", matchMaxPlayers == 2 ? " [Current]" : "");
+	Format(item3, sizeof(item3), "3v3 (6 players)%s", matchMaxPlayers == 3 ? " [Current]" : "");
+	Format(item4, sizeof(item4), "4v4 (8 players)%s", matchMaxPlayers == 4 ? " [Current]" : "");
+	Format(item5, sizeof(item5), "5v5 (10 players)%s", matchMaxPlayers == 5 ? " [Current]" : "");
+	Format(item6, sizeof(item6), "6v6 (12 players)%s", matchMaxPlayers == 6 ? " [Current]" : "");
+
+	menu.AddItem("2", item2);
+	menu.AddItem("3", item3);
+	menu.AddItem("4", item4);
+	menu.AddItem("5", item5);
+	menu.AddItem("6", item6);
+
+	menu.ExitBackButton = true;
+	menu.Display(client, MENU_TIME_FOREVER);
+}
+
+public int MenuHandlerTeamSize(Menu menu, MenuAction action, int client, int choice)
+{
+	if (action == MenuAction_Select)
+	{
+		char menuItem[8];
+		menu.GetItem(choice, menuItem, sizeof(menuItem));
+
+		int newSize = StringToInt(menuItem);
+		if (newSize >= 2 && newSize <= 6)
+		{
+			matchMaxPlayers = newSize;
+			UpdateConfigInt("Match Settings", "soccer_mod_match_max_players", matchMaxPlayers);
+			CPrintToChat(client, "{%s}[%s] {%s}Team size set to %dv%d (%d players total)", prefixcolor, prefix, textcolor, matchMaxPlayers, matchMaxPlayers, matchMaxPlayers * 2);
+		}
+		OpenMenuTeamSize(client);
+	}
+	else if (action == MenuAction_Cancel && choice == MenuCancel_ExitBack)
+	{
+		OpenMenuMiscSettings(client);
+	}
+	else if (action == MenuAction_End)
+	{
+		delete menu;
+	}
+	return 0;
+}
 
 // *******************************************************************************************************************
 // ************************************************** LOCKSET MENU ***************************************************

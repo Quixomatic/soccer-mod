@@ -119,6 +119,7 @@ public void CreateSoccerModConfig()
 	kvConfig.GoBack();
 	
 	kvConfig.JumpToKey("Match Settings", true);
+	kvConfig.SetNum("soccer_mod_match_max_players",				matchMaxPlayers);
 	kvConfig.SetNum("soccer_mod_match_periods",					matchPeriods);
 	kvConfig.SetNum("soccer_mod_match_period_length",			matchPeriodLength);
 	kvConfig.SetNum("soccer_mod_match_period_break_length",		matchPeriodBreakLength);
@@ -485,6 +486,7 @@ public void ReadFromConfig()
 	kvConfig.GoBack();
 
 	kvConfig.JumpToKey("Match Settings", true);
+	matchMaxPlayers			= kvConfig.GetNum("soccer_mod_match_max_players", 6);
 	matchPeriods 			= kvConfig.GetNum("soccer_mod_match_periods", 2);
 	matchPeriodLength		= kvConfig.GetNum("soccer_mod_match_period_length", 900);
 	matchPeriodBreakLength	= kvConfig.GetNum("soccer_mod_match_period_break_length", 60);

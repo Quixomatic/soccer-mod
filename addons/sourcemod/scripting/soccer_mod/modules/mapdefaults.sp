@@ -37,6 +37,12 @@ public void SetDefaultValues(int type)
 				KickoffWallSet = buffer;
 				UpdateConfigInt("Misc Settings", "soccer_mod_kickoffwall", KickoffWallSet);
 			}
+			buffer = mapdefaultKV.GetNum("default_max_players", -1);
+			if(buffer != -1)
+			{
+				matchMaxPlayers = buffer;
+				UpdateConfigInt("Match Settings", "soccer_mod_match_max_players", matchMaxPlayers);
+			}
 		}
 		else if (type == 1)
 		{
