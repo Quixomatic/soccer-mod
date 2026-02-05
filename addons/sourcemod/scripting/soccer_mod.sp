@@ -1,8 +1,8 @@
 // **************************************************************************************************************
 // ************************************************** DEFINES ***************************************************
 // ************************************************************************************************************** 
-#define PLUGIN_VERSION "1.4.1"
-#define UPDATE_URL "https://raw.githubusercontent.com/MK99MA/SoMoE-19/master/addons/sourcemod/updatefile.txt"
+#define PLUGIN_VERSION "1.4.2"
+#define UPDATE_URL "https://raw.githubusercontent.com/Quixomatic/soccer-mod/main/addons/sourcemod/updatefile.txt"
 #define MAX_NAMES 10
 #define MAXCONES_DYN 15
 #define MAXCONES_STA 15
@@ -74,11 +74,11 @@
 // *****************************************************************************************************************
 public Plugin myinfo =
 {
-	name		 = "SoMoE-19",
-	author		 = "Marco Boogers & Arturo",
-	description	 = "A plugin for soccer servers",
+	name		 = "Soccer Mod",
+	author		 = "Marco Boogers, Arturo, & Contributors",
+	description	 = "A plugin for CS:S soccer servers",
 	version		 = PLUGIN_VERSION,
-	url			 = "https://github.com/MK99MA/soccermod-2019edit"
+	url			 = "https://github.com/Quixomatic/soccer-mod"
 };
 
 // ******************************************************************************************************************

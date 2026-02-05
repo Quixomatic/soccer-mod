@@ -1,5 +1,14 @@
 # Soccer Mod Changelog
 
+## 1.4.2
+
+### Changes
+- Rebranded from "SoMoE-19" to "Soccer Mod"
+- Updated plugin info and repository URLs
+- Cleaned up README
+
+---
+
 ## 1.4.1
 
 ### Changes

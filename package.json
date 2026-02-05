@@ -1,6 +1,6 @@
 {
   "name": "soccer-mod",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Soccer Mod for Counter-Strike: Source",
   "scripts": {
     "clean": "if exist dist rmdir /s /q dist",
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/MK99MA/SoMoE-19"
+    "url": "https://github.com/Quixomatic/soccer-mod"
   },
   "keywords": [
     "sourcemod",
