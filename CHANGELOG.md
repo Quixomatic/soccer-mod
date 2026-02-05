@@ -1,5 +1,22 @@
 # Soccer Mod Changelog
 
+## 1.4.10
+
+### New
+- Auto-retry failed captain votes with new random captain pairs
+- Generates all unique captain combinations and shuffles them at start
+- Tries each unique pair in random order (no repeats until all tried)
+- After all combinations exhausted, switches to purely random selection
+- Shows remaining combinations count during voting
+- 2-second delay between failed vote and next attempt
+- Respects First 12 rule for captain eligibility
+
+### Changes
+- Vote HUD now uses ASCII characters for consistent alignment
+- Captain selection properly filters by join order (First 12 rule)
+
+---
+
 ## 1.4.9
 
 ### New

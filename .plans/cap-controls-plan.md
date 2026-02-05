@@ -744,11 +744,11 @@ All changes implemented in v1.4.4:
 
 - **v1.4.4**: ✅ Phase 1 - Core controls (stop, reset, start pick, snake draft, admin commands)
 - **v1.4.5**: ✅ Phase 2 - Automated cap system (auto cap, voting, ready-up)
-- **v1.5.x**: ⏳ Phase 3 - Auto-retry failed votes with new random captains
+- **v1.4.10**: ✅ Phase 3 - Auto-retry failed votes with new random captains
 
 ---
 
-## Phase 3: Auto-Retry Failed Votes (v1.5.x) ⏳ PENDING
+## Phase 3: Auto-Retry Failed Votes (v1.4.10) ✅ IMPLEMENTED
 
 ### Overview
 When a cap vote fails (doesn't reach >50% yes votes), the system should automatically:

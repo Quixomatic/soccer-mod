@@ -44,6 +44,11 @@ public void CapKillTimers()
 		KillTimer(capReadyTimer);
 		capReadyTimer = INVALID_HANDLE;
 	}
+	if (capRetryTimer != INVALID_HANDLE)
+	{
+		KillTimer(capRetryTimer);
+		capRetryTimer = INVALID_HANDLE;
+	}
 }
 
 public void CapStopFight(int client)
@@ -106,6 +111,15 @@ public void CapReset(int client)
 	for (int j = 0; j <= MAXPLAYERS; j++)
 	{
 		capPlayerVote[j] = 0;
+	}
+
+	// Reset Phase 3 (auto-retry) state variables
+	capPairIndex = 0;
+	capPairsExhausted = false;
+	if (capCaptainPairs != null)
+	{
+		delete capCaptainPairs;
+		capCaptainPairs = null;
 	}
 
 	// Restore sprint if needed
@@ -309,6 +323,135 @@ public bool CapValidatePlayerCount()
 	return true;
 }
 
+// Check if player is eligible to be a captain (respects First 12 rule)
+public bool IsPlayerEligibleForCap(int client)
+{
+	// Captains must always be real players (never bots, even in debug mode)
+	// Debug mode only allows bots to be PICKED, not to BE captains
+	if (!IsClientInGame(client) || IsFakeClient(client) || IsClientSourceTV(client))
+		return false;
+
+	// If First 12 rule is OFF, all real players are eligible
+	if (first12Set == 0)
+		return true;
+
+	// Get player's join number
+	char steamid[32];
+	GetClientAuthId(client, AuthId_Engine, steamid, sizeof(steamid));
+	int joinNumber = ImportJoinNumber(steamid);
+
+	// first12Set == 1: Standard First N rule (N = matchMaxPlayers * 2)
+	if (first12Set == 1)
+		return joinNumber <= (matchMaxPlayers * 2);
+
+	// first12Set == 2: Pre-Cap Join mode (uses capnr from when cap started)
+	if (first12Set == 2)
+		return joinNumber <= capnr;
+
+	return true;
+}
+
+// Generate all unique captain pairs and shuffle them
+public void CapGenerateCaptainPairs()
+{
+	if (capCaptainPairs != null)
+		delete capCaptainPairs;
+
+	// ArrayList of 2-element arrays: [client1, client2]
+	capCaptainPairs = new ArrayList(2);
+	capPairIndex = 0;
+	capPairsExhausted = false;
+
+	// Get all eligible players (respects First 12 rule)
+	ArrayList players = new ArrayList();
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsPlayerEligibleForCap(i))
+			players.Push(i);
+	}
+
+	// Generate all unique pairs
+	int count = players.Length;
+	for (int i = 0; i < count - 1; i++)
+	{
+		for (int j = i + 1; j < count; j++)
+		{
+			int pair[2];
+			pair[0] = players.Get(i);
+			pair[1] = players.Get(j);
+			capCaptainPairs.PushArray(pair, 2);
+		}
+	}
+
+	delete players;
+
+	// Fisher-Yates shuffle
+	int n = capCaptainPairs.Length;
+	for (int i = n - 1; i > 0; i--)
+	{
+		int j = GetRandomInt(0, i);
+		if (i != j)
+			capCaptainPairs.SwapAt(i, j);
+	}
+}
+
+// Get next captain pair from the shuffled list
+public bool CapGetNextCaptainPair()
+{
+	// Phase 1: Use pre-generated unique pairs
+	if (!capPairsExhausted && capCaptainPairs != null && capPairIndex < capCaptainPairs.Length)
+	{
+		int pair[2];
+		capCaptainPairs.GetArray(capPairIndex, pair, 2);
+		capPairIndex++;
+
+		// Validate both players still connected and eligible
+		if (IsPlayerEligibleForCap(pair[0]) && IsPlayerEligibleForCap(pair[1]))
+		{
+			capT = pair[0];
+			capCT = pair[1];
+			return true;
+		}
+
+		// Player disconnected or no longer eligible, try next pair
+		return CapGetNextCaptainPair();
+	}
+
+	// Phase 2: All unique pairs exhausted, switch to purely random
+	capPairsExhausted = true;
+	return CapSelectPurelyRandomCaptains();
+}
+
+// Purely random captain selection (can repeat pairs)
+public bool CapSelectPurelyRandomCaptains()
+{
+	ArrayList eligible = new ArrayList();
+
+	// Only include players eligible under First 12 rule
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsPlayerEligibleForCap(i))
+			eligible.Push(i);
+	}
+
+	if (eligible.Length < 2)
+	{
+		delete eligible;
+		return false;
+	}
+
+	// Purely random - can pick same pair again
+	int idx1 = GetRandomInt(0, eligible.Length - 1);
+	capT = eligible.Get(idx1);
+	eligible.Erase(idx1);
+
+	int idx2 = GetRandomInt(0, eligible.Length - 1);
+	capCT = eligible.Get(idx2);
+
+	delete eligible;
+	return true;
+}
+
 public void CapAutoStart(int client)
 {
 	// Check if already in a cap process
@@ -375,8 +518,30 @@ public void CapAutoStart(int client)
 
 	CPrintToChatAll("{%s}[%s] {%s}%N started auto cap. All players moved to spectator.", prefixcolor, prefix, textcolor, client);
 
-	// Select two random captains (always real players)
-	CapSelectRandomCaptains(client);
+	// Generate all unique captain pairs and shuffle them
+	CapGenerateCaptainPairs();
+
+	// Get the first captain pair
+	if (!CapGetNextCaptainPair())
+	{
+		CPrintToChat(client, "{%s}[%s] {%s}Not enough eligible players for captains.", prefixcolor, prefix, textcolor);
+		capAutoActive = false;
+		return;
+	}
+
+	// Move captains to their teams
+	ChangeClientTeam(capT, 2);  // T
+	ChangeClientTeam(capCT, 3); // CT
+
+	CPrintToChatAll("{%s}[%s] {green}▶ Random captains selected:", prefixcolor, prefix);
+	CPrintToChatAll("{%s}[%s] {red}T Captain: {green}%N", prefixcolor, prefix, capT);
+	CPrintToChatAll("{%s}[%s] {blue}CT Captain: {green}%N", prefixcolor, prefix, capCT);
+
+	int pairsRemaining = capCaptainPairs != null ? (capCaptainPairs.Length - capPairIndex) : 0;
+	CPrintToChatAll("{%s}[%s] {%s}(%d unique combinations available)", prefixcolor, prefix, textcolor, pairsRemaining);
+
+	// Start the vote
+	CapVoteStart();
 }
 
 public void CapSelectRandomCaptains(int adminClient)
@@ -759,7 +924,7 @@ public void CapVoteEnd()
 	}
 	else
 	{
-		CPrintToChatAll("{%s}[%s] {red}✗ Vote failed. {%s}Captains reset to spectator.", prefixcolor, prefix, textcolor);
+		CPrintToChatAll("{%s}[%s] {red}✗ Vote failed.", prefixcolor, prefix, textcolor);
 
 		// Move captains back to spectator
 		if (capT > 0 && IsClientInGame(capT))
@@ -767,12 +932,69 @@ public void CapVoteEnd()
 		if (capCT > 0 && IsClientInGame(capCT))
 			ChangeClientTeam(capCT, 1);
 
-		// Reset state
+		// Clear current captains
 		capT = 0;
 		capCT = 0;
+
+		// Auto-retry with next pair
+		int pairsRemaining = capCaptainPairs != null ? (capCaptainPairs.Length - capPairIndex) : 0;
+
+		if (capPairsExhausted)
+			CPrintToChatAll("{%s}[%s] {%s}Selecting random captains in 2 seconds...", prefixcolor, prefix, textcolor);
+		else
+			CPrintToChatAll("{%s}[%s] {%s}Trying next pair in 2 seconds... (%d combinations remaining)", prefixcolor, prefix, textcolor, pairsRemaining);
+
+		capRetryTimer = CreateTimer(2.0, TimerCapVoteRetry);
+	}
+}
+
+public Action TimerCapVoteRetry(Handle timer)
+{
+	capRetryTimer = INVALID_HANDLE;
+
+	// Check if auto cap was cancelled
+	if (!capAutoActive)
+		return Plugin_Stop;
+
+	// Re-validate player count
+	if (!CapValidatePlayerCount())
+	{
+		CPrintToChatAll("{%s}[%s] {red}✗ Auto cap cancelled - not enough players.", prefixcolor, prefix, textcolor);
 		capAutoActive = false;
 		HostName_Change_Status("Public");
+		return Plugin_Stop;
 	}
+
+	// Get next captain pair
+	if (!CapGetNextCaptainPair())
+	{
+		CPrintToChatAll("{%s}[%s] {red}✗ Auto cap cancelled - could not select captains.", prefixcolor, prefix, textcolor);
+		capAutoActive = false;
+		HostName_Change_Status("Public");
+		return Plugin_Stop;
+	}
+
+	// Move captains to their teams
+	ChangeClientTeam(capT, 2);  // T
+	ChangeClientTeam(capCT, 3); // CT
+
+	CPrintToChatAll("{%s}[%s] {green}▶ New captains selected:", prefixcolor, prefix);
+	CPrintToChatAll("{%s}[%s] {red}T Captain: {green}%N", prefixcolor, prefix, capT);
+	CPrintToChatAll("{%s}[%s] {blue}CT Captain: {green}%N", prefixcolor, prefix, capCT);
+
+	if (!capPairsExhausted)
+	{
+		int pairsRemaining = capCaptainPairs != null ? (capCaptainPairs.Length - capPairIndex) : 0;
+		CPrintToChatAll("{%s}[%s] {%s}(%d unique combinations remaining)", prefixcolor, prefix, textcolor, pairsRemaining);
+	}
+	else
+	{
+		CPrintToChatAll("{%s}[%s] {%s}(purely random selection)", prefixcolor, prefix, textcolor);
+	}
+
+	// Start new vote
+	CapVoteStart();
+	return Plugin_Stop;
 }
 
 public void CapReadyStart()

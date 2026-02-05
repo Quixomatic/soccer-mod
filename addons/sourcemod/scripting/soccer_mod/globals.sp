@@ -148,6 +148,7 @@ bool capVoteActive		= false;	// Vote is in progress
 bool capReadyT			= false;	// T captain is ready
 bool capReadyCT			= false;	// CT captain is ready
 bool capDebugMode		= false;	// Debug mode - allows bots to count as players
+bool capPairsExhausted	= false;	// True when all unique captain pairs tried
 
 // FLOATS
 
@@ -165,6 +166,8 @@ Handle capGrenadeRefillTimer	= INVALID_HANDLE;
 Handle capVoteTimer				= INVALID_HANDLE;	// Auto cap vote timer
 Handle capVoteHudTimer			= INVALID_HANDLE;	// Vote HUD refresh timer
 Handle capReadyTimer			= INVALID_HANDLE;	// Ready-up HUD refresh timer
+Handle capRetryTimer			= INVALID_HANDLE;	// Vote retry delay timer
+ArrayList capCaptainPairs		= null;				// Shuffled list of captain pairs
 
 // INTEGER
 int capPicker			= 0;
@@ -177,6 +180,7 @@ int capFightHealth		= 101;
 int capPickNumber		= 0;
 int capFirstPicker		= 0;
 int capSnakeDraft		= 1;
+int capPairIndex		= 0;		// Current position in captain pairs list
 int capVotesYes			= 0;	// Auto cap yes votes
 int capVotesNo			= 0;	// Auto cap no votes
 int capVoteTotal		= 0;	// Total voters
