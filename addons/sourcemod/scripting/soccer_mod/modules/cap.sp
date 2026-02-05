@@ -439,9 +439,9 @@ public void BuildProgressBar(char[] buffer, int maxlen, int percent, int width)
 	bar[0] = '\0';
 
 	for (int i = 0; i < filled; i++)
-		StrCat(bar, sizeof(bar), "█");
+		StrCat(bar, sizeof(bar), "|");
 	for (int i = 0; i < empty; i++)
-		StrCat(bar, sizeof(bar), "░");
+		StrCat(bar, sizeof(bar), ".");
 
 	strcopy(buffer, maxlen, bar);
 }
@@ -474,10 +474,10 @@ public void CapVoteUpdateHud()
 	if (strlen(capTName) > 12) capTName[12] = '\0';
 	if (strlen(capCTName) > 12) capCTName[12] = '\0';
 
-	PrintHintTextToAll("══════ CAP VOTE ══════\n%s  vs  %s\n \nYES [%s] %d%% (%d)\nNO  [%s] %d%% (%d)\n \n%d/%d voted  •  %ds left",
+	PrintHintTextToAll("------ CAP VOTE ------\n%s vs %s\n \nYES [%s] %d%%\nNO  [%s] %d%%\n \n%d/%d voted - %ds",
 		capTName, capCTName,
-		yesBar, yesPercent, capVotesYes,
-		noBar, noPercent, capVotesNo,
+		yesBar, yesPercent,
+		noBar, noPercent,
 		voted, capVoteTotal, capVoteCountdown);
 }
 

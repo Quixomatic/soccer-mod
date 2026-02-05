@@ -7,28 +7,30 @@ Add audio and chat notifications when players join or leave the server, showing 
 ## Features
 
 ### 1. Join Notification
-- Play a configurable sound when a player joins
+- Play a configurable sound when a player joins (if enabled)
 - Show chat message: `[Soccer Mod] PlayerName joined (11/12 players)`
 - Special message when server becomes full: `(12/12 players) - Ready to play!`
 
 ### 2. Leave Notification
-- Play a configurable sound when a player leaves
+- Play a configurable sound when a player leaves (if enabled)
 - Show chat message: `[Soccer Mod] PlayerName left (10/12 players)`
 
 ### 3. Sound Configuration
 - Sounds stored in `sound/soccermod/joinleave/` folder
 - Config file: `cfg/sm_soccermod/soccer_mod_joinleave.cfg`
 - Admin can set which sound files to use for join/leave events
-- Sounds precached on map start
+- Sounds precached on map start (only if files exist)
+- **If sound files don't exist, no sound plays** (graceful handling)
 
 ### 4. Per-Player Preferences (Client Cookies)
 - Each player can toggle notifications ON/OFF for themselves
-- Accessible via `!settings` menu or dedicated command
+- Accessible via `!menu > Settings > Client Settings > Join/Leave Notifications`
 - Saved per-player using SourceMod cookies (persists across sessions)
-- Similar to existing shout preferences
+- Similar to existing shout/grass preferences
 
 ### 5. Server-Wide Settings
 - Global toggle to enable/disable the system entirely
+- Volume control for notification sounds
 - Configurable via admin settings menu
 
 ### 6. Player Count Logic
@@ -36,6 +38,14 @@ Add audio and chat notifications when players join or leave the server, showing 
 - 6v6 maps = 12 players needed
 - 4v4 maps = 8 players needed
 - Only count real players (not bots, not SourceTV)
+
+---
+
+## Defaults
+
+- **System enabled:** ON
+- **Sound notifications:** OFF (opt-in per player)
+- **Chat notifications:** ON
 
 ---
 
@@ -49,6 +59,17 @@ sound/soccermod/joinleave/
 └── ... (additional sound options)
 ```
 
+**Note:** Sound files are optional. If they don't exist, no sound plays but chat notifications still work.
+
+---
+
+## Downloads Config
+
+Add to `EXAMPLE_soccer_mod_downloads.cfg`:
+```
+soccer_mod_downloads_add_dir sound\soccermod\joinleave
+```
+
 ---
 
 ## Config File
@@ -58,11 +79,47 @@ sound/soccermod/joinleave/
 ```
 "JoinLeave"
 {
-    "join_sound"    "soccermod/joinleave/join.wav"
-    "leave_sound"   "soccermod/joinleave/leave.wav"
-    "ready_sound"   "soccermod/joinleave/ready.wav"   // when 12/12
-    "volume"        "1.0"
+    "Sounds"
+    {
+        "join_sound"    "soccermod/joinleave/join.wav"
+        "leave_sound"   "soccermod/joinleave/leave.wav"
+        "ready_sound"   "soccermod/joinleave/ready.wav"
+        "volume"        "1.0"
+    }
+    "Settings"
+    {
+        "enabled"       "1"
+    }
 }
+```
+
+---
+
+## Menu Locations
+
+### Player Settings Menu
+**File:** `menus.sp` in `OpenMenuClientSettings` function
+
+Add new submenu option:
+```
+!menu > Settings > Client Settings >
+  ├── Grass Settings (existing)
+  ├── Shout Settings (existing)
+  ├── Sprint Settings (existing)
+  └── Join/Leave Notifications (NEW)
+        ├── Sound notifications: OFF/ON (default OFF)
+        └── Chat notifications: ON/OFF (default ON)
+```
+
+### Admin Settings Menu
+**File:** `modules/settings.sp` in `OpenMenuSettings` function
+
+Add to Misc Settings or as new top-level option:
+```
+!menu > Settings (Admin) >
+  └── Misc Settings >
+        └── Join/Leave System: ON/OFF (global toggle)
+        └── Join/Leave Volume: 0.25 / 0.5 / 0.75 / 1.0
 ```
 
 ---
@@ -75,14 +132,17 @@ sound/soccermod/joinleave/
 int joinLeaveEnabled = 1;           // 0=OFF, 1=ON (global toggle)
 
 // Per-client preferences (cookie-backed)
-int pcJoinLeaveSound[MAXPLAYERS+1] = {1, ...};   // Per-client sound toggle
-int pcJoinLeaveChat[MAXPLAYERS+1] = {1, ...};    // Per-client chat toggle
+int pcJoinLeaveSound[MAXPLAYERS+1] = {0, ...};   // Per-client sound toggle (default OFF)
+int pcJoinLeaveChat[MAXPLAYERS+1] = {1, ...};    // Per-client chat toggle (default ON)
 
 // Sound paths from config
 char joinLeaveJoinSound[PLATFORM_MAX_PATH];
 char joinLeaveLeaveSound[PLATFORM_MAX_PATH];
 char joinLeaveReadySound[PLATFORM_MAX_PATH];
 float joinLeaveVolume = 1.0;
+
+// Track if sounds were successfully precached
+bool joinLeaveSoundsExist = false;
 
 // Cookie handles
 Handle h_JOINLEAVE_SOUND_COOKIE = INVALID_HANDLE;
@@ -157,11 +217,16 @@ public void LoadJoinLeaveConfig()
     kv.Rewind();
     kv.Close();
 
-    // Precache sounds if they exist
+    // Precache sounds only if files exist
     char soundPath[PLATFORM_MAX_PATH];
+    joinLeaveSoundsExist = false;
 
     Format(soundPath, sizeof(soundPath), "sound/%s", joinLeaveJoinSound);
-    if (FileExists(soundPath)) PrecacheSound(joinLeaveJoinSound);
+    if (FileExists(soundPath))
+    {
+        PrecacheSound(joinLeaveJoinSound);
+        joinLeaveSoundsExist = true;
+    }
 
     Format(soundPath, sizeof(soundPath), "sound/%s", joinLeaveLeaveSound);
     if (FileExists(soundPath)) PrecacheSound(joinLeaveLeaveSound);
@@ -178,10 +243,10 @@ public void JoinLeaveOnClientCookiesCached(int client)
     char buffer[8];
 
     GetClientCookie(client, h_JOINLEAVE_SOUND_COOKIE, buffer, sizeof(buffer));
-    pcJoinLeaveSound[client] = (buffer[0] == '\0') ? 1 : StringToInt(buffer);
+    pcJoinLeaveSound[client] = (buffer[0] == '\0') ? 0 : StringToInt(buffer);  // Default OFF
 
     GetClientCookie(client, h_JOINLEAVE_CHAT_COOKIE, buffer, sizeof(buffer));
-    pcJoinLeaveChat[client] = (buffer[0] == '\0') ? 1 : StringToInt(buffer);
+    pcJoinLeaveChat[client] = (buffer[0] == '\0') ? 1 : StringToInt(buffer);   // Default ON
 }
 ```
 
@@ -222,23 +287,26 @@ public void JoinLeaveNotifyJoin(int client)
         if (IsClientInGame(i) && !IsFakeClient(i) && pcJoinLeaveChat[i])
         {
             if (isFull)
-                CPrintToChat(i, "{%s}[%s] {%s}%N joined (%d/%d players) - Ready to play!",
-                    prefixcolor, prefix, textcolor, client, current, required);
+                CPrintToChat(i, "{%s}[%s] {green}%N {%s}joined ({green}%d/%d players{%s}) - {green}Ready to play!",
+                    prefixcolor, prefix, client, textcolor, current, required, textcolor);
             else
-                CPrintToChat(i, "{%s}[%s] {%s}%N joined (%d/%d players)",
-                    prefixcolor, prefix, textcolor, client, current, required);
+                CPrintToChat(i, "{%s}[%s] {green}%N {%s}joined ({green}%d/%d players{%s})",
+                    prefixcolor, prefix, client, textcolor, current, required, textcolor);
         }
     }
 
-    // Sound notification
-    for (int i = 1; i <= MaxClients; i++)
+    // Sound notification (only if sounds exist and player has it enabled)
+    if (joinLeaveSoundsExist)
     {
-        if (IsClientInGame(i) && !IsFakeClient(i) && pcJoinLeaveSound[i])
+        for (int i = 1; i <= MaxClients; i++)
         {
-            if (isFull && strlen(joinLeaveReadySound) > 0)
-                EmitSoundToClient(i, joinLeaveReadySound, _, _, _, _, joinLeaveVolume);
-            else
-                EmitSoundToClient(i, joinLeaveJoinSound, _, _, _, _, joinLeaveVolume);
+            if (IsClientInGame(i) && !IsFakeClient(i) && pcJoinLeaveSound[i])
+            {
+                if (isFull && strlen(joinLeaveReadySound) > 0)
+                    EmitSoundToClient(i, joinLeaveReadySound, _, _, _, _, joinLeaveVolume);
+                else if (strlen(joinLeaveJoinSound) > 0)
+                    EmitSoundToClient(i, joinLeaveJoinSound, _, _, _, _, joinLeaveVolume);
+            }
         }
     }
 }
@@ -256,17 +324,20 @@ public void JoinLeaveNotifyLeave(int client)
     {
         if (IsClientInGame(i) && !IsFakeClient(i) && i != client && pcJoinLeaveChat[i])
         {
-            CPrintToChat(i, "{%s}[%s] {%s}%N left (%d/%d players)",
-                prefixcolor, prefix, textcolor, client, current, required);
+            CPrintToChat(i, "{%s}[%s] {green}%N {%s}left ({green}%d/%d players{%s})",
+                prefixcolor, prefix, client, textcolor, current, required, textcolor);
         }
     }
 
-    // Sound notification
-    for (int i = 1; i <= MaxClients; i++)
+    // Sound notification (only if sounds exist and player has it enabled)
+    if (joinLeaveSoundsExist && strlen(joinLeaveLeaveSound) > 0)
     {
-        if (IsClientInGame(i) && !IsFakeClient(i) && i != client && pcJoinLeaveSound[i])
+        for (int i = 1; i <= MaxClients; i++)
         {
-            EmitSoundToClient(i, joinLeaveLeaveSound, _, _, _, _, joinLeaveVolume);
+            if (IsClientInGame(i) && !IsFakeClient(i) && i != client && pcJoinLeaveSound[i])
+            {
+                EmitSoundToClient(i, joinLeaveLeaveSound, _, _, _, _, joinLeaveVolume);
+            }
         }
     }
 }
@@ -283,56 +354,81 @@ public int GetRealPlayerCount()
 }
 ```
 
-### Player Settings Menu
-```
-!settings or !menu > Settings > Personal Settings >
-  ├── Join/Leave sounds: ON/OFF
-  └── Join/Leave chat: ON/OFF
-```
-
-### Admin Settings Menu
-```
-!menu > Settings > Server Settings >
-  └── Join/Leave notifications: ON/OFF (global)
-```
-
----
-
-### Directory Creation (OnPluginStart)
+### Player Settings Submenu (menus.sp)
 ```sourcepawn
-// In JoinLeaveOnPluginStart() or main OnPluginStart
-if (!DirExists("sound/soccermod/joinleave"))
-    CreateDirectory("sound/soccermod/joinleave", 511, false);
-```
-
-### Config Update Function (createconfig.sp)
-```sourcepawn
-public void UpdateJoinLeaveConfig(char section[32], char type[50], char value[128])
+public void OpenMenuJoinLeaveSettings(int client)
 {
-    if (!FileExists(joinLeaveConfigFile)) CreateJoinLeaveConfig();
+    Menu menu = new Menu(MenuHandlerJoinLeaveSettings);
+    menu.SetTitle("Join/Leave Notifications");
 
-    KeyValues kv = new KeyValues("JoinLeave");
-    kv.ImportFromFile(joinLeaveConfigFile);
-    kv.JumpToKey(section, true);
-    kv.SetString(type, value);
+    char soundStatus[32], chatStatus[32];
+    Format(soundStatus, sizeof(soundStatus), "Sound notifications: %s", pcJoinLeaveSound[client] ? "ON" : "OFF");
+    Format(chatStatus, sizeof(chatStatus), "Chat notifications: %s", pcJoinLeaveChat[client] ? "ON" : "OFF");
 
-    kv.Rewind();
-    kv.ExportToFile(joinLeaveConfigFile);
-    kv.Close();
+    menu.AddItem("sound", soundStatus);
+    menu.AddItem("chat", chatStatus);
+
+    menu.ExitBackButton = true;
+    menu.Display(client, MENU_TIME_FOREVER);
 }
 
-public void UpdateJoinLeaveConfigInt(char section[32], char type[50], int value)
+public int MenuHandlerJoinLeaveSettings(Menu menu, MenuAction action, int client, int choice)
 {
-    if (!FileExists(joinLeaveConfigFile)) CreateJoinLeaveConfig();
+    if (action == MenuAction_Select)
+    {
+        char info[32];
+        menu.GetItem(choice, info, sizeof(info));
 
-    KeyValues kv = new KeyValues("JoinLeave");
-    kv.ImportFromFile(joinLeaveConfigFile);
-    kv.JumpToKey(section, true);
-    kv.SetNum(type, value);
+        if (StrEqual(info, "sound"))
+        {
+            pcJoinLeaveSound[client] = !pcJoinLeaveSound[client];
+            char buffer[8];
+            IntToString(pcJoinLeaveSound[client], buffer, sizeof(buffer));
+            SetClientCookie(client, h_JOINLEAVE_SOUND_COOKIE, buffer);
+        }
+        else if (StrEqual(info, "chat"))
+        {
+            pcJoinLeaveChat[client] = !pcJoinLeaveChat[client];
+            char buffer[8];
+            IntToString(pcJoinLeaveChat[client], buffer, sizeof(buffer));
+            SetClientCookie(client, h_JOINLEAVE_CHAT_COOKIE, buffer);
+        }
 
-    kv.Rewind();
-    kv.ExportToFile(joinLeaveConfigFile);
-    kv.Close();
+        OpenMenuJoinLeaveSettings(client);
+    }
+    else if (action == MenuAction_Cancel && choice == MenuCancel_ExitBack)
+    {
+        OpenMenuClientSettings(client);
+    }
+    else if (action == MenuAction_End)
+    {
+        delete menu;
+    }
+}
+```
+
+### Admin Settings (modules/settings.sp)
+Add to Misc Settings menu handler:
+```sourcepawn
+// In OpenMenuSettingsMisc - add items:
+char joinLeaveStatus[64];
+Format(joinLeaveStatus, sizeof(joinLeaveStatus), "Join/Leave System: %s", joinLeaveEnabled ? "ON" : "OFF");
+menu.AddItem("joinleave", joinLeaveStatus);
+
+char volumeStatus[64];
+Format(volumeStatus, sizeof(volumeStatus), "Join/Leave Volume: %.2f", joinLeaveVolume);
+menu.AddItem("joinleavevol", volumeStatus);
+
+// In MenuHandlerSettingsMisc - add cases:
+if (StrEqual(info, "joinleave"))
+{
+    joinLeaveEnabled = !joinLeaveEnabled;
+    UpdateJoinLeaveConfigInt("Settings", "enabled", joinLeaveEnabled);
+    OpenMenuSettingsMisc(client);
+}
+else if (StrEqual(info, "joinleavevol"))
+{
+    OpenMenuJoinLeaveVolume(client);
 }
 ```
 
@@ -342,10 +438,12 @@ public void UpdateJoinLeaveConfigInt(char section[32], char type[50], int value)
 
 1. **globals.sp** - Add variables, cookie handles, config path
 2. **createconfig.sp** - Add `CreateJoinLeaveConfig()`, update functions, add to `ConfigFunc()`
-3. **soccer_mod.sp** - Add hooks, cookie registration, call LoadJoinLeaveConfig on map start
-4. **modules/joinleave.sp** (NEW) - Core notification logic
-5. **modules/menus/settings.sp** - Add personal preference toggles
-6. **cfg/sm_soccermod/soccer_mod_joinleave.cfg** (AUTO-GENERATED) - Sound config file
+3. **soccer_mod.sp** - Add hooks, cookie registration, include module, call LoadJoinLeaveConfig on map start
+4. **modules/joinleave.sp** (NEW) - Core notification logic and player settings menu
+5. **menus.sp** - Add "Join/Leave Notifications" option to `OpenMenuClientSettings`
+6. **modules/settings.sp** - Add admin toggles to Misc Settings
+7. **skins/EXAMPLE_soccer_mod_downloads.cfg** - Add download line for sounds folder
+8. **cfg/sm_soccermod/soccer_mod_joinleave.cfg** (AUTO-GENERATED) - Sound config file
 
 ---
 

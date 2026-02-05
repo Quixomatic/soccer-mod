@@ -744,3 +744,216 @@ All changes implemented in v1.4.4:
 
 - **v1.4.4**: ✅ Phase 1 - Core controls (stop, reset, start pick, snake draft, admin commands)
 - **v1.4.5**: ✅ Phase 2 - Automated cap system (auto cap, voting, ready-up)
+- **v1.5.x**: ⏳ Phase 3 - Auto-retry failed votes with new random captains
+
+---
+
+## Phase 3: Auto-Retry Failed Votes (v1.5.x) ⏳ PENDING
+
+### Overview
+When a cap vote fails (doesn't reach >50% yes votes), the system should automatically:
+1. Select two NEW random captains (excluding previously rejected ones)
+2. Start a new vote with the new captains
+3. Continue until vote passes or max attempts reached
+
+### Current Behavior (v1.4.5)
+When vote fails:
+- `CapVoteEnd()` resets state: `capT=0`, `capCT=0`, `capAutoActive=false`
+- Hostname changes to "Public"
+- No automatic retry - players must manually trigger `!autocap` again
+
+### Proposed Behavior
+When vote fails:
+- Track rejected captains for the session
+- Wait 5 seconds (brief pause for players to see result)
+- Automatically select 2 NEW random captains (excluding rejected ones)
+- Start new vote
+- If max attempts (3) reached, give up and notify players
+
+### New State Variables (globals.sp)
+```sourcepawn
+int capVoteAttempt = 0;                    // Current vote attempt number (1-3)
+int capVoteMaxAttempts = 3;                // Max attempts before giving up
+ArrayList capRejectedCaptains = null;      // List of rejected captain Steam IDs
+Handle capRetryTimer = INVALID_HANDLE;     // Timer for retry delay
+```
+
+### Implementation
+
+**Update `CapVoteEnd()` on vote failure:**
+```sourcepawn
+if (percentYes <= 50)
+{
+    // Vote failed
+    CPrintToChatAll("%s Vote failed (%d%% yes). Captains rejected.", CHAT_PREFIX, percentYes);
+
+    // Track rejected captains
+    if (capRejectedCaptains == null)
+        capRejectedCaptains = new ArrayList(ByteCountToCells(32));
+
+    char steamT[32], steamCT[32];
+    GetClientAuthId(capT, AuthId_Steam2, steamT, sizeof(steamT));
+    GetClientAuthId(capCT, AuthId_Steam2, steamCT, sizeof(steamCT));
+    capRejectedCaptains.PushString(steamT);
+    capRejectedCaptains.PushString(steamCT);
+
+    capVoteAttempt++;
+
+    if (capVoteAttempt >= capVoteMaxAttempts)
+    {
+        // Max attempts reached - give up
+        CPrintToChatAll("%s Auto cap cancelled after %d failed votes.", CHAT_PREFIX, capVoteAttempt);
+        CapResetVoteState();
+    }
+    else
+    {
+        // Retry with new captains after delay
+        CPrintToChatAll("%s Selecting new captains in 5 seconds... (attempt %d/%d)",
+            CHAT_PREFIX, capVoteAttempt + 1, capVoteMaxAttempts);
+        capRetryTimer = CreateTimer(5.0, TimerCapVoteRetry);
+    }
+}
+```
+
+**New timer callback:**
+```sourcepawn
+public Action TimerCapVoteRetry(Handle timer)
+{
+    capRetryTimer = INVALID_HANDLE;
+
+    // Re-validate player count
+    if (!CapValidatePlayerCount())
+    {
+        CPrintToChatAll("%s Auto cap cancelled - not enough players.", CHAT_PREFIX);
+        CapResetVoteState();
+        return Plugin_Stop;
+    }
+
+    // Select new random captains (excluding rejected ones)
+    if (!CapSelectRandomCaptains(true))  // true = exclude rejected
+    {
+        CPrintToChatAll("%s Auto cap cancelled - no eligible captains remaining.", CHAT_PREFIX);
+        CapResetVoteState();
+        return Plugin_Stop;
+    }
+
+    // Start new vote
+    CapVoteStart();
+    return Plugin_Stop;
+}
+```
+
+**Update `CapSelectRandomCaptains()` to exclude rejected:**
+```sourcepawn
+public bool CapSelectRandomCaptains(bool excludeRejected = false)
+{
+    ArrayList eligible = new ArrayList();
+
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        if (!IsClientInGame(i) || IsFakeClient(i))
+            continue;
+
+        if (excludeRejected && capRejectedCaptains != null)
+        {
+            char steamId[32];
+            GetClientAuthId(i, AuthId_Steam2, steamId, sizeof(steamId));
+            if (capRejectedCaptains.FindString(steamId) != -1)
+                continue;  // Skip rejected player
+        }
+
+        eligible.Push(i);
+    }
+
+    if (eligible.Length < 2)
+    {
+        delete eligible;
+        return false;
+    }
+
+    // Select 2 random from eligible
+    int idx1 = GetRandomInt(0, eligible.Length - 1);
+    capT = eligible.Get(idx1);
+    eligible.Erase(idx1);
+
+    int idx2 = GetRandomInt(0, eligible.Length - 1);
+    capCT = eligible.Get(idx2);
+
+    delete eligible;
+    return true;
+}
+```
+
+**Reset function:**
+```sourcepawn
+public void CapResetVoteState()
+{
+    capT = 0;
+    capCT = 0;
+    capAutoActive = false;
+    capVoteActive = false;
+    capVoteAttempt = 0;
+
+    if (capRejectedCaptains != null)
+    {
+        delete capRejectedCaptains;
+        capRejectedCaptains = null;
+    }
+
+    if (capRetryTimer != INVALID_HANDLE)
+    {
+        KillTimer(capRetryTimer);
+        capRetryTimer = INVALID_HANDLE;
+    }
+
+    UpdateHostname("Public");
+}
+```
+
+### Timer Management
+Add to `CapKillTimers()`:
+```sourcepawn
+if (capRetryTimer != INVALID_HANDLE)
+{
+    KillTimer(capRetryTimer);
+    capRetryTimer = INVALID_HANDLE;
+}
+```
+
+### User Experience Flow
+```
+!autocap
+    │
+    ▼
+Vote #1: "Cap fight: Alice vs Bob?"
+    │
+  FAIL (45% yes)
+    │
+    ▼
+"Selecting new captains in 5 seconds... (attempt 2/3)"
+    │
+    ▼
+Vote #2: "Cap fight: Charlie vs Dave?"
+    │
+  FAIL (40% yes)
+    │
+    ▼
+"Selecting new captains in 5 seconds... (attempt 3/3)"
+    │
+    ▼
+Vote #3: "Cap fight: Eve vs Frank?"
+    │
+  PASS (65% yes)
+    │
+    ▼
+Ready-up phase → knife fight → picking
+```
+
+### Testing Checklist
+- [ ] Vote fails → auto-retry with new captains
+- [ ] Rejected captains excluded from selection
+- [ ] 5 second delay between failed vote and new vote
+- [ ] Max 3 attempts before giving up
+- [ ] `!resetcap` during retry delay cancels the process
+- [ ] Player disconnect during retry delay handled properly
+- [ ] Edge case: not enough non-rejected players remaining
