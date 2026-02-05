@@ -1,0 +1,25 @@
+{
+  "name": "soccer-mod",
+  "version": "1.4.0",
+  "description": "Soccer Mod for Counter-Strike: Source",
+  "scripts": {
+    "clean": "if exist dist rmdir /s /q dist",
+    "precompile": "if not exist dist mkdir dist",
+    "compile": "cd addons/sourcemod/scripting && \"..\\..\\..\\.sourcemod-source\\addons\\sourcemod\\scripting\\spcomp.exe\" soccer_mod.sp -i\"include\" -i\"..\\..\\..\\.sourcemod-source\\addons\\sourcemod\\scripting\\include\" -o\"..\\..\\..\\dist\\soccer_mod.smx\"",
+    "deploy": "copy dist\\soccer_mod.smx addons\\sourcemod\\plugins\\soccer_mod.smx",
+    "backup": "powershell -Command \"$v=(Get-Content addons/sourcemod/scripting/soccer_mod.sp | Select-String 'PLUGIN_VERSION \\\"([^\\\"]+)\\\"').Matches.Groups[1].Value; New-Item -ItemType Directory -Force -Path \\\"addons/sourcemod/plugins/old/$v\\\"; Copy-Item addons/sourcemod/plugins/soccer_mod.smx \\\"addons/sourcemod/plugins/old/$v/\\\"\"",
+    "build": "npm run compile && npm run deploy",
+    "release": "npm run backup && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MK99MA/SoMoE-19"
+  },
+  "keywords": [
+    "sourcemod",
+    "css",
+    "counter-strike",
+    "soccer"
+  ],
+  "license": "GPL-3.0"
+}

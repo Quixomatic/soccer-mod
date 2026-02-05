@@ -1,0 +1,27 @@
+# SourceMod compiler source (downloaded separately)
+.sourcemod-source/
+
+# Example release reference
+.example-release/
+
+# Build output folder
+dist/
+
+# Updater plugin (external dependency)
+addons/sourcemod/plugins/updater.smx
+
+# Documentation (hosted separately)
+docs/
+
+# Work in progress / development folders
+WIP/
+pre3.0/
+Releases/
+addons/sourcemod/scripting/WIP/
+
+# Large binary files
+*.zip
+
+# OS generated files
+.DS_Store
+Thumbs.db

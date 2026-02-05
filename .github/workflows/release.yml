@@ -1,0 +1,92 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v1.4.0)'
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download SourceMod compiler
+        run: |
+          mkdir -p .sourcemod
+          wget -q "https://sm.alliedmods.net/smdrop/1.12/sourcemod-1.12.0-git7188-linux.tar.gz" -O sourcemod.tar.gz
+          tar -xzf sourcemod.tar.gz -C .sourcemod
+
+      - name: Compile plugin
+        run: |
+          mkdir -p dist
+          cd addons/sourcemod/scripting
+          chmod +x ../../../.sourcemod/addons/sourcemod/scripting/spcomp64
+          ../../../.sourcemod/addons/sourcemod/scripting/spcomp64 soccer_mod.sp \
+            -i"include" \
+            -i"../../../.sourcemod/addons/sourcemod/scripting/include" \
+            -o"../../../dist/soccer_mod.smx"
+
+      - name: Prepare release package
+        run: |
+          mkdir -p release
+
+          # === addons/sourcemod/plugins ===
+          mkdir -p release/addons/sourcemod/plugins
+          cp dist/soccer_mod.smx release/addons/sourcemod/plugins/
+
+          # === addons/sourcemod/scripting (source code) ===
+          mkdir -p release/addons/sourcemod/scripting
+          cp addons/sourcemod/scripting/soccer_mod.sp release/addons/sourcemod/scripting/
+          cp -r addons/sourcemod/scripting/soccer_mod release/addons/sourcemod/scripting/
+
+          # === addons/sourcemod/scripting/include ===
+          mkdir -p release/addons/sourcemod/scripting/include
+          cp addons/sourcemod/scripting/include/advanced_motd.inc release/addons/sourcemod/scripting/include/
+          cp addons/sourcemod/scripting/include/morecolors.inc release/addons/sourcemod/scripting/include/
+          cp addons/sourcemod/scripting/include/SteamWorks.inc release/addons/sourcemod/scripting/include/
+          cp addons/sourcemod/scripting/include/updater.inc release/addons/sourcemod/scripting/include/
+
+          # === cfg/sm_soccermod ===
+          [ -d "cfg/sm_soccermod" ] && cp -r cfg/sm_soccermod release/cfg/
+
+          # === materials ===
+          [ -d "materials" ] && cp -r materials release/
+
+          # === models ===
+          [ -d "models" ] && cp -r models release/
+
+          # === sound (root level) ===
+          [ -d "sound" ] && cp -r sound release/
+
+          # Create release zip
+          cd release
+          zip -r ../soccer-mod-${{ steps.version.outputs.version }}.zip .
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: Soccer Mod ${{ steps.version.outputs.version }}
+          draft: false
+          prerelease: false
+          files: soccer-mod-${{ steps.version.outputs.version }}.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
