@@ -25,7 +25,8 @@ public void ConfigFunc()
 	if (!FileExists(skinsKeygroup)) CreateSkinsConfig();
 	if (!FileExists(statsKeygroupGoalkeeperAreas)) CreateGKAreaConfig();
 	if (!FileExists(mapDefaults)) CreateMapDefaultsConfig();
-	
+	if (!FileExists(joinLeaveConfigFile)) CreateJoinLeaveConfig();
+
 	if (FileExists(configFileKV)) ReadFromConfig();
 }
 
@@ -589,7 +590,114 @@ public void ReadFromConfig()
 	debuggingEnabled		= kvConfig.GetNum("soccer_mod_debug", 0);
 	kvConfig.GetString("soccer_mod_spawnball", spawnModelBall, sizeof(spawnModelBall), "models/soccer_mod/ball_2011.mdl");
 	kvConfig.GoBack();
-	
+
 	kvConfig.Rewind();
 	kvConfig.Close();
+}
+
+// ************************************************* JOIN/LEAVE CONFIG *************************************************
+
+public void CreateJoinLeaveConfig()
+{
+	File hFile = OpenFile(joinLeaveConfigFile, "w");
+	hFile.Close();
+
+	KeyValues kv = new KeyValues("JoinLeave");
+	kv.ImportFromFile(joinLeaveConfigFile);
+
+	kv.JumpToKey("Sounds", true);
+	kv.SetString("join_sound", "soccermod/joinleave/join.wav");
+	kv.SetString("leave_sound", "soccermod/joinleave/leave.wav");
+	kv.SetString("ready_sound", "soccermod/joinleave/ready.wav");
+	kv.SetFloat("volume", 1.0);
+	kv.GoBack();
+
+	kv.JumpToKey("Settings", true);
+	kv.SetNum("enabled", 1);
+	kv.GoBack();
+
+	kv.Rewind();
+	kv.ExportToFile(joinLeaveConfigFile);
+	kv.Close();
+}
+
+public void LoadJoinLeaveConfig()
+{
+	if (!FileExists(joinLeaveConfigFile)) CreateJoinLeaveConfig();
+
+	KeyValues kv = new KeyValues("JoinLeave");
+	kv.ImportFromFile(joinLeaveConfigFile);
+
+	kv.JumpToKey("Sounds", false);
+	kv.GetString("join_sound", joinLeaveJoinSound, sizeof(joinLeaveJoinSound), "soccermod/joinleave/join.wav");
+	kv.GetString("leave_sound", joinLeaveLeaveSound, sizeof(joinLeaveLeaveSound), "soccermod/joinleave/leave.wav");
+	kv.GetString("ready_sound", joinLeaveReadySound, sizeof(joinLeaveReadySound), "soccermod/joinleave/ready.wav");
+	joinLeaveVolume = kv.GetFloat("volume", 1.0);
+	kv.GoBack();
+
+	kv.JumpToKey("Settings", false);
+	joinLeaveEnabled = kv.GetNum("enabled", 1);
+	kv.GoBack();
+
+	kv.Rewind();
+	kv.Close();
+
+	// Precache sounds only if files exist
+	char soundPath[PLATFORM_MAX_PATH];
+	joinLeaveSoundsExist = false;
+
+	Format(soundPath, sizeof(soundPath), "sound/%s", joinLeaveJoinSound);
+	if (FileExists(soundPath))
+	{
+		PrecacheSound(joinLeaveJoinSound);
+		joinLeaveSoundsExist = true;
+	}
+
+	Format(soundPath, sizeof(soundPath), "sound/%s", joinLeaveLeaveSound);
+	if (FileExists(soundPath)) PrecacheSound(joinLeaveLeaveSound);
+
+	Format(soundPath, sizeof(soundPath), "sound/%s", joinLeaveReadySound);
+	if (FileExists(soundPath)) PrecacheSound(joinLeaveReadySound);
+}
+
+public void UpdateJoinLeaveConfig(char[] section, char[] type, char[] value)
+{
+	if (!FileExists(joinLeaveConfigFile)) CreateJoinLeaveConfig();
+
+	KeyValues kv = new KeyValues("JoinLeave");
+	kv.ImportFromFile(joinLeaveConfigFile);
+	kv.JumpToKey(section, true);
+	kv.SetString(type, value);
+
+	kv.Rewind();
+	kv.ExportToFile(joinLeaveConfigFile);
+	kv.Close();
+}
+
+public void UpdateJoinLeaveConfigInt(char[] section, char[] type, int value)
+{
+	if (!FileExists(joinLeaveConfigFile)) CreateJoinLeaveConfig();
+
+	KeyValues kv = new KeyValues("JoinLeave");
+	kv.ImportFromFile(joinLeaveConfigFile);
+	kv.JumpToKey(section, true);
+	kv.SetNum(type, value);
+
+	kv.Rewind();
+	kv.ExportToFile(joinLeaveConfigFile);
+	kv.Close();
+}
+
+public void UpdateJoinLeaveConfigFloat(char[] section, char[] type, float value)
+{
+	if (!FileExists(joinLeaveConfigFile)) CreateJoinLeaveConfig();
+
+	KeyValues kv = new KeyValues("JoinLeave");
+	kv.ImportFromFile(joinLeaveConfigFile);
+	kv.JumpToKey(section, true);
+	kv.SetFloat(type, value);
+
+	kv.Rewind();
+	kv.ExportToFile(joinLeaveConfigFile);
+	kv.Close();
 }

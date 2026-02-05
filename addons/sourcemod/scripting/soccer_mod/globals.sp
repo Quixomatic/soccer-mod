@@ -746,3 +746,28 @@ char trainingModelBlock[128] = "models/soccer_mod/training_goalblock.mdl";
 //char trainingModel1v1[128] = "models/soccer_mod/training_1v1.mdl";
 char trainingModelCone[128] = "models/props_junk/trafficcone001a.mdl";
 char AdvTrain_PW[32]							= "coaching";
+
+// ************************************************* JOIN/LEAVE ************************************************
+
+// PATHS
+char joinLeaveConfigFile[PLATFORM_MAX_PATH] = "cfg/sm_soccermod/soccer_mod_joinleave.cfg";
+
+// BOOL
+bool joinLeaveSoundsExist = false;
+
+// HANDLES
+Handle h_JOINLEAVE_SOUND_COOKIE = INVALID_HANDLE;
+Handle h_JOINLEAVE_CHAT_COOKIE = INVALID_HANDLE;
+
+// INTEGER
+int joinLeaveEnabled = 1;
+int pcJoinLeaveSound[MAXPLAYERS+1] = {0, ...};   // Default OFF
+int pcJoinLeaveChat[MAXPLAYERS+1] = {1, ...};    // Default ON
+
+// FLOATS
+float joinLeaveVolume = 1.0;
+
+// STRINGS
+char joinLeaveJoinSound[PLATFORM_MAX_PATH];
+char joinLeaveLeaveSound[PLATFORM_MAX_PATH];
+char joinLeaveReadySound[PLATFORM_MAX_PATH];

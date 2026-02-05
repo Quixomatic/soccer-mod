@@ -99,8 +99,10 @@ public void OpenMenuClientSettings(int client)
 	menu.AddItem("pc_grass", GrassString);
 
 	menu.AddItem("pc_shout", ShoutString);
-	
+
 	menu.AddItem("sprintinfo", "Sprintsettings");
+
+	menu.AddItem("joinleave", "Join/Leave Notifications");
 
 	menu.ExitBackButton = true;
 	menu.Display(client, MENU_TIME_FOREVER);
@@ -141,7 +143,8 @@ public int MenuHandlerClientSettings(Menu menu, MenuAction action, int client, i
 			}
 			OpenMenuClientSettings(client);
 		}
-		else if (StrEqual(menuItem, "sprintinfo"))  OpenInfoPanel(client); 
+		else if (StrEqual(menuItem, "sprintinfo"))  OpenInfoPanel(client);
+		else if (StrEqual(menuItem, "joinleave"))   OpenMenuJoinLeaveSettings(client);
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSoccer(client);
 	else if (action == MenuAction_End)					  	menu.Close();

@@ -1,5 +1,24 @@
 # Soccer Mod Changelog
 
+## 1.4.9
+
+### New
+- Added Join/Leave notification system
+- Chat notifications when players join or leave the server
+- Shows player count vs required players (e.g., "11/12 players")
+- Special "Ready to play!" message when server reaches capacity
+- Per-player preferences for chat and sound notifications (via Settings menu)
+- Sounds off by default (opt-in), chat on by default
+- Admin controls in Misc Settings: global toggle and volume control
+- Configurable sounds via `cfg/sm_soccermod/soccer_mod_joinleave.cfg`
+- Graceful handling when sound files don't exist
+
+### Config
+- New config file: `soccer_mod_joinleave.cfg` with sound paths and volume settings
+- Updated `EXAMPLE_soccer_mod_downloads.cfg` with joinleave sounds folder
+
+---
+
 ## 1.4.8
 
 ### New

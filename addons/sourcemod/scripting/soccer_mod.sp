@@ -1,7 +1,7 @@
 // **************************************************************************************************************
 // ************************************************** DEFINES ***************************************************
 // ************************************************************************************************************** 
-#define PLUGIN_VERSION "1.4.8"
+#define PLUGIN_VERSION "1.4.9"
 #define UPDATE_URL "https://raw.githubusercontent.com/Quixomatic/soccer-mod/main/addons/sourcemod/updatefile.txt"
 #define MAX_NAMES 10
 #define MAXCONES_DYN 15
@@ -65,6 +65,7 @@
 #include "soccer_mod/modules/grassreplacer.sp"
 #include "soccer_mod/modules/spawnball.sp"
 #include "soccer_mod/modules/whois.sp"
+#include "soccer_mod/modules/joinleave.sp"
 
 #include "soccer_mod/fixes/join_team.sp"
 #include "soccer_mod/fixes/radio_commands.sp"
@@ -156,6 +157,10 @@ public void OnPluginStart()
 	ConnectlistOnPluginStart();
 	ShoutOnPluginStart();
 	ReplacerOnPluginStart();
+
+	// Join/Leave cookies
+	h_JOINLEAVE_SOUND_COOKIE = RegClientCookie("sm_joinleave_sound", "Join/Leave sound preference", CookieAccess_Protected);
+	h_JOINLEAVE_CHAT_COOKIE = RegClientCookie("sm_joinleave_chat", "Join/Leave chat preference", CookieAccess_Protected);
 
 	LoadJoinTeamFix();
 	LoadRadioCommandsFix();
@@ -712,6 +717,7 @@ public void OnMapStart()
 	ReplacerOnMapStart();
 	ConnectlistOnMapStart();
 	ReadycheckOnMapStart();
+	LoadJoinLeaveConfig();
 
 	//shoutset
 	for (int player = 1; player <= MaxClients; player++)
@@ -824,9 +830,10 @@ public void OnClientConnected(int client)
 	return;
 }
 
-public void OnClientPostAdminCheck(int client) 
+public void OnClientPostAdminCheck(int client)
 {
-	ReplacerOnClientPostAdminCheck(client); 
+	ReplacerOnClientPostAdminCheck(client);
+	JoinLeaveNotifyJoin(client);
 }
 
 public void OnClientAuthorized(int client, const char[] auth)
@@ -991,12 +998,16 @@ public void OnClientCookiesCached(int client)
 	if(IsClientConnected(client))
 	{
 		ReadClientCookie(client);
+		JoinLeaveOnClientCookiesCached(client);
 	}
 	return;
 }
 
 public void OnClientDisconnect(int client)
 {
+	// Notify leave before client data is cleaned up
+	JoinLeaveNotifyLeave(client);
+
 	DatabaseCheckPlayer(client);
 
 	RespawnOnClientDisconnect(client);

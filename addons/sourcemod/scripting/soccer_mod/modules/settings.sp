@@ -94,7 +94,7 @@ public void OpenMenuMiscSettings(int client)
 
 	menu.SetTitle("Soccer Mod - Admin - Settings - Misc");
 
-	char ReadyString[32], DamageString[32], DissolveString[32], DJString[32], JoinString[32], RankString[32], HostString[32], DefaultString[32], FeedString[32], GKString[32], RankModeString[32], CelebrateString[32], WallString[32], First12String[32];
+	char ReadyString[32], DamageString[32], DissolveString[32], DJString[32], JoinString[32], RankString[32], HostString[32], DefaultString[32], FeedString[32], GKString[32], RankModeString[32], CelebrateString[32], WallString[32], First12String[32], JoinLeaveString[48], JoinLeaveVolString[48];
 	if(matchReadyCheck == 0)			ReadyString = "Ready Check: OFF";
 	else if (matchReadyCheck == 1)		ReadyString = "Ready Check: AUTO";
 	else if (matchReadyCheck == 2)		ReadyString = "Ready Check: ON USE";
@@ -139,7 +139,11 @@ public void OpenMenuMiscSettings(int client)
 	if(first12Set == 0)					First12String = "First 12 Rule: OFF";
 	else if(first12Set == 1)			First12String = "First 12 Rule: ON";
 	else if(first12Set == 2)			First12String = "First 12 Rule: Pre-Cap Join";
-	
+
+	if(joinLeaveEnabled == 0)			JoinLeaveString = "Join/Leave Notify: OFF";
+	else								JoinLeaveString = "Join/Leave Notify: ON";
+
+	Format(JoinLeaveVolString, sizeof(JoinLeaveVolString), "Join/Leave Volume: %.2f", joinLeaveVolume);
 	Format(RankString, sizeof(RankString), "!rank Cooldown: %i", rankingCDTime);
 	
 	menu.AddItem("classchoice", JoinString);
@@ -156,6 +160,8 @@ public void OpenMenuMiscSettings(int client)
 	menu.AddItem("gksaves", GKString);
 	menu.AddItem("rankmode", RankModeString);
 	menu.AddItem("celebrate", CelebrateString);
+	menu.AddItem("joinleave", JoinLeaveString);
+	menu.AddItem("joinleavevol", JoinLeaveVolString);
 	/*if (debuggingEnabled == 1 && CheckCommandAccess(client, "generic_admin", ADMFLAG_RCON, true)) menu.AddItem("gk_areas", "Set gk areas");*/
 
 	menu.ExitBackButton = true;
@@ -380,6 +386,16 @@ public int MenuHandlerMiscSettings(Menu menu, MenuAction action, int client, int
 				UpdateConfigInt("Misc Settings", "soccer_mod_first12", first12Set);
 			}
 			OpenMenuMiscSettings(client);
+		}
+		else if(StrEqual(menuItem, "joinleave"))
+		{
+			joinLeaveEnabled = !joinLeaveEnabled;
+			UpdateJoinLeaveConfigInt("Settings", "enabled", joinLeaveEnabled);
+			OpenMenuMiscSettings(client);
+		}
+		else if(StrEqual(menuItem, "joinleavevol"))
+		{
+			OpenMenuJoinLeaveVolume(client);
 		}
 		/*else if(StrEqual(menuItem, "gk_areas"))		OpenMenuGKAreas(client);*/	
 	}
