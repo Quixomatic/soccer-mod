@@ -4,14 +4,19 @@
 
 Add admin controls and automated cap system:
 
-### Phase 1: Core Controls (v1.4.4)
-1. **Stop Cap Fight** - Cancel an active cap fight
-2. **Reset Cap** - Global reset of ALL cap-related state (fight, picking, voting, ready-up)
-3. **Start Pick Menu** - Auto-detect captains from teams and start picking
-4. **Snake Draft Pick Order** - Fair pick order where 2nd picker gets compensation
+### Phase 1: Core Controls (v1.4.4) ✅ COMPLETE
+1. ✅ **Stop Cap Fight** - `!stopcap` / menu option
+2. ✅ **Reset Cap** - `!resetcap` / menu option
+3. ✅ **Start Pick Menu** - `!startpick` / menu option
+4. ✅ **Snake Draft Pick Order** - Configurable toggle in menu
+5. ✅ **Captain Disconnect Handling** - Auto-reset on captain leave
+6. ✅ **Timer Management** - Proper cleanup on stop/reset
 
-### Phase 2: Automated Cap System (v1.5.0)
-5. **Auto Cap** - Full automated flow: spec all → random captains → vote → ready-up → knife fight
+**Implemented in:** v1.4.4 (released)
+**Files modified:** globals.sp, createconfig.sp, cap.sp, client_commands.sp, soccer_mod.sp
+
+### Phase 2: Automated Cap System (v1.5.0) ⏳ PENDING
+7. **Auto Cap** - Full automated flow: spec all → random captains → vote → ready-up → knife fight
 
 ---
 
@@ -439,10 +444,10 @@ capCountdownEndTimer = CreateTimer(3.0, TimerCapFightCountDownEnd);
 
 ---
 
-## Phase 2: Automated Cap System (Future)
+## Phase 2: Automated Cap System (v1.5.0) ⏳ PENDING
 
 ### Overview
-Full automated captain selection flow:
+Full automated captain selection flow with voting and ready-up:
 1. Admin triggers `!autocap`
 2. All players moved to spectator
 3. Validate minimum player count (`matchMaxPlayers * 2`)
@@ -659,50 +664,42 @@ Soccer Mod - Cap Menu
 
 ## Files to Modify
 
-### Phase 1
+### Phase 1 ✅ COMPLETE
+All changes implemented in v1.4.4:
+- globals.sp - Timer handles, snake draft variables
+- createconfig.sp - Snake draft config
+- cap.sp - All control functions, menu updates, pick handler
+- client_commands.sp - Admin commands
+- soccer_mod.sp - Disconnect handler
+
+### Phase 2 Implementation Tasks
 1. **globals.sp**
-   - Add timer handles for cap countdown/grenade timers
-   - Add `capPickNumber`, `capFirstPicker`, and `capSnakeDraft` for snake draft
+   - Add: `capAutoActive`, `capVoteActive`, `capReadyT`, `capReadyCT`
+   - Add: `capVotesYes`, `capVotesNo`, `capVotesNeeded`
+   - Add: `capVoteTimer`, `capReadyTimer` handles
 
-2. **createconfig.sp**
-   - Add read/write for `soccer_mod_cap_snake_draft` in Cap Settings section
+2. **cap.sp**
+   - Add `CapAutoStart(int client)` - Main entry point for !autocap
+   - Add `CapValidatePlayerCount()` - Check minimum players
+   - Add `CapSelectRandomCaptains()` - Pick 2 random players
+   - Add `CapVoteStart()` - Start the vote with menu
+   - Add `CapVoteHandler()` - Handle vote responses
+   - Add `CapVoteEnd()` - Tally votes, proceed or fail
+   - Add `CapReadyStart()` - Begin ready-up phase
+   - Add `CapReadyCommand()` - Handle !k command
+   - Add `CapReadyCheck()` - Check if both ready, start fight
+   - Update `CapReset()` - Reset new state variables
+   - Update `CapKillTimers()` - Kill vote/ready timers
+   - Update `CapOnClientDisconnect()` - Handle during vote/ready phases
+   - Add "Auto cap" menu option in `OpenCapMenu()`
 
-3. **cap.sp**
-   - Add `CapStopFight()` function
-   - Add `CapReset()` function
-   - Add `CapStartPicking()` function
-   - Add `CapKillTimers()` function
-   - Add `GetNextPicker()` function for snake draft
-   - Add "Snake draft: ON/OFF" menu option in `OpenCapMenu()`
-   - Update `CapMenuHandler()` to toggle snake draft setting
-   - Update `CapPickMenuHandler()` to use `GetNextPicker()`
-   - Update `CapEventRoundEnd()` to set `capFirstPicker`
-   - Update timer creation to store handles
-
-4. **server_commands.sp** or **client_commands.sp**
-   - Add `sm_stopcap` command
-   - Add `sm_resetcap` command
-   - Add `sm_startpick` command
-
-5. **soccer_mod.sp** (line ~950, in OnClientDisconnect)
-   - Add call to `CapOnClientDisconnect(client)`
-
-### Phase 2
-1. **globals.sp**
-   - Add auto cap state variables
-
-2. **cap.sp** (or new **autocap.sp** module)
-   - Add `CapAutoStart()` function
-   - Add `CapValidatePlayerCount()` function
-   - Add `CapVoteStart()` / `CapVoteEnd()` functions
-   - Add `CapReadyUp()` function
-   - Add `!k` command handler
-   - Update `CapReset()` to handle all new states
-   - Update `CapKillTimers()` for new timers
+3. **client_commands.sp**
+   - Add `sm_autocap` command registration
+   - Add `sm_k` / `say .k` command for ready-up
 
 ---
 
 ## Version Plan
 
-- **v1.4.4**: Phase 1 - Core controls (stop, reset, start pick, snake draft, admin commands)
-- **v1.5.0**: Phase 2 - Automated cap system (auto cap, voting, ready-up)
+- **v1.4.4**: ✅ Phase 1 - Core controls (stop, reset, start pick, snake draft, admin commands)
+- **v1.5.0**: ⏳ Phase 2 - Automated cap system (auto cap, voting, ready-up)
