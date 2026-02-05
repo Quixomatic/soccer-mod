@@ -5,9 +5,9 @@
 
 //INCLUDES
 
-#include "soccer_mod\modules\sprint\clientsettings.sp"
-#include "soccer_mod\modules\sprint\infopanel.sp"
-#include "soccer_mod\modules\sprint\timers.sp"
+#include "soccer_mod/modules/sprint/clientsettings.sp"
+#include "soccer_mod/modules/sprint/infopanel.sp"
+#include "soccer_mod/modules/sprint/timers.sp"
 
 
 public void SprintOnPluginStart()

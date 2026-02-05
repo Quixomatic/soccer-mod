@@ -1,6 +1,6 @@
-#include "soccer_mod\modules\shout\config.sp"
-#include "soccer_mod\modules\shout\listener.sp"
-#include "soccer_mod\modules\shout\menu.sp"
+#include "soccer_mod/modules/shout/config.sp"
+#include "soccer_mod/modules/shout/listener.sp"
+#include "soccer_mod/modules/shout/menu.sp"
 
 // ******************************************************************************************************************
 // ************************************************** PLUGIN START **************************************************

@@ -1,8 +1,8 @@
-#include "soccer_mod\modules\adminmanagement\add_admins.sp"
-#include "soccer_mod\modules\adminmanagement\edit_admins.sp"
-#include "soccer_mod\modules\adminmanagement\remove_admins.sp"
-#include "soccer_mod\modules\adminmanagement\online_admins.sp"
-#include "soccer_mod\modules\adminmanagement\admin_list.sp"
+#include "soccer_mod/modules/adminmanagement/add_admins.sp"
+#include "soccer_mod/modules/adminmanagement/edit_admins.sp"
+#include "soccer_mod/modules/adminmanagement/remove_admins.sp"
+#include "soccer_mod/modules/adminmanagement/online_admins.sp"
+#include "soccer_mod/modules/adminmanagement/admin_list.sp"
 
 // *******************************************************************************************************************
 // *************************************************** ADMIN MENU ****************************************************

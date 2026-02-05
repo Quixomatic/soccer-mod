@@ -442,10 +442,10 @@ public Action ServerCommands(int args)
 // **************************************************************************************************************
 // ************************************************** INCLUDES **************************************************
 // **************************************************************************************************************
-#include "soccer_mod\server_commands\health.sp"
-#include "soccer_mod\server_commands\match.sp"
-#include "soccer_mod\server_commands\ranking.sp"
-#include "soccer_mod\server_commands\respawn.sp"
-#include "soccer_mod\server_commands\skins.sp"
-#include "soccer_mod\server_commands\sprint.sp"
-#include "soccer_mod\server_commands\training.sp"
+#include "soccer_mod/server_commands/health.sp"
+#include "soccer_mod/server_commands/match.sp"
+#include "soccer_mod/server_commands/ranking.sp"
+#include "soccer_mod/server_commands/respawn.sp"
+#include "soccer_mod/server_commands/skins.sp"
+#include "soccer_mod/server_commands/sprint.sp"
+#include "soccer_mod/server_commands/training.sp"
