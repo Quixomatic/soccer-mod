@@ -1,5 +1,24 @@
 # Soccer Mod Changelog
 
+## 1.4.8
+
+### New
+- Integrated WhoIS player tracking system as built-in module
+- Tracks player names across sessions with first name, current name, and alias support
+- Connect announcements: "Known as: [alias/first name]" for returning players
+- Welcome message for new players
+- `!whois` / `.whois` - Look up player info (name, alias, SteamID, connections, admin status)
+- `!alias <name>` / `.alias` - Set your preferred display alias
+- `!whois_history` / `.history` - Admin command to view player name history (last 10 names)
+- Player selection menu when using commands without arguments
+- IP address shown only to admins in whois lookup
+
+### Database
+- Added `whois_players` table (steamid, first_name, current_name, alias, ip, timestamps, connection count)
+- Added `whois_names` table (name history with first/last used timestamps)
+
+---
+
 ## 1.4.7
 
 ### New

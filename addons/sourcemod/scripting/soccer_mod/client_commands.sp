@@ -24,6 +24,11 @@ public void RegisterClientCommands()
 	RegConsoleCmd("sm_hide", Command_HidePanel, "Hide the ready panel");
 	RegConsoleCmd("sm_show", Command_ShowPanel, "Show the ready panel");
 
+	// WhoIS commands
+	RegConsoleCmd("sm_whois", Command_WhoIs, "Look up player information");
+	RegConsoleCmd("sm_alias", Command_Alias, "Set your preferred alias");
+	RegAdminCmd("sm_whois_history", Command_WhoIsHistory, ADMFLAG_GENERIC, "Show player name history");
+
 	RegConsoleCmd("sm_admins", AdminListCommand, "Shows a list of Online Admins");
 	RegConsoleCmd("sm_cap", CapCommand, "Opens the Soccer Mod cap menu");
 	RegAdminCmd("sm_stopcap", StopCapCommand, ADMFLAG_GENERIC, "Stops an active cap fight");

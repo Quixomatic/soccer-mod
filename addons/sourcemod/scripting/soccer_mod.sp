@@ -1,7 +1,7 @@
 // **************************************************************************************************************
 // ************************************************** DEFINES ***************************************************
 // ************************************************************************************************************** 
-#define PLUGIN_VERSION "1.4.7"
+#define PLUGIN_VERSION "1.4.8"
 #define UPDATE_URL "https://raw.githubusercontent.com/Quixomatic/soccer-mod/main/addons/sourcemod/updatefile.txt"
 #define MAX_NAMES 10
 #define MAXCONES_DYN 15
@@ -64,6 +64,7 @@
 #include "soccer_mod/modules/shout.sp"
 #include "soccer_mod/modules/grassreplacer.sp"
 #include "soccer_mod/modules/spawnball.sp"
+#include "soccer_mod/modules/whois.sp"
 
 #include "soccer_mod/fixes/join_team.sp"
 #include "soccer_mod/fixes/radio_commands.sp"
@@ -244,6 +245,23 @@ public Action SayCommandListener(int client, char[] command, int argc)
 		if (StrEqual(cmdArg1, ".show"))
 		{
 			ReadyCheckShowPanelCmd(client);
+			return Plugin_Handled;
+		}
+
+		// WhoIS commands
+		if (StrEqual(cmdArg1, ".whois"))
+		{
+			Command_WhoIs(client, 0);
+			return Plugin_Handled;
+		}
+		if (StrEqual(cmdArg1, ".alias"))
+		{
+			Command_Alias(client, 0);
+			return Plugin_Handled;
+		}
+		if (StrEqual(cmdArg1, ".history"))
+		{
+			Command_WhoIsHistory(client, 0);
 			return Plugin_Handled;
 		}
 
@@ -811,10 +829,10 @@ public void OnClientPostAdminCheck(int client)
 	ReplacerOnClientPostAdminCheck(client); 
 }
 
-public void OnClientAuthorized(int client)
-{	
+public void OnClientAuthorized(int client, const char[] auth)
+{
 	LCOnClientConnected(client);
-	return;
+	WhoISOnClientAuthorized(client, auth);
 }
 
 public void OnClientPutInServer(int client)

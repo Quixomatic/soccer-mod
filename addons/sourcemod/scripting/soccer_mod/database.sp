@@ -69,7 +69,10 @@ public void CreateTables()
 		points			INTEGER		 DEFAULT '0'	 NOT NULL\
 	)";
 	SQL_FastQuery(db, query);
-		
+
+	// WhoIS tables
+	WhoISCreateTables();
+
 	ApplyPatches();
 }
 
