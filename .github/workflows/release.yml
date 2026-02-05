@@ -30,6 +30,39 @@ jobs:
             echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
           fi
 
+      - name: Extract changelog
+        id: changelog
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          # Remove 'v' prefix if present for matching changelog headers
+          VERSION_NUM="${VERSION#v}"
+
+          # Extract the section for this version from CHANGELOG.md
+          # Matches from "## X.Y.Z" until the next "---" separator
+          if [ -f "CHANGELOG.md" ]; then
+            CHANGELOG=$(awk -v ver="$VERSION_NUM" '
+              BEGIN { found=0; output="" }
+              /^## / {
+                if (found) exit
+                if ($2 == ver) found=1
+              }
+              found && /^---$/ { exit }
+              found { output = output $0 "\n" }
+              END { print output }
+            ' CHANGELOG.md)
+
+            if [ -n "$CHANGELOG" ]; then
+              # Use delimiter for multiline output
+              echo "changelog<<EOF" >> $GITHUB_OUTPUT
+              echo "$CHANGELOG" >> $GITHUB_OUTPUT
+              echo "EOF" >> $GITHUB_OUTPUT
+            else
+              echo "changelog=No changelog entry found for version $VERSION_NUM" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "changelog=No CHANGELOG.md found" >> $GITHUB_OUTPUT
+          fi
+
       - name: Download SourceMod compiler
         run: |
           mkdir -p .sourcemod
@@ -76,9 +109,9 @@ jobs:
         with:
           tag_name: ${{ steps.version.outputs.version }}
           name: Soccer Mod ${{ steps.version.outputs.version }}
+          body: ${{ steps.changelog.outputs.changelog }}
           draft: false
           prerelease: false
           files: soccer-mod-${{ steps.version.outputs.version }}.zip
-          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
