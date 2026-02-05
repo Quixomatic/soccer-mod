@@ -789,6 +789,41 @@ Handle capRetryTimer = INVALID_HANDLE;     // Timer for retry delay
 
 ### Implementation
 
+**Check if player is eligible to be a captain (First 12 rule):**
+```sourcepawn
+public bool IsPlayerEligibleForCap(int client)
+{
+    // Captains must always be real players (never bots, even in debug mode)
+    // Debug mode only allows bots to be PICKED, not to BE captains
+    if (!IsClientInGame(client) || IsFakeClient(client) || IsClientSourceTV(client))
+        return false;
+
+    // If First 12 rule is OFF, all real players are eligible
+    if (first12Set == 0)
+        return true;
+
+    // Get player's join number
+    char steamid[32];
+    GetClientAuthId(client, AuthId_Engine, steamid, sizeof(steamid));
+    int joinNumber = ImportJoinNumber(steamid);
+
+    // first12Set == 1: Standard First N rule (N = matchMaxPlayers * 2)
+    if (first12Set == 1)
+        return joinNumber <= (matchMaxPlayers * 2);
+
+    // first12Set == 2: Pre-Cap Join mode (uses capnr from when cap started)
+    if (first12Set == 2)
+        return joinNumber <= capnr;
+
+    return true;
+}
+```
+
+**Note on debug mode:** `capDebugMode` only affects:
+- `CapValidatePlayerCount()` - counts bots toward player minimum
+- `CapCreatePickMenu()` - shows bots as pickable players
+- Captains must still be real players even in debug mode
+
 **Generate and shuffle all pairs on `!autocap`:**
 ```sourcepawn
 public void CapGenerateCaptainPairs()
@@ -801,11 +836,11 @@ public void CapGenerateCaptainPairs()
     capPairIndex = 0;
     capPairsExhausted = false;
 
-    // Get all eligible players
+    // Get all eligible players (respects First 12 rule)
     ArrayList players = new ArrayList();
     for (int i = 1; i <= MaxClients; i++)
     {
-        if (IsClientInGame(i) && !IsFakeClient(i) && !IsClientSourceTV(i))
+        if (IsPlayerEligibleForCap(i))
             players.Push(i);
     }
 
@@ -867,9 +902,10 @@ public bool CapSelectPurelyRandomCaptains()
 {
     ArrayList eligible = new ArrayList();
 
+    // Only include players eligible under First 12 rule
     for (int i = 1; i <= MaxClients; i++)
     {
-        if (IsClientInGame(i) && !IsFakeClient(i) && !IsClientSourceTV(i))
+        if (IsPlayerEligibleForCap(i))
             eligible.Push(i);
     }
 
