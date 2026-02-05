@@ -35,6 +35,7 @@ public void RegisterClientCommands()
 	RegAdminCmd("sm_resetcap", ResetCapCommand, ADMFLAG_GENERIC, "Resets the cap system");
 	RegAdminCmd("sm_startpick", StartPickCommand, ADMFLAG_GENERIC, "Starts the picking phase");
 	RegAdminCmd("sm_autocap", AutoCapCommand, ADMFLAG_GENERIC, "Starts the auto cap system");
+	RegAdminCmd("sm_pug", AutoCapCommand, ADMFLAG_GENERIC, "Starts the auto cap system (alias for !autocap)");
 	RegConsoleCmd("sm_vote", VoteCommand, "Opens the auto cap vote menu");
 	RegConsoleCmd("sm_k", ReadyCommand, "Ready up for cap fight (captains only)");
 	RegConsoleCmd("sm_commands", CommandsCommand, "Opens the Soccer Mod commands list");
