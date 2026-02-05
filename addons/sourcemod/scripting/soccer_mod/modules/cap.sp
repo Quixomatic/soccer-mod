@@ -34,6 +34,11 @@ public void CapKillTimers()
 		KillTimer(capVoteTimer);
 		capVoteTimer = INVALID_HANDLE;
 	}
+	if (capVoteHudTimer != INVALID_HANDLE)
+	{
+		KillTimer(capVoteHudTimer);
+		capVoteHudTimer = INVALID_HANDLE;
+	}
 	if (capReadyTimer != INVALID_HANDLE)
 	{
 		KillTimer(capReadyTimer);
@@ -251,9 +256,9 @@ public void CapStartPicking(int client)
 	HostName_Change_Status("Picking");
 
 	// Notify
-	CPrintToChatAll("{%s}[%s] {%s}Picking phase started!", prefixcolor, prefix, textcolor);
-	CPrintToChatAll("{%s}[%s] {%s}T Captain: %N | CT Captain: %N", prefixcolor, prefix, textcolor, capT, capCT);
-	CPrintToChatAll("{%s}[%s] {%s}%N is picking first.", prefixcolor, prefix, textcolor, capPicker);
+	CPrintToChatAll("{%s}[%s] {green}▶ Picking phase started!", prefixcolor, prefix);
+	CPrintToChatAll("{%s}[%s] {red}T Captain: {green}%N {%s}| {blue}CT Captain: {green}%N", prefixcolor, prefix, capT, textcolor, capCT);
+	CPrintToChatAll("{%s}[%s] {green}%N {%s}is picking first.", prefixcolor, prefix, capPicker, textcolor);
 
 	// Open pick menu for first picker
 	OpenCapPickMenu(capPicker);
@@ -415,12 +420,80 @@ public void CapSelectRandomCaptains(int adminClient)
 	ChangeClientTeam(capT, 2);  // T
 	ChangeClientTeam(capCT, 3); // CT
 
-	CPrintToChatAll("{%s}[%s] {%s}Random captains selected:", prefixcolor, prefix, textcolor);
-	CPrintToChatAll("{%s}[%s] {%s}T Captain: %N", prefixcolor, prefix, textcolor, capT);
-	CPrintToChatAll("{%s}[%s] {%s}CT Captain: %N", prefixcolor, prefix, textcolor, capCT);
+	CPrintToChatAll("{%s}[%s] {green}▶ Random captains selected:", prefixcolor, prefix);
+	CPrintToChatAll("{%s}[%s] {red}T Captain: {green}%N", prefixcolor, prefix, capT);
+	CPrintToChatAll("{%s}[%s] {blue}CT Captain: {green}%N", prefixcolor, prefix, capCT);
 
 	// Start the vote
 	CapVoteStart();
+}
+
+// Build a visual progress bar
+// percent: 0-100, width: number of characters
+public void BuildProgressBar(char[] buffer, int maxlen, int percent, int width)
+{
+	int filled = (percent * width) / 100;
+	int empty = width - filled;
+
+	char bar[64];
+	bar[0] = '\0';
+
+	for (int i = 0; i < filled; i++)
+		StrCat(bar, sizeof(bar), "█");
+	for (int i = 0; i < empty; i++)
+		StrCat(bar, sizeof(bar), "░");
+
+	strcopy(buffer, maxlen, bar);
+}
+
+// Update vote HUD for all players
+public void CapVoteUpdateHud()
+{
+	if (!capVoteActive) return;
+
+	int voted = capVotesYes + capVotesNo;
+	int yesPercent = (voted > 0) ? (capVotesYes * 100) / voted : 0;
+	int noPercent = (voted > 0) ? (capVotesNo * 100) / voted : 0;
+
+	char yesBar[32], noBar[32];
+	BuildProgressBar(yesBar, sizeof(yesBar), yesPercent, 12);
+	BuildProgressBar(noBar, sizeof(noBar), noPercent, 12);
+
+	char capTName[MAX_NAME_LENGTH], capCTName[MAX_NAME_LENGTH];
+	if (capT > 0 && IsClientInGame(capT))
+		GetClientName(capT, capTName, sizeof(capTName));
+	else
+		strcopy(capTName, sizeof(capTName), "???");
+
+	if (capCT > 0 && IsClientInGame(capCT))
+		GetClientName(capCT, capCTName, sizeof(capCTName));
+	else
+		strcopy(capCTName, sizeof(capCTName), "???");
+
+	// Truncate names if too long
+	if (strlen(capTName) > 12) capTName[12] = '\0';
+	if (strlen(capCTName) > 12) capCTName[12] = '\0';
+
+	PrintHintTextToAll("══════ CAP VOTE ══════\n%s  vs  %s\n \nYES [%s] %d%% (%d)\nNO  [%s] %d%% (%d)\n \n%d/%d voted  •  %ds left",
+		capTName, capCTName,
+		yesBar, yesPercent, capVotesYes,
+		noBar, noPercent, capVotesNo,
+		voted, capVoteTotal, capVoteCountdown);
+}
+
+// Timer callback for vote HUD refresh
+public Action CapVoteHudTimer(Handle timer)
+{
+	if (!capVoteActive)
+	{
+		capVoteHudTimer = INVALID_HANDLE;
+		return Plugin_Stop;
+	}
+
+	capVoteCountdown--;
+	CapVoteUpdateHud();
+
+	return Plugin_Continue;
 }
 
 public void CapVoteStart()
@@ -429,6 +502,7 @@ public void CapVoteStart()
 	capVotesYes = 0;
 	capVotesNo = 0;
 	capVoteTotal = 0;
+	capVoteCountdown = 30;
 
 	// Reset vote tracking for all players
 	for (int i = 0; i <= MAXPLAYERS; i++)
@@ -445,9 +519,8 @@ public void CapVoteStart()
 		}
 	}
 
-	CPrintToChatAll("{%s}[%s] {%s}Vote: Start cap fight with %N vs %N?", prefixcolor, prefix, textcolor, capT, capCT);
-	CPrintToChatAll("{%s}[%s] {%s}Vote ends in 30 seconds. Need 50%% yes votes to pass.", prefixcolor, prefix, textcolor);
-	CPrintToChatAll("{%s}[%s] {%s}Type !vote to open the vote menu if you missed it.", prefixcolor, prefix, textcolor);
+	CPrintToChatAll("{%s}[%s] {%s}Vote: Start cap fight with {green}%N {%s}vs {green}%N{%s}?", prefixcolor, prefix, textcolor, capT, textcolor, capCT, textcolor);
+	CPrintToChatAll("{%s}[%s] {%s}Type {green}!vote {%s}to open the vote menu.", prefixcolor, prefix, textcolor, textcolor);
 
 	// Show vote menu to all players
 	for (int i = 1; i <= MaxClients; i++)
@@ -458,8 +531,14 @@ public void CapVoteStart()
 		}
 	}
 
-	// Start 30 second timer
+	// Start 30 second timer for vote end
 	capVoteTimer = CreateTimer(30.0, CapVoteEndTimer);
+
+	// Start HUD refresh timer (every 1 second)
+	capVoteHudTimer = CreateTimer(1.0, CapVoteHudTimer, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
+
+	// Show initial HUD
+	CapVoteUpdateHud();
 
 	HostName_Change_Status("Voting");
 }
@@ -580,7 +659,7 @@ public void CapCheckEarlyVoteEnd()
 	// Simplify: capVotesYes * 2 > capVoteTotal
 	if (capVotesYes * 2 > capVoteTotal)
 	{
-		CPrintToChatAll("{%s}[%s] {%s}Vote passed early - enough YES votes!", prefixcolor, prefix, textcolor);
+		CPrintToChatAll("{%s}[%s] {green}✓ Vote passed early {%s}- enough YES votes!", prefixcolor, prefix, textcolor);
 		CapEndVoteEarly();
 		return;
 	}
@@ -592,7 +671,7 @@ public void CapCheckEarlyVoteEnd()
 	int maxPossibleYes = capVotesYes + remaining;
 	if (maxPossibleYes * 2 <= capVoteTotal)
 	{
-		CPrintToChatAll("{%s}[%s] {%s}Vote failed early - not enough potential YES votes.", prefixcolor, prefix, textcolor);
+		CPrintToChatAll("{%s}[%s] {red}✗ Vote failed early {%s}- not enough potential YES votes.", prefixcolor, prefix, textcolor);
 		CapEndVoteEarly();
 		return;
 	}
@@ -600,11 +679,18 @@ public void CapCheckEarlyVoteEnd()
 
 public void CapEndVoteEarly()
 {
-	// Kill the timer
+	// Kill the vote timer
 	if (capVoteTimer != INVALID_HANDLE)
 	{
 		KillTimer(capVoteTimer);
 		capVoteTimer = INVALID_HANDLE;
+	}
+
+	// Kill the HUD timer
+	if (capVoteHudTimer != INVALID_HANDLE)
+	{
+		KillTimer(capVoteHudTimer);
+		capVoteHudTimer = INVALID_HANDLE;
 	}
 
 	// Close all vote menus
@@ -615,6 +701,9 @@ public void CapEndVoteEarly()
 			CancelClientMenu(i);
 		}
 	}
+
+	// Clear HUD
+	PrintHintTextToAll("");
 
 	// Process the vote result
 	CapVoteEnd();
@@ -633,6 +722,17 @@ public void CapVoteCommand(int client)
 public Action CapVoteEndTimer(Handle timer)
 {
 	capVoteTimer = INVALID_HANDLE;
+
+	// Kill HUD timer
+	if (capVoteHudTimer != INVALID_HANDLE)
+	{
+		KillTimer(capVoteHudTimer);
+		capVoteHudTimer = INVALID_HANDLE;
+	}
+
+	// Clear HUD
+	PrintHintTextToAll("");
+
 	CapVoteEnd();
 	return Plugin_Stop;
 }
@@ -649,17 +749,17 @@ public void CapVoteEnd()
 		yesPercent = (float(capVotesYes) / float(totalVotes)) * 100.0;
 	}
 
-	CPrintToChatAll("{%s}[%s] {%s}Vote ended: %.0f%% yes (%d/%d votes)", prefixcolor, prefix, textcolor, yesPercent, capVotesYes, totalVotes);
+	CPrintToChatAll("{%s}[%s] {%s}Vote ended: {green}%.0f%% yes {%s}(%d/%d votes)", prefixcolor, prefix, textcolor, yesPercent, textcolor, capVotesYes, totalVotes);
 
 	// Need > 50% yes votes to pass
 	if (yesPercent > 50.0)
 	{
-		CPrintToChatAll("{%s}[%s] {%s}Vote passed! Starting ready-up phase.", prefixcolor, prefix, textcolor);
+		CPrintToChatAll("{%s}[%s] {green}✓ Vote passed! {%s}Starting ready-up phase.", prefixcolor, prefix, textcolor);
 		CapReadyStart();
 	}
 	else
 	{
-		CPrintToChatAll("{%s}[%s] {%s}Vote failed. Captains reset to spectator.", prefixcolor, prefix, textcolor);
+		CPrintToChatAll("{%s}[%s] {red}✗ Vote failed. {%s}Captains reset to spectator.", prefixcolor, prefix, textcolor);
 
 		// Move captains back to spectator
 		if (capT > 0 && IsClientInGame(capT))
@@ -745,7 +845,7 @@ public void CapReadyCommand(int client)
 			return;
 		}
 		capReadyT = true;
-		CPrintToChatAll("{%s}[%s] {%s}T Captain %N is READY!", prefixcolor, prefix, textcolor, client);
+		CPrintToChatAll("{%s}[%s] {red}T Captain {green}%N {%s}is {green}READY!", prefixcolor, prefix, client, textcolor);
 	}
 	else if (client == capCT)
 	{
@@ -755,7 +855,7 @@ public void CapReadyCommand(int client)
 			return;
 		}
 		capReadyCT = true;
-		CPrintToChatAll("{%s}[%s] {%s}CT Captain %N is READY!", prefixcolor, prefix, textcolor, client);
+		CPrintToChatAll("{%s}[%s] {blue}CT Captain {green}%N {%s}is {green}READY!", prefixcolor, prefix, client, textcolor);
 	}
 
 	// Check if both are ready
@@ -773,7 +873,7 @@ public void CapReadyCheck()
 			capReadyTimer = INVALID_HANDLE;
 		}
 
-		CPrintToChatAll("{%s}[%s] {%s}Both captains ready! Starting knife fight...", prefixcolor, prefix, textcolor);
+		CPrintToChatAll("{%s}[%s] {green}✓ Both captains ready! {%s}Starting knife fight...", prefixcolor, prefix, textcolor);
 
 		// Clear hint text
 		for (int i = 1; i <= MaxClients; i++)
@@ -1249,7 +1349,7 @@ public int CapPickMenuHandler(Menu menu, MenuAction action, int client, int choi
 			// Notify all players
 			for (int player = 1; player <= MaxClients; player++)
 			{
-				if (IsClientInGame(player) && IsClientConnected(player)) CPrintToChat(player, "{%s}[%s] {%s}%N has picked %N", prefixcolor, prefix, textcolor, client, target);
+				if (IsClientInGame(player) && IsClientConnected(player)) CPrintToChat(player, "{%s}[%s] {green}%N {%s}has picked {green}%N", prefixcolor, prefix, client, textcolor, target);
 			}
 
 			LogMessage("%N <%s> has picked %N <%s>", client, steamid, target, targetSteamid);
@@ -1263,7 +1363,7 @@ public int CapPickMenuHandler(Menu menu, MenuAction action, int client, int choi
 			else
 			{
 				// All picks done - start pre-match ready check
-				CPrintToChatAll("{%s}[%s] {%s}Picking complete! Starting ready check...", prefixcolor, prefix, textcolor);
+				CPrintToChatAll("{%s}[%s] {green}✓ Picking complete! {%s}Starting ready check...", prefixcolor, prefix, textcolor);
 
 				// Reset cap state but keep teams
 				capAutoActive = false;

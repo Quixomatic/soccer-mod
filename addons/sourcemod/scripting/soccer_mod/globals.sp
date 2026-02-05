@@ -163,6 +163,7 @@ Handle capCountdownTimer3		= INVALID_HANDLE;
 Handle capCountdownEndTimer		= INVALID_HANDLE;
 Handle capGrenadeRefillTimer	= INVALID_HANDLE;
 Handle capVoteTimer				= INVALID_HANDLE;	// Auto cap vote timer
+Handle capVoteHudTimer			= INVALID_HANDLE;	// Vote HUD refresh timer
 Handle capReadyTimer			= INVALID_HANDLE;	// Ready-up HUD refresh timer
 
 // INTEGER
@@ -179,6 +180,7 @@ int capSnakeDraft		= 1;
 int capVotesYes			= 0;	// Auto cap yes votes
 int capVotesNo			= 0;	// Auto cap no votes
 int capVoteTotal		= 0;	// Total voters
+int capVoteCountdown	= 30;	// Vote countdown seconds
 int capPlayerVote[MAXPLAYERS+1];	// 0=not voted, 1=yes, 2=no
 
 // STRINGS

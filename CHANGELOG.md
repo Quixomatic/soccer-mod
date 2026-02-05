@@ -1,5 +1,21 @@
 # Soccer Mod Changelog
 
+## 1.4.7
+
+### New
+- Added visual HUD display during captain voting with progress bars
+- Vote HUD shows: YES/NO bars, percentages, vote counts, countdown timer
+- HUD refreshes every second during voting phase
+
+### Changes
+- Enhanced chat messages with colors throughout cap system
+- Green checkmarks (✓) for success, red X (✗) for failures
+- Team colors: red for T, blue for CT
+- Player names highlighted in green
+- Vote pass/fail messages now colored
+
+---
+
 ## 1.4.6
 
 ### New
