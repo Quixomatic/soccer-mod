@@ -15,6 +15,11 @@ A SourceMod plugin for Counter-Strike: Source soccer servers.
 - AFK kicker
 - And much more...
 
+## Documentation
+
+- [Installation Guide](documentation/installation-guide.md) - Complete setup and configuration
+- [Legacy Documentation](https://somoe-19.readthedocs.io/en/latest/) - Additional reference (from SoMoE-19)
+
 ## Installation
 
 1. Download the latest release from the [Releases](../../releases) page
