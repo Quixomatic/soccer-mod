@@ -1,5 +1,14 @@
 # Soccer Mod Changelog
 
+## 1.4.1
+
+### Changes
+- Fixed include paths to use forward slashes for cross-platform compatibility (Windows/Linux)
+- Fixed `SteamWorks.inc` typeset array syntax for SourcePawn 1.12
+- Added GitHub Actions workflow for automated releases
+
+---
+
 ## 1.4.0
 
 ### New

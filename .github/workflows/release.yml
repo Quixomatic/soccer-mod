@@ -30,7 +30,6 @@ jobs:
       - name: Download SourceMod compiler
         run: |
           mkdir -p .sourcemod
-          # Get latest 1.12 stable version
           SM_URL=$(curl -s "https://sm.alliedmods.net/smdrop/1.12/sourcemod-latest-linux" | head -1)
           wget -q "https://sm.alliedmods.net/smdrop/1.12/${SM_URL}" -O sourcemod.tar.gz
           tar -xzf sourcemod.tar.gz -C .sourcemod
@@ -49,24 +48,12 @@ jobs:
         run: |
           mkdir -p release
 
-          # === addons/sourcemod/plugins ===
+          # === Compiled plugin ===
           mkdir -p release/addons/sourcemod/plugins
           cp dist/soccer_mod.smx release/addons/sourcemod/plugins/
 
-          # === addons/sourcemod/scripting (source code) ===
-          mkdir -p release/addons/sourcemod/scripting
-          cp addons/sourcemod/scripting/soccer_mod.sp release/addons/sourcemod/scripting/
-          cp -r addons/sourcemod/scripting/soccer_mod release/addons/sourcemod/scripting/
-
-          # === addons/sourcemod/scripting/include ===
-          mkdir -p release/addons/sourcemod/scripting/include
-          cp addons/sourcemod/scripting/include/advanced_motd.inc release/addons/sourcemod/scripting/include/
-          cp addons/sourcemod/scripting/include/morecolors.inc release/addons/sourcemod/scripting/include/
-          cp addons/sourcemod/scripting/include/SteamWorks.inc release/addons/sourcemod/scripting/include/
-          cp addons/sourcemod/scripting/include/updater.inc release/addons/sourcemod/scripting/include/
-
-          # === cfg/sm_soccermod ===
-          [ -d "cfg/sm_soccermod" ] && cp -r cfg/sm_soccermod release/cfg/
+          # === cfg ===
+          [ -d "cfg/sm_soccermod" ] && mkdir -p release/cfg && cp -r cfg/sm_soccermod release/cfg/
 
           # === materials ===
           [ -d "materials" ] && cp -r materials release/
@@ -74,7 +61,7 @@ jobs:
           # === models ===
           [ -d "models" ] && cp -r models release/
 
-          # === sound (root level) ===
+          # === sound ===
           [ -d "sound" ] && cp -r sound release/
 
           # Create release zip
