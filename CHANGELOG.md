@@ -1,5 +1,13 @@
 # Soccer Mod Changelog
 
+## 1.4.12
+
+### Fixes
+- Fixed kickoff walls not loading on maps due to float equality comparison bug
+- Map orientation detection now uses tolerance-based comparison (xDiff vs yDiff)
+
+---
+
 ## 1.4.11
 
 ### New

@@ -66,20 +66,36 @@ public void GetFieldOrientation()
 		GetEntPropVector(goaltrig_ct_ref, Prop_Data, "m_vecAbsOrigin", vec_ctgoal_origin);
 		
 		// Find out map orientation (middle line)
-		/*if ((vec_tgoal_origin[0] > (vec_ctgoal_origin[0] - 100.0)) && (vec_tgoal_origin[0] < (vec_ctgoal_origin[0] + 100.0)))*/
+		// Use tolerance-based comparison since float equality almost never works
+		float xDiff = FloatAbs(vec_tgoal_origin[0] - vec_ctgoal_origin[0]);
+		float yDiff = FloatAbs(vec_tgoal_origin[1] - vec_ctgoal_origin[1]);
+
+		// If X coords are similar (goals on same X plane), field runs along Y axis (xorientation)
+		// If Y coords are similar (goals on same Y plane), field runs along X axis (yorientation)
+		if (xDiff < yDiff)
+		{
+			xorientation = true;
+			PrintToServer("[Soccer Mod] Map orientation: X (xDiff=%.1f, yDiff=%.1f)", xDiff, yDiff);
+		}
+		else
+		{
+			xorientation = false;
+			PrintToServer("[Soccer Mod] Map orientation: Y (xDiff=%.1f, yDiff=%.1f)", xDiff, yDiff);
+		}
+
+		// OLD CODE - used exact float equality which almost never works
+		/*
 		if (vec_tgoal_origin[0] == vec_ctgoal_origin[0])
 		{
 			xorientation = true;
 			PrintToServer("xorient")
-			//DrawLaser("gk_area_beam", -10000.0, mapBallStartPosition[1], vec_tgoal_origin[2], 10000.0, mapBallStartPosition[1], vec_ctgoal_origin[2], "255 255 255");
 		}
-		/*else if ((vec_tgoal_origin[1] > (vec_ctgoal_origin[1] - 100.0)) && (vec_tgoal_origin[1] < (vec_ctgoal_origin[1] + 100.0)))*/
 		else if (vec_tgoal_origin[1] == vec_ctgoal_origin[1])
 		{
 			xorientation = false;
 			PrintToServer("yorient");
-			//DrawLaser("gk_area_beam", mapBallStartPosition[0], -10000.0, vec_tgoal_origin[2], mapBallStartPosition[0], 10000.0, vec_ctgoal_origin[2], "255 255 255");
 		}
+		*/
 		
 		char map[128];
 		GetCurrentMap(map, sizeof(map));
@@ -573,17 +589,21 @@ public void DisplayZones(char type[4], float minx, float miny, float minz, float
 	
 	// cross laser
 	DrawLaser("gk_area_beam", vec_tgoal_origin[0], vec_tgoal_origin[1], vec_tgoal_origin[2], vec_ctgoal_origin[0], vec_ctgoal_origin[1], vec_ctgoal_origin[2], "255 255 255");
-	
-	if (vec_tgoal_origin[0] == vec_ctgoal_origin[0])
+
+	// Use tolerance-based comparison since float equality almost never works
+	float xDiff = FloatAbs(vec_tgoal_origin[0] - vec_ctgoal_origin[0]);
+	float yDiff = FloatAbs(vec_tgoal_origin[1] - vec_ctgoal_origin[1]);
+
+	if (xDiff < yDiff)
 	{
 		xorientation = true;
-		
+
 		DrawLaser("gk_area_beam", -5000.0, mapBallStartPosition[1], vec_tgoal_origin[2], 5000.0, mapBallStartPosition[1], vec_ctgoal_origin[2], "255 255 255");
 	}
-	else if (vec_tgoal_origin[1] == vec_ctgoal_origin[1])
+	else
 	{
 		xorientation = false;
-		
+
 		DrawLaser("gk_area_beam", mapBallStartPosition[0], -5000.0, vec_tgoal_origin[2], mapBallStartPosition[0], 5000.0, vec_ctgoal_origin[2], "255 255 255");
 	}
 	
