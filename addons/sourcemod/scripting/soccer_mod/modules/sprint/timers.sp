@@ -39,7 +39,7 @@ public Action Timer_SprintEnd(Handle timer, int client)
 		}
 	}
 
-	return;
+	return Plugin_Stop;
 }
 
 public Action Timer_SprintCooldown(Handle timer, int client)
@@ -60,5 +60,5 @@ public Action Timer_SprintCooldown(Handle timer, int client)
 		}
 	}
 
-	return;
+	return Plugin_Stop;
 }

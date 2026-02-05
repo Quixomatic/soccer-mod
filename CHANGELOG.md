@@ -1,5 +1,43 @@
 # Soccer Mod Changelog
 
+## 1.4.6
+
+### New
+- Added reusable Ready Check system with panel display
+- Pre-match ready check auto-starts after cap picking completes
+- Countdown timer (configurable, default 60s) - match starts when all ready OR countdown expires
+- Ready commands: `!r`, `!rdy`, `!ready`, `.r`, `.rdy`, `.ready` (or press 1 on panel)
+- Not ready commands: `!nr`, `.nr`, `.notready` (or press 2 on panel)
+- Timeout system: `!to` / `.to` pauses match and starts ready check
+- Time-in commands: `!ti` / `.ti` (caller or admin can end timeout)
+- Admin commands: `!forceready` (force proceed), `!cancelready` (cancel without proceeding)
+- Panel visibility: `!hide` / `.hide` and `!show` / `.show`
+- Panel shows all players by team with ready status, refreshes every second
+
+### Changes
+- Fixed snake draft pick order: normal alternating (W-L-W-L...), loser gets back-to-back at end, winner gets last pick
+- Ready check config options: `readyCheckPrematchCountdown`, `readyCheckTimeoutCountdown`
+
+---
+
+## 1.4.5
+
+### New
+- Added Auto Cap system (`!autocap`) - automated captain selection with voting
+- Random captain selection from players
+- Server-wide vote: "Start cap fight with X vs Y?" (need >50% yes to pass)
+- Vote menu shows current status, allows changing vote, can be re-opened with `!vote`
+- Early vote ending when outcome is guaranteed
+- Ready-up phase for captains (`!k` or `.k` to ready)
+- HUD display shows captain ready status
+- Knife fight starts automatically when both captains ready
+
+### Changes
+- Fixed timer handle crash when stopping/resetting cap fight during countdown
+- Improved vote system with vote tracking per player
+
+---
+
 ## 1.4.4
 
 ### New

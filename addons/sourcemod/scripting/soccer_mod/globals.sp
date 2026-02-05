@@ -143,6 +143,11 @@ char szTarget2[64];
 bool capFightStarted	= false;
 bool tempSprint			= true;
 bool tempRule			= false;
+bool capAutoActive		= false;	// Auto cap process is running
+bool capVoteActive		= false;	// Vote is in progress
+bool capReadyT			= false;	// T captain is ready
+bool capReadyCT			= false;	// CT captain is ready
+bool capDebugMode		= false;	// Debug mode - allows bots to count as players
 
 // FLOATS
 
@@ -157,6 +162,8 @@ Handle capCountdownTimer2		= INVALID_HANDLE;
 Handle capCountdownTimer3		= INVALID_HANDLE;
 Handle capCountdownEndTimer		= INVALID_HANDLE;
 Handle capGrenadeRefillTimer	= INVALID_HANDLE;
+Handle capVoteTimer				= INVALID_HANDLE;	// Auto cap vote timer
+Handle capReadyTimer			= INVALID_HANDLE;	// Ready-up HUD refresh timer
 
 // INTEGER
 int capPicker			= 0;
@@ -169,6 +176,10 @@ int capFightHealth		= 101;
 int capPickNumber		= 0;
 int capFirstPicker		= 0;
 int capSnakeDraft		= 1;
+int capVotesYes			= 0;	// Auto cap yes votes
+int capVotesNo			= 0;	// Auto cap no votes
+int capVoteTotal		= 0;	// Total voters
+int capPlayerVote[MAXPLAYERS+1];	// 0=not voted, 1=yes, 2=no
 
 // STRINGS
 char capweapon[32]		="knife";
@@ -384,15 +395,28 @@ int rankingPlayerCDTimes[MAXPLAYERS+1];
 
 // ************************************************** READYCHECK ************************************************
 
+// Ready Check Context Enum
+enum ReadyCheckContext
+{
+	READY_CONTEXT_NONE = 0,		// No active ready check
+	READY_CONTEXT_PREMATCH,		// After picking, before match starts
+	READY_CONTEXT_TIMEOUT,		// During timeout (!to)
+	READY_CONTEXT_PAUSE			// During match pause (legacy)
+}
+
 // BOOL
 bool showPanel					= false;
-//bool cdMessage[MAXPLAYERS+1]	= false;
 bool tempUnpause 				= false;
+bool readyCheckActive			= false;					// Is a ready check currently active
+bool playerReady[MAXPLAYERS+1];								// Per-player ready state
+bool playerHidePanel[MAXPLAYERS+1];							// Per-player panel visibility
 
 // FLOATS
 
 // HANDLES
 Handle pauseRdyTimer			= null;
+Handle readyCheckRefreshTimer	= INVALID_HANDLE;			// Panel refresh timer (1 sec)
+Handle readyCheckCountdownTimer	= INVALID_HANDLE;			// Countdown timer
 
 // INTEGER
 int matchReadyCheck				= 1;
@@ -400,6 +424,12 @@ int startplayers				= 0;
 int readydisplay 				= 0;
 int cooldownTime[MAXPLAYERS+1]	= {-1, ...};
 int pauseplayernum				= 0;
+
+ReadyCheckContext readyCheckContext = READY_CONTEXT_NONE;	// Current ready check context
+int readyCheckCountdown			= 0;						// Current countdown value
+int readyCheckTimeoutCaller		= 0;						// Client who called timeout (0 = none)
+int readyCheckPrematchCountdown	= 60;						// Config: pre-match countdown seconds
+int readyCheckTimeoutCountdown	= 0;						// Config: timeout countdown (0 = no limit)
 
 // STRINGS
 char vState[32] 				= "Not Ready";

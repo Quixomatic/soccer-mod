@@ -63,6 +63,7 @@ public int MenuHandlerShoutList(Menu menu, MenuAction action, int client, int ch
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSoccer(client);
 	else if (action == MenuAction_Cancel && choice == -3) 	menu.Close();
+	return 0;
 }
 
 // ******************************************************************************************************************

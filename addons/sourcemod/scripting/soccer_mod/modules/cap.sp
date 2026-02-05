@@ -29,6 +29,16 @@ public void CapKillTimers()
 		KillTimer(capGrenadeRefillTimer);
 		capGrenadeRefillTimer = INVALID_HANDLE;
 	}
+	if (capVoteTimer != INVALID_HANDLE)
+	{
+		KillTimer(capVoteTimer);
+		capVoteTimer = INVALID_HANDLE;
+	}
+	if (capReadyTimer != INVALID_HANDLE)
+	{
+		KillTimer(capReadyTimer);
+		capReadyTimer = INVALID_HANDLE;
+	}
 }
 
 public void CapStopFight(int client)
@@ -80,6 +90,19 @@ public void CapReset(int client)
 	capFirstPicker = 0;
 	capnr = 0;
 
+	// Reset Phase 2 (auto cap) state variables
+	capAutoActive = false;
+	capVoteActive = false;
+	capReadyT = false;
+	capReadyCT = false;
+	capVotesYes = 0;
+	capVotesNo = 0;
+	capVoteTotal = 0;
+	for (int j = 0; j <= MAXPLAYERS; j++)
+	{
+		capPlayerVote[j] = 0;
+	}
+
 	// Restore sprint if needed
 	if (tempSprint)
 	{
@@ -97,6 +120,12 @@ public void CapReset(int client)
 		{
 			CancelClientMenu(i);
 		}
+	}
+
+	// Cancel active ready check if in pre-match context
+	if (readyCheckActive && readyCheckContext == READY_CONTEXT_PREMATCH)
+	{
+		ReadyCheckEnd(false);
 	}
 
 	// Reset hostname
@@ -130,23 +159,25 @@ public int GetNextPicker()
 	}
 
 	// Snake draft mode (ON)
-	// Pattern: 1-2-2-2-2-...-2-1 (first picker gets 1, then alternate 2s, last goes to 2nd)
+	// Pattern: Normal alternating, but loser gets 2 consecutive picks at the end
+	// For 10 picks: W-L-W-L-W-L-W-L-L-W
+	// Winner gets last pick, loser gets back-to-back on picks 8-9
 
-	// Last pick goes to second picker
+	// Last pick goes to winner (first picker)
 	if (nextPickNumber == totalPicks)
+		return capFirstPicker;
+
+	// Second-to-last pick goes to loser (gives them back-to-back with their previous pick)
+	if (nextPickNumber == totalPicks - 1)
 		return secondPicker;
 
-	// Middle picks: alternate in pairs
-	// Picks 2-3: second picker
-	// Picks 4-5: first picker
-	// Picks 6-7: second picker
-	// etc.
-	int pairIndex = (nextPickNumber - 2) / 2;  // 0 for picks 2-3, 1 for 4-5, etc.
-
-	if (pairIndex % 2 == 0)
-		return secondPicker;  // Second picker's turn
+	// All other picks: standard alternating
+	// Odd picks (1,3,5,7) = first picker (winner)
+	// Even picks (2,4,6,8) = second picker (loser)
+	if (nextPickNumber % 2 == 1)
+		return capFirstPicker;
 	else
-		return capFirstPicker;  // First picker's turn
+		return secondPicker;
 }
 
 public void CapStartPicking(int client)
@@ -236,8 +267,8 @@ public void CapOnClientDisconnect(int client)
 	// Check if disconnecting player is a captain during active cap process
 	if (client == capT || client == capCT)
 	{
-		// Check if we're in an active cap phase
-		bool inCapPhase = capFightStarted || capPicksLeft > 0;
+		// Check if we're in an active cap phase (including auto cap phases)
+		bool inCapPhase = capFightStarted || capPicksLeft > 0 || capVoteActive || capReadyT || capReadyCT;
 
 		if (inCapPhase)
 		{
@@ -245,6 +276,531 @@ public void CapOnClientDisconnect(int client)
 			CapReset(0);  // 0 = system-triggered, not admin
 		}
 	}
+}
+
+// ************************************************************************************************************
+// ********************************************** AUTO CAP SYSTEM *********************************************
+// ************************************************************************************************************
+
+public bool CapValidatePlayerCount()
+{
+	int playerCount = 0;
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsClientInGame(i) && !IsClientSourceTV(i))
+		{
+			// In debug mode, count bots too
+			if (capDebugMode || !IsFakeClient(i))
+				playerCount++;
+		}
+	}
+
+	int required = matchMaxPlayers * 2;  // e.g., 12 for 6v6, 8 for 4v4
+
+	if (playerCount < required)
+	{
+		return false;
+	}
+	return true;
+}
+
+public void CapAutoStart(int client)
+{
+	// Check if already in a cap process
+	if (capAutoActive || capFightStarted || capPicksLeft > 0)
+	{
+		CPrintToChat(client, "{%s}[%s] {%s}A cap process is already active. Use !resetcap first.", prefixcolor, prefix, textcolor);
+		return;
+	}
+
+	// Validate player count (debug mode bypasses this check entirely)
+	int playerCount = 0;
+	int realPlayerCount = 0;
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsClientInGame(i) && !IsClientSourceTV(i))
+		{
+			if (!IsFakeClient(i))
+				realPlayerCount++;
+			if (capDebugMode || !IsFakeClient(i))
+				playerCount++;
+		}
+	}
+
+	int required = matchMaxPlayers * 2;
+	if (!capDebugMode && playerCount < required)
+	{
+		CPrintToChat(client, "{%s}[%s] {%s}Not enough players for auto cap.", prefixcolor, prefix, textcolor);
+		CPrintToChat(client, "{%s}[%s] {%s}Need %d players, have %d.", prefixcolor, prefix, textcolor, required, playerCount);
+		return;
+	}
+
+	// Need at least 2 real players for captains
+	if (realPlayerCount < 2)
+	{
+		CPrintToChat(client, "{%s}[%s] {%s}Need at least 2 real players for captains.", prefixcolor, prefix, textcolor);
+		return;
+	}
+
+	if (capDebugMode && playerCount < required)
+	{
+		CPrintToChatAll("{%s}[%s] {%s}DEBUG: Bypassing player count (have %d, need %d).", prefixcolor, prefix, textcolor, playerCount, required);
+	}
+
+	// Mark auto cap as active
+	capAutoActive = true;
+
+	if (capDebugMode)
+		CPrintToChatAll("{%s}[%s] {%s}DEBUG MODE: Bots count as players.", prefixcolor, prefix, textcolor);
+
+	// Move all players to spectator (including bots in debug mode)
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsClientInGame(i) && !IsClientSourceTV(i))
+		{
+			if (capDebugMode || !IsFakeClient(i))
+			{
+				if (GetClientTeam(i) != 1)
+				{
+					ChangeClientTeam(i, 1);
+				}
+			}
+		}
+	}
+
+	CPrintToChatAll("{%s}[%s] {%s}%N started auto cap. All players moved to spectator.", prefixcolor, prefix, textcolor, client);
+
+	// Select two random captains (always real players)
+	CapSelectRandomCaptains(client);
+}
+
+public void CapSelectRandomCaptains(int adminClient)
+{
+	// Build list of eligible players (all in spectator)
+	int eligible[MAXPLAYERS+1];
+	int count = 0;
+
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsClientInGame(i) && !IsFakeClient(i) && !IsClientSourceTV(i))
+		{
+			eligible[count] = i;
+			count++;
+		}
+	}
+
+	if (count < 2)
+	{
+		CPrintToChat(adminClient, "{%s}[%s] {%s}Not enough players to select captains.", prefixcolor, prefix, textcolor);
+		capAutoActive = false;
+		return;
+	}
+
+	// Pick first random captain
+	int idx1 = GetRandomInt(0, count - 1);
+	int captain1 = eligible[idx1];
+
+	// Remove from list and pick second
+	eligible[idx1] = eligible[count - 1];
+	count--;
+
+	int idx2 = GetRandomInt(0, count - 1);
+	int captain2 = eligible[idx2];
+
+	// Assign to teams (captain1 = T, captain2 = CT)
+	capT = captain1;
+	capCT = captain2;
+
+	// Move captains to their teams
+	ChangeClientTeam(capT, 2);  // T
+	ChangeClientTeam(capCT, 3); // CT
+
+	CPrintToChatAll("{%s}[%s] {%s}Random captains selected:", prefixcolor, prefix, textcolor);
+	CPrintToChatAll("{%s}[%s] {%s}T Captain: %N", prefixcolor, prefix, textcolor, capT);
+	CPrintToChatAll("{%s}[%s] {%s}CT Captain: %N", prefixcolor, prefix, textcolor, capCT);
+
+	// Start the vote
+	CapVoteStart();
+}
+
+public void CapVoteStart()
+{
+	capVoteActive = true;
+	capVotesYes = 0;
+	capVotesNo = 0;
+	capVoteTotal = 0;
+
+	// Reset vote tracking for all players
+	for (int i = 0; i <= MAXPLAYERS; i++)
+	{
+		capPlayerVote[i] = 0;
+	}
+
+	// Count eligible voters
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsClientInGame(i) && !IsFakeClient(i) && !IsClientSourceTV(i))
+		{
+			capVoteTotal++;
+		}
+	}
+
+	CPrintToChatAll("{%s}[%s] {%s}Vote: Start cap fight with %N vs %N?", prefixcolor, prefix, textcolor, capT, capCT);
+	CPrintToChatAll("{%s}[%s] {%s}Vote ends in 30 seconds. Need 50%% yes votes to pass.", prefixcolor, prefix, textcolor);
+	CPrintToChatAll("{%s}[%s] {%s}Type !vote to open the vote menu if you missed it.", prefixcolor, prefix, textcolor);
+
+	// Show vote menu to all players
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsClientInGame(i) && !IsFakeClient(i) && !IsClientSourceTV(i))
+		{
+			CapShowVoteMenu(i);
+		}
+	}
+
+	// Start 30 second timer
+	capVoteTimer = CreateTimer(30.0, CapVoteEndTimer);
+
+	HostName_Change_Status("Voting");
+}
+
+public void CapShowVoteMenu(int client)
+{
+	if (!capVoteActive)
+	{
+		CPrintToChat(client, "{%s}[%s] {%s}No vote is currently active.", prefixcolor, prefix, textcolor);
+		return;
+	}
+
+	Menu menu = new Menu(CapVoteMenuHandler);
+
+	// Show current vote status in title
+	int voted = capVotesYes + capVotesNo;
+	menu.SetTitle("Cap Fight: %N vs %N?\nVotes: %d/%d (Yes: %d, No: %d)", capT, capCT, voted, capVoteTotal, capVotesYes, capVotesNo);
+
+	// Show current selection if already voted
+	if (capPlayerVote[client] == 1)
+	{
+		menu.AddItem("yes", "Yes - Start cap fight [VOTED]");
+		menu.AddItem("no", "No - Pick new captains (change vote)");
+	}
+	else if (capPlayerVote[client] == 2)
+	{
+		menu.AddItem("yes", "Yes - Start cap fight (change vote)");
+		menu.AddItem("no", "No - Pick new captains [VOTED]");
+	}
+	else
+	{
+		menu.AddItem("yes", "Yes - Start cap fight");
+		menu.AddItem("no", "No - Pick new captains");
+	}
+
+	menu.ExitButton = true;  // Allow exit but they can re-open with !vote
+	menu.Display(client, MENU_TIME_FOREVER);
+}
+
+public int CapVoteMenuHandler(Menu menu, MenuAction action, int client, int choice)
+{
+	if (action == MenuAction_Select)
+	{
+		if (!capVoteActive)
+		{
+			return 0;
+		}
+
+		char menuItem[32];
+		menu.GetItem(choice, menuItem, sizeof(menuItem));
+
+		int previousVote = capPlayerVote[client];
+
+		if (StrEqual(menuItem, "yes"))
+		{
+			// Remove previous vote if changing
+			if (previousVote == 2)
+			{
+				capVotesNo--;
+			}
+
+			if (previousVote != 1)
+			{
+				capVotesYes++;
+				capPlayerVote[client] = 1;
+
+				if (previousVote == 0)
+					CPrintToChat(client, "{%s}[%s] {%s}You voted YES. Type !vote to change.", prefixcolor, prefix, textcolor);
+				else
+					CPrintToChat(client, "{%s}[%s] {%s}Vote changed to YES.", prefixcolor, prefix, textcolor);
+			}
+		}
+		else if (StrEqual(menuItem, "no"))
+		{
+			// Remove previous vote if changing
+			if (previousVote == 1)
+			{
+				capVotesYes--;
+			}
+
+			if (previousVote != 2)
+			{
+				capVotesNo++;
+				capPlayerVote[client] = 2;
+
+				if (previousVote == 0)
+					CPrintToChat(client, "{%s}[%s] {%s}You voted NO. Type !vote to change.", prefixcolor, prefix, textcolor);
+				else
+					CPrintToChat(client, "{%s}[%s] {%s}Vote changed to NO.", prefixcolor, prefix, textcolor);
+			}
+		}
+
+		// Show updated vote status
+		int voted = capVotesYes + capVotesNo;
+		float yesPercent = (voted > 0) ? (float(capVotesYes) / float(voted)) * 100.0 : 0.0;
+		CPrintToChatAll("{%s}[%s] {%s}Vote status: %d/%d voted (%.0f%% yes)", prefixcolor, prefix, textcolor, voted, capVoteTotal, yesPercent);
+
+		// Check for early end - if outcome is already determined
+		CapCheckEarlyVoteEnd();
+	}
+	else if (action == MenuAction_End)
+	{
+		delete menu;
+	}
+	return 0;
+}
+
+public void CapCheckEarlyVoteEnd()
+{
+	if (!capVoteActive) return;
+
+	int voted = capVotesYes + capVotesNo;
+	int remaining = capVoteTotal - voted;
+
+	// Check if yes is guaranteed to pass (even if all remaining vote no)
+	// Need > 50%, so need yesVotes > totalVotes/2
+	// If capVotesYes > (capVotesYes + capVotesNo + remaining) / 2
+	// Simplify: capVotesYes * 2 > capVoteTotal
+	if (capVotesYes * 2 > capVoteTotal)
+	{
+		CPrintToChatAll("{%s}[%s] {%s}Vote passed early - enough YES votes!", prefixcolor, prefix, textcolor);
+		CapEndVoteEarly();
+		return;
+	}
+
+	// Check if no is guaranteed to fail (even if all remaining vote yes, can't pass)
+	// If (capVotesYes + remaining) * 2 <= capVoteTotal, can't pass
+	// Actually we need > 50%, so need (capVotesYes + remaining) > totalVotes/2
+	// If maxPossibleYes <= capVoteTotal / 2, it fails
+	int maxPossibleYes = capVotesYes + remaining;
+	if (maxPossibleYes * 2 <= capVoteTotal)
+	{
+		CPrintToChatAll("{%s}[%s] {%s}Vote failed early - not enough potential YES votes.", prefixcolor, prefix, textcolor);
+		CapEndVoteEarly();
+		return;
+	}
+}
+
+public void CapEndVoteEarly()
+{
+	// Kill the timer
+	if (capVoteTimer != INVALID_HANDLE)
+	{
+		KillTimer(capVoteTimer);
+		capVoteTimer = INVALID_HANDLE;
+	}
+
+	// Close all vote menus
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsClientInGame(i))
+		{
+			CancelClientMenu(i);
+		}
+	}
+
+	// Process the vote result
+	CapVoteEnd();
+}
+
+public void CapVoteCommand(int client)
+{
+	if (!capVoteActive)
+	{
+		CPrintToChat(client, "{%s}[%s] {%s}No vote is currently active.", prefixcolor, prefix, textcolor);
+		return;
+	}
+	CapShowVoteMenu(client);
+}
+
+public Action CapVoteEndTimer(Handle timer)
+{
+	capVoteTimer = INVALID_HANDLE;
+	CapVoteEnd();
+	return Plugin_Stop;
+}
+
+public void CapVoteEnd()
+{
+	capVoteActive = false;
+
+	int totalVotes = capVotesYes + capVotesNo;
+	float yesPercent = 0.0;
+
+	if (totalVotes > 0)
+	{
+		yesPercent = (float(capVotesYes) / float(totalVotes)) * 100.0;
+	}
+
+	CPrintToChatAll("{%s}[%s] {%s}Vote ended: %.0f%% yes (%d/%d votes)", prefixcolor, prefix, textcolor, yesPercent, capVotesYes, totalVotes);
+
+	// Need > 50% yes votes to pass
+	if (yesPercent > 50.0)
+	{
+		CPrintToChatAll("{%s}[%s] {%s}Vote passed! Starting ready-up phase.", prefixcolor, prefix, textcolor);
+		CapReadyStart();
+	}
+	else
+	{
+		CPrintToChatAll("{%s}[%s] {%s}Vote failed. Captains reset to spectator.", prefixcolor, prefix, textcolor);
+
+		// Move captains back to spectator
+		if (capT > 0 && IsClientInGame(capT))
+			ChangeClientTeam(capT, 1);
+		if (capCT > 0 && IsClientInGame(capCT))
+			ChangeClientTeam(capCT, 1);
+
+		// Reset state
+		capT = 0;
+		capCT = 0;
+		capAutoActive = false;
+		HostName_Change_Status("Public");
+	}
+}
+
+public void CapReadyStart()
+{
+	capReadyT = false;
+	capReadyCT = false;
+
+	CPrintToChatAll("{%s}[%s] {%s}=== READY UP PHASE ===", prefixcolor, prefix, textcolor);
+	CPrintToChatAll("{%s}[%s] {%s}Captains: Type !k or .k when ready", prefixcolor, prefix, textcolor);
+
+	// Notify captains specifically
+	if (capT > 0 && IsClientInGame(capT))
+		CPrintToChat(capT, "{%s}[%s] {%s}You are T Captain. Type !k when ready.", prefixcolor, prefix, textcolor);
+	if (capCT > 0 && IsClientInGame(capCT))
+		CPrintToChat(capCT, "{%s}[%s] {%s}You are CT Captain. Type !k when ready.", prefixcolor, prefix, textcolor);
+
+	HostName_Change_Status("Ready-Up");
+
+	// Start HUD refresh timer
+	capReadyTimer = CreateTimer(1.0, CapReadyHudTimer, _, TIMER_REPEAT);
+}
+
+public Action CapReadyHudTimer(Handle timer)
+{
+	// Check if still in ready-up phase
+	if (!capAutoActive || capFightStarted || (!capReadyT && !capReadyCT && capT == 0 && capCT == 0))
+	{
+		capReadyTimer = INVALID_HANDLE;
+		return Plugin_Stop;
+	}
+
+	// Show ready status to all players
+	char tStatus[32], ctStatus[32];
+	Format(tStatus, sizeof(tStatus), capReadyT ? "READY" : "NOT READY");
+	Format(ctStatus, sizeof(ctStatus), capReadyCT ? "READY" : "NOT READY");
+
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsClientInGame(i) && !IsFakeClient(i))
+		{
+			PrintHintText(i, "T Captain (%N): %s\nCT Captain (%N): %s\n\nCaptains type !k when ready",
+				capT, tStatus, capCT, ctStatus);
+		}
+	}
+
+	return Plugin_Continue;
+}
+
+public void CapReadyCommand(int client)
+{
+	// Only captains can ready up
+	if (client != capT && client != capCT)
+	{
+		CPrintToChat(client, "{%s}[%s] {%s}Only captains can use this command.", prefixcolor, prefix, textcolor);
+		return;
+	}
+
+	// Must be in ready-up phase
+	if (!capAutoActive || capFightStarted || capVoteActive)
+	{
+		CPrintToChat(client, "{%s}[%s] {%s}Not in ready-up phase.", prefixcolor, prefix, textcolor);
+		return;
+	}
+
+	if (client == capT)
+	{
+		if (capReadyT)
+		{
+			CPrintToChat(client, "{%s}[%s] {%s}You are already ready.", prefixcolor, prefix, textcolor);
+			return;
+		}
+		capReadyT = true;
+		CPrintToChatAll("{%s}[%s] {%s}T Captain %N is READY!", prefixcolor, prefix, textcolor, client);
+	}
+	else if (client == capCT)
+	{
+		if (capReadyCT)
+		{
+			CPrintToChat(client, "{%s}[%s] {%s}You are already ready.", prefixcolor, prefix, textcolor);
+			return;
+		}
+		capReadyCT = true;
+		CPrintToChatAll("{%s}[%s] {%s}CT Captain %N is READY!", prefixcolor, prefix, textcolor, client);
+	}
+
+	// Check if both are ready
+	CapReadyCheck();
+}
+
+public void CapReadyCheck()
+{
+	if (capReadyT && capReadyCT)
+	{
+		// Kill the HUD timer
+		if (capReadyTimer != INVALID_HANDLE)
+		{
+			KillTimer(capReadyTimer);
+			capReadyTimer = INVALID_HANDLE;
+		}
+
+		CPrintToChatAll("{%s}[%s] {%s}Both captains ready! Starting knife fight...", prefixcolor, prefix, textcolor);
+
+		// Clear hint text
+		for (int i = 1; i <= MaxClients; i++)
+		{
+			if (IsClientInGame(i) && !IsFakeClient(i))
+			{
+				PrintHintText(i, "");
+			}
+		}
+
+		// Small delay then start the cap fight
+		CreateTimer(2.0, CapAutoStartFightTimer);
+	}
+}
+
+public Action CapAutoStartFightTimer(Handle timer)
+{
+	// Double check we're still in valid state
+	if (!capAutoActive || capT == 0 || capCT == 0)
+	{
+		return Plugin_Stop;
+	}
+
+	// Start the actual cap fight (use existing function with a fake admin client of 0)
+	CapStartFight(0);
+
+	return Plugin_Stop;
 }
 
 // ************************************************************************************************************
@@ -361,7 +917,11 @@ public void OpenCapMenu(int client)
 	Format(snakeString, sizeof(snakeString), "Snake draft: %s", capSnakeDraft ? "ON" : "OFF");
 	menu.AddItem("snakedraft", snakeString);
 
-	//menu.AddItem("autocap", "[BETA] Auto Cap");
+	menu.AddItem("autocap", "Auto Cap (vote + ready-up)");
+
+	char debugString[48];
+	Format(debugString, sizeof(debugString), "Debug mode: %s", capDebugMode ? "ON" : "OFF");
+	menu.AddItem("capdebug", debugString);
 
 	if(publicmode == 0 || publicmode == 2) menu.ExitBackButton = true;
 	else if(publicmode == 1) 
@@ -400,6 +960,13 @@ public int CapMenuHandler(Menu menu, MenuAction action, int client, int choice)
 			OpenCapMenu(client);
 			return 0;
 		}
+		else if (StrEqual(menuItem, "capdebug"))
+		{
+			capDebugMode = !capDebugMode;
+			CPrintToChat(client, "{%s}[%s] {%s}Cap debug mode: %s", prefixcolor, prefix, textcolor, capDebugMode ? "ON (bots count as players)" : "OFF");
+			OpenCapMenu(client);
+			return 0;
+		}
 
 		if (!matchStarted)
 		{
@@ -417,19 +984,14 @@ public int CapMenuHandler(Menu menu, MenuAction action, int client, int choice)
 					RandPass();
 				}
 			}
-			/*else if (StrEqual(menuItem, "autocap"))
+			else if (StrEqual(menuItem, "autocap"))
 			{
-				AutoCapStart(client);
-				if(GetClientCount() >= PWMAXPLAYERS+1 && passwordlock == 1 && pwchange == true)
-				{
-					CPrintToChatAll("{%s}[%s] {%s}At least %i players when the capfight started; Changing the pw...", prefixcolor, prefix, textcolor, PWMAXPLAYERS+1);
-					RandPass();
-				}
-			}*/
+				CapAutoStart(client);
+			}
 		}
 		else CPrintToChat(client, "{%s}[%s]{%s}You can not use this option during a match", prefixcolor, prefix, textcolor);
 
-		if (!(StrEqual(menuItem, "capweap")) && !(StrEqual(menuItem, "caphealth")) && !(StrEqual(menuItem, "startpick")))	OpenCapMenu(client);
+		if (!(StrEqual(menuItem, "capweap")) && !(StrEqual(menuItem, "caphealth")) && !(StrEqual(menuItem, "startpick")) && !(StrEqual(menuItem, "autocap")))	OpenCapMenu(client);
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuAdmin(client);
 	else if (action == MenuAction_End)					  menu.Close();
@@ -632,7 +1194,12 @@ public void OpenCapPickMenu(int client)
 				int count;
 				for (int player = 1; player <= MaxClients; player++)
 				{
-					if (IsClientInGame(player) && IsClientConnected(player) && GetClientTeam(player) < 2 && !IsClientSourceTV(player)) count++;
+					if (IsClientInGame(player) && IsClientConnected(player) && GetClientTeam(player) < 2 && !IsClientSourceTV(player))
+					{
+						// Only count bots if debug mode is enabled
+						if (!capDebugMode && IsFakeClient(player)) continue;
+						count++;
+					}
 				}
 
 				if (count > 0)
@@ -692,6 +1259,18 @@ public int CapPickMenuHandler(Menu menu, MenuAction action, int client, int choi
 			{
 				capPicker = GetNextPicker();
 				OpenCapPickMenu(capPicker);
+			}
+			else
+			{
+				// All picks done - start pre-match ready check
+				CPrintToChatAll("{%s}[%s] {%s}Picking complete! Starting ready check...", prefixcolor, prefix, textcolor);
+
+				// Reset cap state but keep teams
+				capAutoActive = false;
+				capPicker = 0;
+
+				// Start pre-match ready check with configurable countdown
+				ReadyCheckStart(READY_CONTEXT_PREMATCH, readyCheckPrematchCountdown, 0);
 			}
 		}
 		else
@@ -810,14 +1389,23 @@ public int CapPositionMenuHandler(Menu menu, MenuAction action, int client, int 
 // ************************************************************************************************************
 public Action TimerCapFightCountDown(Handle timer, any seconds)
 {
+	// Mark timer handle as invalid since it just fired (prevents crash when KillTimer called on stale handle)
+	if (seconds == 3) capCountdownTimer1 = INVALID_HANDLE;
+	else if (seconds == 2) capCountdownTimer2 = INVALID_HANDLE;
+	else if (seconds == 1) capCountdownTimer3 = INVALID_HANDLE;
+
 	for (int player = 1; player <= MaxClients; player++)
 	{
 		if (IsClientInGame(player) && IsClientConnected(player)) PrintCenterText(player, "Cap fight will start in %i seconds", seconds);
 	}
+	return Plugin_Stop;
 }
 
 public Action TimerCapFightCountDownEnd(Handle timer)
 {
+	// Mark timer handle as invalid since it just fired
+	capCountdownEndTimer = INVALID_HANDLE;
+
 	//Prepare selected weapon
 	if (StrEqual(capweapon, "random"))
 	{
@@ -880,6 +1468,7 @@ public Action TimerCapFightCountDownEnd(Handle timer)
 	}
 
 	UnfreezeAll();
+	return Plugin_Stop;
 }
 
 public Action GrenadeRefillTimer(Handle timer)
@@ -1097,8 +1686,11 @@ public void CapCreatePickMenu(int client)
 
 	for (int player = 1; player <= MaxClients; player++)
 	{
-		if (IsClientInGame(player) && IsClientConnected(player) && !IsFakeClient(player) && !IsClientSourceTV(player))
+		// In debug mode, include bots in pick menu for testing
+		if (IsClientInGame(player) && IsClientConnected(player) && !IsClientSourceTV(player))
 		{
+			if (!capDebugMode && IsFakeClient(player)) continue;  // Skip bots unless debug mode
+
 			int team = GetClientTeam(player);
 			if (team < 2)
 			{

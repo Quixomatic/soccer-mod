@@ -2,13 +2,36 @@ public void RegisterClientCommands()
 {
 	RegConsoleCmd("sm_madmin", AdminCommand, "Opens the Soccer Mod admin menu");
 	RegConsoleCmd("sm_menu", ClientCommands, "Opens the Soccer Mod main menu");
-	RegConsoleCmd("sm_rdy", rdyCommand, "Opens the ReadyCheck Panel");
+
+	// Ready check commands
+	RegConsoleCmd("sm_r", Command_SetReady, "Mark yourself as ready");
+	RegConsoleCmd("sm_rdy", rdyCommand, "Mark yourself as ready");
+	RegConsoleCmd("sm_ready", Command_SetReady, "Mark yourself as ready");
+	RegConsoleCmd("sm_nr", Command_NotReady, "Mark yourself as not ready");
+	RegConsoleCmd("sm_notready", Command_NotReady, "Mark yourself as not ready");
+
+	// Timeout commands
+	RegConsoleCmd("sm_to", Command_Timeout, "Call a timeout");
+	RegConsoleCmd("sm_timeout", Command_Timeout, "Call a timeout");
+	RegConsoleCmd("sm_ti", Command_Timein, "End the timeout");
+	RegConsoleCmd("sm_timein", Command_Timein, "End the timeout");
+
+	// Ready check admin commands
+	RegAdminCmd("sm_forceready", Command_ForceReady, ADMFLAG_GENERIC, "Force ready check to proceed");
+	RegAdminCmd("sm_cancelready", Command_CancelReady, ADMFLAG_GENERIC, "Cancel the ready check");
+
+	// Panel visibility
+	RegConsoleCmd("sm_hide", Command_HidePanel, "Hide the ready panel");
+	RegConsoleCmd("sm_show", Command_ShowPanel, "Show the ready panel");
 
 	RegConsoleCmd("sm_admins", AdminListCommand, "Shows a list of Online Admins");
 	RegConsoleCmd("sm_cap", CapCommand, "Opens the Soccer Mod cap menu");
 	RegAdminCmd("sm_stopcap", StopCapCommand, ADMFLAG_GENERIC, "Stops an active cap fight");
 	RegAdminCmd("sm_resetcap", ResetCapCommand, ADMFLAG_GENERIC, "Resets the cap system");
 	RegAdminCmd("sm_startpick", StartPickCommand, ADMFLAG_GENERIC, "Starts the picking phase");
+	RegAdminCmd("sm_autocap", AutoCapCommand, ADMFLAG_GENERIC, "Starts the auto cap system");
+	RegConsoleCmd("sm_vote", VoteCommand, "Opens the auto cap vote menu");
+	RegConsoleCmd("sm_k", ReadyCommand, "Ready up for cap fight (captains only)");
 	RegConsoleCmd("sm_commands", CommandsCommand, "Opens the Soccer Mod commands list");
 	RegConsoleCmd("sm_credits", CreditsCommand, "Opens the Soccer Mod credits menu");
 	RegConsoleCmd("sm_forfeit", Command_Forfeit, "Starts a forfeit vote");
@@ -154,12 +177,60 @@ public Action SpecCommand(int client, int args)
 
 public Action rdyCommand(int client, int args)
 {
-	if (FileExists(tempReadyFileKV)) 
-	{
-		OpenReadyPanel(client);
-	}
-	else CPrintToChat(client, "{%s}[%s] {%s}No Readycheck running.", prefixcolor, prefix, textcolor);
-	
+	// Updated to use new ready check system - .rdy now sets ready status
+	ReadyCheckSetReady(client, true);
+	return Plugin_Handled;
+}
+
+// Ready commands
+public Action Command_SetReady(int client, int args)
+{
+	ReadyCheckSetReady(client, true);
+	return Plugin_Handled;
+}
+
+public Action Command_NotReady(int client, int args)
+{
+	ReadyCheckSetReady(client, false);
+	return Plugin_Handled;
+}
+
+// Timeout commands
+public Action Command_Timeout(int client, int args)
+{
+	ReadyCheckTimeout(client);
+	return Plugin_Handled;
+}
+
+public Action Command_Timein(int client, int args)
+{
+	ReadyCheckTimein(client);
+	return Plugin_Handled;
+}
+
+// Admin commands for ready check
+public Action Command_ForceReady(int client, int args)
+{
+	ReadyCheckForce(client);
+	return Plugin_Handled;
+}
+
+public Action Command_CancelReady(int client, int args)
+{
+	ReadyCheckCancel(client);
+	return Plugin_Handled;
+}
+
+// Panel visibility
+public Action Command_HidePanel(int client, int args)
+{
+	ReadyCheckHidePanel(client);
+	return Plugin_Handled;
+}
+
+public Action Command_ShowPanel(int client, int args)
+{
+	ReadyCheckShowPanelCmd(client);
 	return Plugin_Handled;
 }
 
@@ -537,6 +608,36 @@ public Action StartPickCommand(int client, int args)
 	if (currentMapAllowed)
 	{
 		CapStartPicking(client);
+	}
+	else CPrintToChat(client, "{%s}[%s] {%s}Soccer Mod is not allowed on this map", prefixcolor, prefix, textcolor);
+	return Plugin_Handled;
+}
+
+public Action AutoCapCommand(int client, int args)
+{
+	if (currentMapAllowed)
+	{
+		CapAutoStart(client);
+	}
+	else CPrintToChat(client, "{%s}[%s] {%s}Soccer Mod is not allowed on this map", prefixcolor, prefix, textcolor);
+	return Plugin_Handled;
+}
+
+public Action VoteCommand(int client, int args)
+{
+	if (currentMapAllowed)
+	{
+		CapVoteCommand(client);
+	}
+	else CPrintToChat(client, "{%s}[%s] {%s}Soccer Mod is not allowed on this map", prefixcolor, prefix, textcolor);
+	return Plugin_Handled;
+}
+
+public Action ReadyCommand(int client, int args)
+{
+	if (currentMapAllowed)
+	{
+		CapReadyCommand(client);
 	}
 	else CPrintToChat(client, "{%s}[%s] {%s}Soccer Mod is not allowed on this map", prefixcolor, prefix, textcolor);
 	return Plugin_Handled;

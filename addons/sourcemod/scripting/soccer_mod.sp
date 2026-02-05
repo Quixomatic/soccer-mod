@@ -1,7 +1,7 @@
 // **************************************************************************************************************
 // ************************************************** DEFINES ***************************************************
 // ************************************************************************************************************** 
-#define PLUGIN_VERSION "1.4.4"
+#define PLUGIN_VERSION "1.4.6"
 #define UPDATE_URL "https://raw.githubusercontent.com/Quixomatic/soccer-mod/main/addons/sourcemod/updatefile.txt"
 #define MAX_NAMES 10
 #define MAXCONES_DYN 15
@@ -203,6 +203,49 @@ public Action SayCommandListener(int client, char[] command, int argc)
 	{
 		char cmdArg1[32];
 		GetCmdArg(1, cmdArg1, sizeof(cmdArg1));
+
+		// Handle .k for captain ready-up
+		if (StrEqual(cmdArg1, ".k"))
+		{
+			CapReadyCommand(client);
+			return Plugin_Handled;
+		}
+
+		// Ready check commands
+		if (StrEqual(cmdArg1, ".r") || StrEqual(cmdArg1, ".rdy") || StrEqual(cmdArg1, ".ready"))
+		{
+			ReadyCheckSetReady(client, true);
+			return Plugin_Handled;
+		}
+		if (StrEqual(cmdArg1, ".nr") || StrEqual(cmdArg1, ".notready"))
+		{
+			ReadyCheckSetReady(client, false);
+			return Plugin_Handled;
+		}
+
+		// Timeout commands
+		if (StrEqual(cmdArg1, ".to") || StrEqual(cmdArg1, ".timeout"))
+		{
+			ReadyCheckTimeout(client);
+			return Plugin_Handled;
+		}
+		if (StrEqual(cmdArg1, ".ti") || StrEqual(cmdArg1, ".timein"))
+		{
+			ReadyCheckTimein(client);
+			return Plugin_Handled;
+		}
+
+		// Panel visibility
+		if (StrEqual(cmdArg1, ".hide"))
+		{
+			ReadyCheckHidePanel(client);
+			return Plugin_Handled;
+		}
+		if (StrEqual(cmdArg1, ".show"))
+		{
+			ReadyCheckShowPanelCmd(client);
+			return Plugin_Handled;
+		}
 
 		float number = StringToFloat(cmdArg1);
 		int intnumber = StringToInt(cmdArg1);
@@ -995,6 +1038,7 @@ public Action EventCSWinPanelMatch(Event event, const char[] name, bool dontBroa
 		MatchEventCSWinPanelMatch(event);
 		StatsEventCSWinPanelMatch(event);
 	}
+	return Plugin_Continue;
 }
 
 public Action EventPlayerSpawn(Event event, const char[] name, bool dontBroadcast)
@@ -1005,7 +1049,7 @@ public Action EventPlayerSpawn(Event event, const char[] name, bool dontBroadcas
 		RefereeEventPlayerSpawn(event);
 		SkinsEventPlayerSpawn(event);
 		StatsEventPlayerSpawn(event);
-		
+
 		RemoveKnivesEventPlayerSpawn(event);
 		//Sprint
 		int client = GetClientOfUserId(GetEventInt(event, "userid"));
@@ -1013,10 +1057,11 @@ public Action EventPlayerSpawn(Event event, const char[] name, bool dontBroadcas
 		PrintSprintCDMsgToClient(client);
 		iCLIENT_STATUS[client] &= ~ CLIENT_SPRINTUNABLE;
 		if(matchStarted && matchPaused)
-		{	
+		{
 			delayedFreezeTimer[client] = CreateTimer(0.1, DelayFreezePlayer, client);
 		}
 	}
+	return Plugin_Continue;
 }
 
 public Action EventPlayerTeam(Event event, const char[] name, bool dontBroadcast)
@@ -1026,6 +1071,7 @@ public Action EventPlayerTeam(Event event, const char[] name, bool dontBroadcast
 		RespawnEventPlayer(event);
 		GKSkinEventPlayer(event);
 	}
+	return Plugin_Continue;
 }
 
 public Action EventPlayerHurt(Event event, const char[] name, bool dontBroadcast)
@@ -1034,6 +1080,7 @@ public Action EventPlayerHurt(Event event, const char[] name, bool dontBroadcast
 	{
 		HealthEventPlayerHurt(event);
 	}
+	return Plugin_Continue;
 }
 
 public Action Event_PlayerDeath_Pre(Event event, const char[] name, bool dontBroadcast) 
@@ -1049,14 +1096,15 @@ public Action EventPlayerDeath(Event event, const char[] name, bool dontBroadcas
 	if (currentMapAllowed)
 	{
 		CapEventPlayerDeath(event);
-		RespawnEventPlayer(event); 
+		RespawnEventPlayer(event);
 		//Sprint
 		int client = GetClientOfUserId(GetEventInt(event, "userid"));
 		ResetSprint(client);
-		
+
 		if(dissolveSet == 2) CreateTimer(0.0, Dissolve, client);
 		else if(dissolveSet == 1) CreateTimer(5.0, Dissolve, client);
 	}
+	return Plugin_Continue;
 }
 
 public Action EventRoundStart(Event event, const char[] name, bool dontBroadcast)
@@ -1121,13 +1169,14 @@ public Action EventRoundEnd(Event event, const char[] name, bool dontBroadcast)
 public Action Player_Decal(const char[] name, const int[] clients, int count, float delay)
 {
 	int client = TE_ReadNum("m_nPlayer");
-	
+
 	TE_ReadVector("m_vecOrigin", sprayVector[client]);
-	
+
 	GetClientName(client, sprayName[client], 64);
 	GetClientAuthId(client, AuthId_Engine, sprayID[client], 32);
-	
+
 	//PrintToChatAll("Spray by %s (%s)", sprayName[client], sprayID[client]);
+	return Plugin_Continue;
 }
 
 public Action EventUserMessage(UserMsg msg_id, Handle msg, const int[] players, int playersNum, bool reliable, bool init)
@@ -1581,6 +1630,7 @@ public Action DelayedServerCommand(Handle timer, DataPack pack)
 	char command[64];
 	ReadPackString(pack, command, sizeof(command));
 	ServerCommand(command);
+	return Plugin_Stop;
 }
 
 public void ClearTimer(Handle timer)

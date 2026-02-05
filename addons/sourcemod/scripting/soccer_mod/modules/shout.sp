@@ -243,7 +243,7 @@ public Action shoutCD_Timer(Handle timer, int client)
 		cdStatus[client] &= ~ CLIENT_SHOUTCD;
 	}
 
-	return;
+	return Plugin_Stop;
 }
 
 // *************************************************** SOUNDLISTS ***************************************************
@@ -341,7 +341,7 @@ public Action shoutAD_Timer(Handle timer, int client)
 		else CPrintToChat(client, "{%s}[%s] {%s}Use !shout to bring up the shout menu.", prefixcolor, prefix, textcolor);
 	}
 
-	return;
+	return Plugin_Stop;
 }
 
 public void RemoveShout(char soundName[64])

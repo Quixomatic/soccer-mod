@@ -15,8 +15,47 @@ Add admin controls and automated cap system:
 **Implemented in:** v1.4.4 (released)
 **Files modified:** globals.sp, createconfig.sp, cap.sp, client_commands.sp, soccer_mod.sp
 
-### Phase 2: Automated Cap System (v1.5.0) ⏳ PENDING
-7. **Auto Cap** - Full automated flow: spec all → random captains → vote → ready-up → knife fight
+### Phase 2: Automated Cap System (v1.4.5) ✅ IMPLEMENTED - ⏳ TESTING NEEDED
+7. ✅ **Auto Cap** - Full automated flow: spec all → random captains → vote → ready-up → knife fight
+   - `!autocap` command and menu option
+   - Random captain selection (only real players, never bots)
+   - Server-wide vote (>50% threshold)
+   - `!vote` to re-open vote menu if missed
+   - Vote change support (players can switch yes/no)
+   - Early vote ending when outcome determined
+   - Ready-up phase with `!k` / `.k`
+   - HUD display for ready status
+   - Auto knife fight when both ready
+   - Debug mode toggle (allows bots to count as players for testing)
+
+**Implemented in:** v1.4.5
+**Files modified:** globals.sp, cap.sp, client_commands.sp, soccer_mod.sp
+
+---
+
+## Testing Status
+
+### Phase 1 (v1.4.4) - ✅ TESTED
+- [x] `!stopcap` - Stops active cap fight (fixed timer crash bug)
+- [x] `!resetcap` - Full reset of cap system
+- [x] `!startpick` - Start picking with auto-detected captains
+- [x] Snake draft toggle
+- [x] Captain disconnect auto-reset
+
+### Phase 2 (v1.4.5) - ⏳ NEEDS TESTING
+- [ ] `!autocap` - Full flow test
+- [ ] Random captain selection
+- [ ] Vote menu display and interaction
+- [ ] `!vote` to re-open menu
+- [ ] Vote changing (switch yes/no)
+- [ ] Early vote ending (guaranteed pass/fail)
+- [ ] Ready-up phase (`!k` / `.k`)
+- [ ] HUD ready status display
+- [ ] Both captains ready → auto knife fight
+- [ ] Debug mode with bots
+- [ ] `!resetcap` during vote phase
+- [ ] `!resetcap` during ready-up phase
+- [ ] Captain disconnect during vote/ready-up
 
 ---
 
@@ -58,32 +97,32 @@ Need to store timer handles so they can be killed on reset:
 Current alternating pick (1-1-1-1...) gives first picker an advantage since they always get first choice of remaining players.
 
 ### Solution: Snake Draft (Configurable)
-The captain who picks second gets the last 2 picks before it returns to the first picker.
+The loser gets back-to-back picks at the END when 3 players remain, and the winner gets the last pick.
 
 **This is a configurable setting:**
 - `capSnakeDraft` (int): 0=OFF (alternating), 1=ON (snake draft)
 - Default: ON for 12-player games (6v6), can be toggled via settings menu
-- When OFF: Uses classic alternating pick order (1-1-1-1...)
-- When ON: Uses snake draft (1-2-2-2...-2-1)
+- When OFF: Uses classic alternating pick order (W-L-W-L-W-L...)
+- When ON: Normal alternating, but loser gets 2 consecutive at the end, winner gets last
 
 **Pattern for 10 picks (6v6, 12 players - 2 captains = 10 to pick):**
 ```
 Pick #:  1   2   3   4   5   6   7   8   9   10
-Captain: T   CT  CT  T   T   CT  CT  T   T   CT
-         ^   ^---^   ^---^   ^---^   ^---^   ^
-         |   2nd gets 2     alternating 2s   |
-      1st pick                           last pick
+Captain: W   L   W   L   W   L   W   L   L   W
+                                     ^---^   ^
+                                     loser   winner
+                                     gets 2  gets last
 ```
 
-Result: T gets picks 1,4,5,8,9 (5 players) | CT gets picks 2,3,6,7,10 (5 players)
+Result: Winner gets picks 1,3,5,7,10 (5 players) | Loser gets picks 2,4,6,8,9 (5 players)
 
 **Pattern for 6 picks (4v4, 8 players - 2 captains = 6 to pick):**
 ```
 Pick #:  1   2   3   4   5   6
-Captain: T   CT  CT  T   T   CT
+Captain: W   L   W   L   L   W
 ```
 
-Result: T gets picks 1,4,5 (3 players) | CT gets picks 2,3,6 (3 players)
+Result: Winner gets picks 1,3,6 (3 players) | Loser gets picks 2,4,5 (3 players)
 
 ### Implementation
 
@@ -134,23 +173,25 @@ public int GetNextPicker()
     }
 
     // Snake draft mode (ON)
-    // Pattern: 1-2-2-2-2-...-2-1 (first picker gets 1, then alternate 2s, last goes to 2nd)
+    // Pattern: Normal alternating, but loser gets 2 consecutive picks at the end
+    // For 10 picks: W-L-W-L-W-L-W-L-L-W
+    // Winner gets last pick, loser gets back-to-back on picks 8-9
 
-    // Last pick goes to second picker
+    // Last pick goes to winner (first picker)
     if (nextPickNumber == totalPicks)
+        return capFirstPicker;
+
+    // Second-to-last pick goes to loser (gives them back-to-back with their previous pick)
+    if (nextPickNumber == totalPicks - 1)
         return secondPicker;
 
-    // Middle picks: alternate in pairs
-    // Picks 2-3: second picker
-    // Picks 4-5: first picker
-    // Picks 6-7: second picker
-    // etc.
-    int pairIndex = (nextPickNumber - 2) / 2;  // 0 for picks 2-3, 1 for 4-5, etc.
-
-    if (pairIndex % 2 == 0)
-        return secondPicker;  // Second picker's turn
+    // All other picks: standard alternating
+    // Odd picks (1,3,5,7) = first picker (winner)
+    // Even picks (2,4,6,8) = second picker (loser)
+    if (nextPickNumber % 2 == 1)
+        return capFirstPicker;
     else
-        return capFirstPicker;  // First picker's turn
+        return secondPicker;
 }
 ```
 
@@ -702,4 +743,4 @@ All changes implemented in v1.4.4:
 ## Version Plan
 
 - **v1.4.4**: ✅ Phase 1 - Core controls (stop, reset, start pick, snake draft, admin commands)
-- **v1.5.0**: ⏳ Phase 2 - Automated cap system (auto cap, voting, ready-up)
+- **v1.4.5**: ✅ Phase 2 - Automated cap system (auto cap, voting, ready-up)

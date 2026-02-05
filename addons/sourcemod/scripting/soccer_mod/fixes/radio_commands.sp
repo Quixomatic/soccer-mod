@@ -126,4 +126,5 @@ public Action DelayPressedRadioCommand(Handle timer, any client)
 {
     radioCommandDelay[client] = null;
     usedRadioCommand[client] = 0;
+    return Plugin_Stop;
 }

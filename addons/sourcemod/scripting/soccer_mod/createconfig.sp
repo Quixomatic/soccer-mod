@@ -132,6 +132,11 @@ public void CreateSoccerModConfig()
 	kvConfig.SetNum("soccer_mod_cap_snake_draft",				capSnakeDraft);
 	kvConfig.GoBack();
 
+	kvConfig.JumpToKey("Ready Check Settings", true);
+	kvConfig.SetNum("soccer_mod_readycheck_prematch_countdown",	readyCheckPrematchCountdown);
+	kvConfig.SetNum("soccer_mod_readycheck_timeout_countdown",	readyCheckTimeoutCountdown);
+	kvConfig.GoBack();
+
 	kvConfig.JumpToKey("Match Info", true);
 	kvConfig.SetNum("soccer_mod_period_info",					infoPeriods);
 	kvConfig.SetNum("soccer_mod_break_info",					infoBreak);
@@ -491,6 +496,11 @@ public void ReadFromConfig()
 	kvConfig.JumpToKey("Cap Settings", true);
 	capFightHealth			= kvConfig.GetNum("soccer_mod_cap_fight_health", 101);
 	capSnakeDraft			= kvConfig.GetNum("soccer_mod_cap_snake_draft", 1);
+	kvConfig.GoBack();
+
+	kvConfig.JumpToKey("Ready Check Settings", true);
+	readyCheckPrematchCountdown	= kvConfig.GetNum("soccer_mod_readycheck_prematch_countdown", 60);
+	readyCheckTimeoutCountdown	= kvConfig.GetNum("soccer_mod_readycheck_timeout_countdown", 0);
 	kvConfig.GoBack();
 
 	kvConfig.JumpToKey("Match Info", true);
