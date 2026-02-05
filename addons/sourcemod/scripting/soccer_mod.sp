@@ -1,7 +1,7 @@
 // **************************************************************************************************************
 // ************************************************** DEFINES ***************************************************
 // ************************************************************************************************************** 
-#define PLUGIN_VERSION "1.4.3"
+#define PLUGIN_VERSION "1.4.4"
 #define UPDATE_URL "https://raw.githubusercontent.com/Quixomatic/soccer-mod/main/addons/sourcemod/updatefile.txt"
 #define MAX_NAMES 10
 #define MAXCONES_DYN 15
@@ -940,14 +940,15 @@ public void OnClientDisconnect(int client)
 
 	RespawnOnClientDisconnect(client);
 	TrainingOnClientDisconnect(client);
-	
+
 	GKSkinOnClientDisconnect(client);
+	CapOnClientDisconnect(client);
 
 	RadioCommandsOnClientDisconnect(client);
 	SavePersonalCannonSettings(client);
 	ReadyCheckOnClientDisconnect(client);
 	WriteClientCookie(client);
-	
+
 	LCDisconnect(client);
 	JumpDisconnect(client);
 }

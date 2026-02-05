@@ -152,6 +152,11 @@ ArrayList dfArray = CreateArray(MAXPLAYERS+1);
 ArrayList mfArray = CreateArray(MAXPLAYERS+1);
 ArrayList wgArray = CreateArray(MAXPLAYERS+1);
 ArrayList nPArray = CreateArray(MAXPLAYERS+1);*/
+Handle capCountdownTimer1		= INVALID_HANDLE;
+Handle capCountdownTimer2		= INVALID_HANDLE;
+Handle capCountdownTimer3		= INVALID_HANDLE;
+Handle capCountdownEndTimer		= INVALID_HANDLE;
+Handle capGrenadeRefillTimer	= INVALID_HANDLE;
 
 // INTEGER
 int capPicker			= 0;
@@ -161,6 +166,9 @@ int capPicksLeft		= 0;
 int capnr				= 0;
 int nrhelper			= 0;
 int capFightHealth		= 101;
+int capPickNumber		= 0;
+int capFirstPicker		= 0;
+int capSnakeDraft		= 1;
 
 // STRINGS
 char capweapon[32]		="knife";

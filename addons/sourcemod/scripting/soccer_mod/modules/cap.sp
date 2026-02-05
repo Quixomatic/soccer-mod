@@ -1,4 +1,253 @@
 // ************************************************************************************************************
+// ********************************************** CAP CONTROLS ************************************************
+// ************************************************************************************************************
+
+public void CapKillTimers()
+{
+	if (capCountdownTimer1 != INVALID_HANDLE)
+	{
+		KillTimer(capCountdownTimer1);
+		capCountdownTimer1 = INVALID_HANDLE;
+	}
+	if (capCountdownTimer2 != INVALID_HANDLE)
+	{
+		KillTimer(capCountdownTimer2);
+		capCountdownTimer2 = INVALID_HANDLE;
+	}
+	if (capCountdownTimer3 != INVALID_HANDLE)
+	{
+		KillTimer(capCountdownTimer3);
+		capCountdownTimer3 = INVALID_HANDLE;
+	}
+	if (capCountdownEndTimer != INVALID_HANDLE)
+	{
+		KillTimer(capCountdownEndTimer);
+		capCountdownEndTimer = INVALID_HANDLE;
+	}
+	if (capGrenadeRefillTimer != INVALID_HANDLE)
+	{
+		KillTimer(capGrenadeRefillTimer);
+		capGrenadeRefillTimer = INVALID_HANDLE;
+	}
+}
+
+public void CapStopFight(int client)
+{
+	if (!capFightStarted)
+	{
+		if (client > 0) CPrintToChat(client, "{%s}[%s] {%s}No cap fight is currently active.", prefixcolor, prefix, textcolor);
+		return;
+	}
+
+	// Kill any active timers
+	CapKillTimers();
+
+	// Reset state
+	capFightStarted = false;
+
+	// Restore sprint if it was enabled before
+	if (tempSprint)
+	{
+		bSPRINT_ENABLED = 1;
+		tempSprint = false;
+	}
+
+	// Unfreeze all players
+	UnfreezeAll();
+
+	// Reset hostname
+	HostName_Change_Status("Public");
+
+	// Notify all players
+	CPrintToChatAll("{%s}[%s] {%s}Cap fight has been stopped.", prefixcolor, prefix, textcolor);
+
+	// Log action
+	if (client > 0) LogAction(client, -1, "\"%L\" stopped cap fight", client);
+}
+
+public void CapReset(int client)
+{
+	// Kill ALL cap-related timers
+	CapKillTimers();
+
+	// Reset all cap state variables
+	capFightStarted = false;
+	capPicker = 0;
+	capT = 0;
+	capCT = 0;
+	capPicksLeft = 0;
+	capPickNumber = 0;
+	capFirstPicker = 0;
+	capnr = 0;
+
+	// Restore sprint if needed
+	if (tempSprint)
+	{
+		bSPRINT_ENABLED = 1;
+		tempSprint = false;
+	}
+
+	// Unfreeze all players
+	UnfreezeAll();
+
+	// Close any open cap-related menus for all players
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsClientInGame(i))
+		{
+			CancelClientMenu(i);
+		}
+	}
+
+	// Reset hostname
+	HostName_Change_Status("Public");
+
+	// Notify
+	CPrintToChatAll("{%s}[%s] {%s}Cap system has been fully reset.", prefixcolor, prefix, textcolor);
+
+	// Log action
+	if (client > 0) LogAction(client, -1, "\"%L\" reset cap system", client);
+}
+
+public int GetNextPicker()
+{
+	int totalPicks = (matchMaxPlayers - 1) * 2;
+	int nextPickNumber = capPickNumber + 1;
+	int secondPicker = (capFirstPicker == capT) ? capCT : capT;
+
+	// First pick always goes to knife winner
+	if (nextPickNumber == 1)
+		return capFirstPicker;
+
+	// Classic alternating mode (snake draft OFF)
+	if (!capSnakeDraft)
+	{
+		// Simple alternation: odd picks = first picker, even picks = second picker
+		if (nextPickNumber % 2 == 1)
+			return capFirstPicker;
+		else
+			return secondPicker;
+	}
+
+	// Snake draft mode (ON)
+	// Pattern: 1-2-2-2-2-...-2-1 (first picker gets 1, then alternate 2s, last goes to 2nd)
+
+	// Last pick goes to second picker
+	if (nextPickNumber == totalPicks)
+		return secondPicker;
+
+	// Middle picks: alternate in pairs
+	// Picks 2-3: second picker
+	// Picks 4-5: first picker
+	// Picks 6-7: second picker
+	// etc.
+	int pairIndex = (nextPickNumber - 2) / 2;  // 0 for picks 2-3, 1 for 4-5, etc.
+
+	if (pairIndex % 2 == 0)
+		return secondPicker;  // Second picker's turn
+	else
+		return capFirstPicker;  // First picker's turn
+}
+
+public void CapStartPicking(int client)
+{
+	// Count players on each team and find potential captains
+	int tCount = 0, ctCount = 0;
+	int tPlayer = 0, ctPlayer = 0;
+
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsClientInGame(i) && !IsFakeClient(i))
+		{
+			int team = GetClientTeam(i);
+			if (team == 2) // T
+			{
+				tCount++;
+				tPlayer = i;
+			}
+			else if (team == 3) // CT
+			{
+				ctCount++;
+				ctPlayer = i;
+			}
+		}
+	}
+
+	// Validate: exactly 1 player on each team
+	if (tCount != 1 || ctCount != 1)
+	{
+		CPrintToChat(client, "{%s}[%s] {%s}Need exactly 1 player on each team to start picking.", prefixcolor, prefix, textcolor);
+		CPrintToChat(client, "{%s}[%s] {%s}Currently: %d on T, %d on CT.", prefixcolor, prefix, textcolor, tCount, ctCount);
+		return;
+	}
+
+	// Count available spectators
+	int specCount = 0;
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsClientInGame(i) && !IsFakeClient(i) && GetClientTeam(i) < 2)
+			specCount++;
+	}
+
+	// Calculate required players
+	int totalPlayersNeeded = matchMaxPlayers * 2;
+	int currentPlayers = tCount + ctCount + specCount;  // 2 + specCount
+
+	if (currentPlayers < totalPlayersNeeded)
+	{
+		CPrintToChat(client, "{%s}[%s] {%s}Not enough players. Need %d, have %d.", prefixcolor, prefix, textcolor, totalPlayersNeeded, currentPlayers);
+		CPrintToChat(client, "{%s}[%s] {%s}(Map requires %d players per team)", prefixcolor, prefix, textcolor, matchMaxPlayers);
+		return;
+	}
+
+	if (specCount == 0)
+	{
+		CPrintToChat(client, "{%s}[%s] {%s}No players in spectator to pick from.", prefixcolor, prefix, textcolor);
+		return;
+	}
+
+	// Set captains
+	capT = tPlayer;
+	capCT = ctPlayer;
+
+	// Initialize picks - T captain picks first by default (no knife fight winner)
+	capPicksLeft = (matchMaxPlayers - 1) * 2;
+	capPickNumber = 0;
+	capFirstPicker = capT;  // Default to T if no knife fight
+	capPicker = capT;
+
+	// Update hostname
+	HostName_Change_Status("Picking");
+
+	// Notify
+	CPrintToChatAll("{%s}[%s] {%s}Picking phase started!", prefixcolor, prefix, textcolor);
+	CPrintToChatAll("{%s}[%s] {%s}T Captain: %N | CT Captain: %N", prefixcolor, prefix, textcolor, capT, capCT);
+	CPrintToChatAll("{%s}[%s] {%s}%N is picking first.", prefixcolor, prefix, textcolor, capPicker);
+
+	// Open pick menu for first picker
+	OpenCapPickMenu(capPicker);
+
+	// Log action
+	LogAction(client, -1, "\"%L\" started picking phase", client);
+}
+
+public void CapOnClientDisconnect(int client)
+{
+	// Check if disconnecting player is a captain during active cap process
+	if (client == capT || client == capCT)
+	{
+		// Check if we're in an active cap phase
+		bool inCapPhase = capFightStarted || capPicksLeft > 0;
+
+		if (inCapPhase)
+		{
+			CPrintToChatAll("{%s}[%s] {%s}Captain %N disconnected. Cap system reset.", prefixcolor, prefix, textcolor, client);
+			CapReset(0);  // 0 = system-triggered, not admin
+		}
+	}
+}
+
+// ************************************************************************************************************
 // ************************************************** EVENTS **************************************************
 // ************************************************************************************************************
 public void CapOnPluginStart()
@@ -52,19 +301,25 @@ public void CapEventRoundEnd(Event event)
 	if (capFightStarted)
 	{
 		capFightStarted = false;
-		
+
 		HostName_Change_Status("Picking");
-		
+
 		//reenable sprint
 		if (tempSprint)		bSPRINT_ENABLED = 1;
 
+		// Initialize snake draft - winner picks first
+		capPickNumber = 0;
 		int winner = event.GetInt("winner");
-		if (winner == 2) 
+		if (winner == 2)
 		{
+			capFirstPicker = capT;
+			capPicker = capT;
 			OpenCapPickMenu(capT);
 		}
-		else if (winner == 3) 
+		else if (winner == 3)
 		{
+			capFirstPicker = capCT;
+			capPicker = capCT;
 			OpenCapPickMenu(capCT);
 		}
 	}
@@ -75,24 +330,37 @@ public void CapEventRoundEnd(Event event)
 // **************************************************************************************************************
 public void OpenCapMenu(int client)
 {
-	char capString[32];
-	Format(capString, sizeof(capString), "Start cap fight (%s)", capweapon);
 	Menu menu = new Menu(CapMenuHandler);
+	menu.SetTitle("Soccer Mod - Cap");
 
-	menu.SetTitle("Soccer - Admin - Cap");
+	// Show start or stop depending on state
+	if (capFightStarted)
+	{
+		menu.AddItem("stopcap", "Stop cap fight");
+	}
+	else
+	{
+		char capString[32];
+		Format(capString, sizeof(capString), "Start cap fight (%s)", capweapon);
+		menu.AddItem("start", capString);
+	}
+
+	menu.AddItem("startpick", "Start picking");
+	menu.AddItem("resetcap", "Reset cap");
 
 	menu.AddItem("spec", "Put all players to spectator");
-
 	menu.AddItem("random", "Add random player");
-
-	menu.AddItem("start", capString);
 
 	menu.AddItem("capweap", "Weapon selection");
 
 	char healthString[48];
 	Format(healthString, sizeof(healthString), "Cap fight health: %i", capFightHealth);
 	menu.AddItem("caphealth", healthString);
-	
+
+	char snakeString[48];
+	Format(snakeString, sizeof(snakeString), "Snake draft: %s", capSnakeDraft ? "ON" : "OFF");
+	menu.AddItem("snakedraft", snakeString);
+
 	//menu.AddItem("autocap", "[BETA] Auto Cap");
 
 	if(publicmode == 0 || publicmode == 2) menu.ExitBackButton = true;
@@ -110,12 +378,36 @@ public int CapMenuHandler(Menu menu, MenuAction action, int client, int choice)
 	{
 		char menuItem[32];
 		menu.GetItem(choice, menuItem, sizeof(menuItem));
+
+		// These can be used anytime (even during match for emergencies)
+		if (StrEqual(menuItem, "stopcap"))
+		{
+			CapStopFight(client);
+			OpenCapMenu(client);
+			return 0;
+		}
+		else if (StrEqual(menuItem, "resetcap"))
+		{
+			CapReset(client);
+			OpenCapMenu(client);
+			return 0;
+		}
+		else if (StrEqual(menuItem, "snakedraft"))
+		{
+			capSnakeDraft = capSnakeDraft ? 0 : 1;
+			UpdateConfigInt("Cap Settings", "soccer_mod_cap_snake_draft", capSnakeDraft);
+			CPrintToChat(client, "{%s}[%s] {%s}Snake draft: %s", prefixcolor, prefix, textcolor, capSnakeDraft ? "ON" : "OFF");
+			OpenCapMenu(client);
+			return 0;
+		}
+
 		if (!matchStarted)
 		{
 			if (StrEqual(menuItem, "spec"))		 CapPutAllToSpec(client);
 			else if (StrEqual(menuItem, "random"))  CapAddRandomPlayer(client);
 			else if (StrEqual(menuItem, "capweap"))	OpenWeaponMenu(client);
 			else if (StrEqual(menuItem, "caphealth")) OpenCapHealthMenu(client);
+			else if (StrEqual(menuItem, "startpick")) CapStartPicking(client);
 			else if (StrEqual(menuItem, "start"))
 			{
 				CapStartFight(client);
@@ -137,10 +429,11 @@ public int CapMenuHandler(Menu menu, MenuAction action, int client, int choice)
 		}
 		else CPrintToChat(client, "{%s}[%s]{%s}You can not use this option during a match", prefixcolor, prefix, textcolor);
 
-		if (!(StrEqual(menuItem, "capweap")) && !(StrEqual(menuItem, "caphealth")))	OpenCapMenu(client);
+		if (!(StrEqual(menuItem, "capweap")) && !(StrEqual(menuItem, "caphealth")) && !(StrEqual(menuItem, "startpick")))	OpenCapMenu(client);
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuAdmin(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 
@@ -370,47 +663,35 @@ public int CapPickMenuHandler(Menu menu, MenuAction action, int client, int choi
 
 			char targetSteamid[32];
 			GetClientAuthId(target, AuthId_Engine, targetSteamid, sizeof(targetSteamid));
+
+			// Track pick progress
+			capPickNumber++;
 			capPicksLeft--;
 
-			if (client == capCT)
+			// Move player to picker's team
+			int team = GetClientTeam(client);
+			ChangeClientTeam(target, team);
+
+			// Close any open menu on the picked player
+			if(GetClientMenu(target) != MenuSource_None)
 			{
-				int team = GetClientTeam(capCT);
-				ChangeClientTeam(target, team);
-				if(GetClientMenu(target) != MenuSource_None)
-				{
-					CancelClientMenu(target, false);
-					InternalShowMenu(target, "\10", 1); 
-				}
-
-				for (int player = 1; player <= MaxClients; player++)
-				{
-					if (IsClientInGame(player) && IsClientConnected(player)) CPrintToChat(player, "{%s}[%s] {%s}%N has picked %N", prefixcolor, prefix, textcolor, client, target);
-				}
-
-				LogMessage("%N <%s> has picked %N <%s>", client, steamid, target, targetSteamid);
-
-				capPicker = capT;
-				if (capPicksLeft > 0) OpenCapPickMenu(capT);
+				CancelClientMenu(target, false);
+				InternalShowMenu(target, "\10", 1);
 			}
-			else if (client == capT)
+
+			// Notify all players
+			for (int player = 1; player <= MaxClients; player++)
 			{
-				int team = GetClientTeam(capT);
-				ChangeClientTeam(target, team);
-				if(GetClientMenu(target) != MenuSource_None)
-				{
-					CancelClientMenu(target, false);
-					InternalShowMenu(target, "\10", 1); 
-				}
+				if (IsClientInGame(player) && IsClientConnected(player)) CPrintToChat(player, "{%s}[%s] {%s}%N has picked %N", prefixcolor, prefix, textcolor, client, target);
+			}
 
-				for (int player = 1; player <= MaxClients; player++)
-				{
-					if (IsClientInGame(player) && IsClientConnected(player)) CPrintToChat(player, "{%s}[%s] {%s}%N has picked %N", prefixcolor, prefix, textcolor, client, target);
-				}
+			LogMessage("%N <%s> has picked %N <%s>", client, steamid, target, targetSteamid);
 
-				LogMessage("%N <%s> has picked %N <%s>", client, steamid, target, targetSteamid);
-
-				capPicker = capCT;
-				if (capPicksLeft > 0) OpenCapPickMenu(capCT);
+			// Determine next picker using snake draft logic
+			if (capPicksLeft > 0)
+			{
+				capPicker = GetNextPicker();
+				OpenCapPickMenu(capPicker);
 			}
 		}
 		else
@@ -575,7 +856,11 @@ public Action TimerCapFightCountDownEnd(Handle timer)
 				{
 					//Refill
 					GivePlayerItem(player, weaponName);
-					CreateTimer(0.5, GrenadeRefillTimer, _,TIMER_REPEAT);
+					// Only create refill timer once (not per player)
+					if (capGrenadeRefillTimer == INVALID_HANDLE)
+					{
+						capGrenadeRefillTimer = CreateTimer(0.5, GrenadeRefillTimer, _, TIMER_REPEAT);
+					}
 				}
 				else if (StrEqual(weaponName, "weapon_knife")) 
 				{
@@ -605,7 +890,7 @@ public Action GrenadeRefillTimer(Handle timer)
 		{
 			if (IsClientInGame(player) && IsClientConnected(player))
 			{
-				if (GetClientTeam(player) > 1  && IsPlayerAlive(player)) 
+				if (GetClientTeam(player) > 1  && IsPlayerAlive(player))
 				{
 					char playerweapon[64];
 					GetClientWeapon(player, playerweapon, sizeof(playerweapon));
@@ -618,7 +903,11 @@ public Action GrenadeRefillTimer(Handle timer)
 		}
 		return Plugin_Continue;
 	}
-	else return Plugin_Stop;
+	else
+	{
+		capGrenadeRefillTimer = INVALID_HANDLE;
+		return Plugin_Stop;
+	}
 }
 
 // ***************************************************************************************************************
@@ -728,10 +1017,11 @@ public void CapStartFight(int client)
 		bool noPos[MAXPLAYERS+1] = false;
 		int posnr[MAXPLAYERS+1];
 		
-		CreateTimer(0.0, TimerCapFightCountDown, 3);
-		CreateTimer(1.0, TimerCapFightCountDown, 2);
-		CreateTimer(2.0, TimerCapFightCountDown, 1);
-		CreateTimer(3.0, TimerCapFightCountDownEnd);
+		// Store timer handles so they can be killed on reset
+		capCountdownTimer1 = CreateTimer(0.0, TimerCapFightCountDown, 3);
+		capCountdownTimer2 = CreateTimer(1.0, TimerCapFightCountDown, 2);
+		capCountdownTimer3 = CreateTimer(2.0, TimerCapFightCountDown, 1);
+		capCountdownEndTimer = CreateTimer(3.0, TimerCapFightCountDownEnd);
 
 		KeyValues keygroup = new KeyValues("capPositions");
 		keygroup.ImportFromFile(pathCapPositionsFile);

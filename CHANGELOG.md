@@ -1,5 +1,23 @@
 # Soccer Mod Changelog
 
+## 1.4.4
+
+### New
+- Added cap control commands: `!stopcap`, `!resetcap`, `!startpick`
+- Added snake draft pick order (configurable, default ON) - second picker gets compensation picks
+- Added "Stop cap fight" option in cap menu (visible when fight is active)
+- Added "Start picking" option to skip knife fight and go directly to picking
+- Added "Reset cap" option for full cap system reset
+- Added "Snake draft: ON/OFF" toggle in cap menu
+- Captain disconnect now auto-resets the cap system to prevent stuck states
+
+### Changes
+- Refactored pick handler to use snake draft logic
+- Timer handles now stored for proper cleanup on reset/stop
+- Cap system tracks pick number for snake draft pattern
+
+---
+
 ## 1.4.3
 
 ### New

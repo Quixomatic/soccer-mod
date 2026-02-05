@@ -6,6 +6,9 @@ public void RegisterClientCommands()
 
 	RegConsoleCmd("sm_admins", AdminListCommand, "Shows a list of Online Admins");
 	RegConsoleCmd("sm_cap", CapCommand, "Opens the Soccer Mod cap menu");
+	RegAdminCmd("sm_stopcap", StopCapCommand, ADMFLAG_GENERIC, "Stops an active cap fight");
+	RegAdminCmd("sm_resetcap", ResetCapCommand, ADMFLAG_GENERIC, "Resets the cap system");
+	RegAdminCmd("sm_startpick", StartPickCommand, ADMFLAG_GENERIC, "Starts the picking phase");
 	RegConsoleCmd("sm_commands", CommandsCommand, "Opens the Soccer Mod commands list");
 	RegConsoleCmd("sm_credits", CreditsCommand, "Opens the Soccer Mod credits menu");
 	RegConsoleCmd("sm_forfeit", Command_Forfeit, "Starts a forfeit vote");
@@ -504,6 +507,36 @@ public Action CapCommand(int client, int args)
 			OpenCapMenu(client);
 		}
 		else CPrintToChat(client, "{%s}[%s] {%s}You are not allowed to use this command", prefixcolor, prefix, textcolor);
+	}
+	else CPrintToChat(client, "{%s}[%s] {%s}Soccer Mod is not allowed on this map", prefixcolor, prefix, textcolor);
+	return Plugin_Handled;
+}
+
+public Action StopCapCommand(int client, int args)
+{
+	if (currentMapAllowed)
+	{
+		CapStopFight(client);
+	}
+	else CPrintToChat(client, "{%s}[%s] {%s}Soccer Mod is not allowed on this map", prefixcolor, prefix, textcolor);
+	return Plugin_Handled;
+}
+
+public Action ResetCapCommand(int client, int args)
+{
+	if (currentMapAllowed)
+	{
+		CapReset(client);
+	}
+	else CPrintToChat(client, "{%s}[%s] {%s}Soccer Mod is not allowed on this map", prefixcolor, prefix, textcolor);
+	return Plugin_Handled;
+}
+
+public Action StartPickCommand(int client, int args)
+{
+	if (currentMapAllowed)
+	{
+		CapStartPicking(client);
 	}
 	else CPrintToChat(client, "{%s}[%s] {%s}Soccer Mod is not allowed on this map", prefixcolor, prefix, textcolor);
 	return Plugin_Handled;

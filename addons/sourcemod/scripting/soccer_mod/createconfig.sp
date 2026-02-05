@@ -129,6 +129,7 @@ public void CreateSoccerModConfig()
 
 	kvConfig.JumpToKey("Cap Settings", true);
 	kvConfig.SetNum("soccer_mod_cap_fight_health",				capFightHealth);
+	kvConfig.SetNum("soccer_mod_cap_snake_draft",				capSnakeDraft);
 	kvConfig.GoBack();
 
 	kvConfig.JumpToKey("Match Info", true);
@@ -489,6 +490,7 @@ public void ReadFromConfig()
 
 	kvConfig.JumpToKey("Cap Settings", true);
 	capFightHealth			= kvConfig.GetNum("soccer_mod_cap_fight_health", 101);
+	capSnakeDraft			= kvConfig.GetNum("soccer_mod_cap_snake_draft", 1);
 	kvConfig.GoBack();
 
 	kvConfig.JumpToKey("Match Info", true);
