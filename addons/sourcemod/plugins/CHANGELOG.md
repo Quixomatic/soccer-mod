@@ -1,5 +1,14 @@
 # Soccer Mod Changelog
 
+## 1.4.3
+
+### New
+- Added configurable cap fight starting health via in-game settings menu
+- New menu option under Cap settings to set health (101, 100, 50, 1, or custom value)
+- Cap fight health is saved to config file
+
+---
+
 ## 1.4.2
 
 ### Changes

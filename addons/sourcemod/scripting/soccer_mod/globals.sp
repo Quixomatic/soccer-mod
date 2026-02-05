@@ -160,6 +160,7 @@ int capT				= 0;
 int capPicksLeft		= 0;
 int capnr				= 0;
 int nrhelper			= 0;
+int capFightHealth		= 101;
 
 // STRINGS
 char capweapon[32]		="knife";

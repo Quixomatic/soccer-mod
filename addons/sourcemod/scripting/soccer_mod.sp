@@ -1,7 +1,7 @@
 // **************************************************************************************************************
 // ************************************************** DEFINES ***************************************************
 // ************************************************************************************************************** 
-#define PLUGIN_VERSION "1.4.2"
+#define PLUGIN_VERSION "1.4.3"
 #define UPDATE_URL "https://raw.githubusercontent.com/Quixomatic/soccer-mod/main/addons/sourcemod/updatefile.txt"
 #define MAX_NAMES 10
 #define MAXCONES_DYN 15
@@ -259,7 +259,12 @@ public Action SayCommandListener(int client, char[] command, int argc)
 		else if (StrEqual(changeSetting[client], "CustomPeriodBreakLength"))
 		{
 			MatchSet(client, "CustomPeriodBreakLength", intnumber, 5, 60);
-			return Plugin_Handled;			
+			return Plugin_Handled;
+		}
+		else if (StrEqual(changeSetting[client], "CustomCapHealth"))
+		{
+			CapSet(client, "CustomCapHealth", intnumber, 1, 1000);
+			return Plugin_Handled;
 		}
 		else if (StrEqual(changeSetting[client], "CustomRankCD"))
 		{

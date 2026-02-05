@@ -86,8 +86,12 @@ public void OpenCapMenu(int client)
 	menu.AddItem("random", "Add random player");
 
 	menu.AddItem("start", capString);
-	
+
 	menu.AddItem("capweap", "Weapon selection");
+
+	char healthString[48];
+	Format(healthString, sizeof(healthString), "Cap fight health: %i", capFightHealth);
+	menu.AddItem("caphealth", healthString);
 	
 	//menu.AddItem("autocap", "[BETA] Auto Cap");
 
@@ -111,6 +115,7 @@ public int CapMenuHandler(Menu menu, MenuAction action, int client, int choice)
 			if (StrEqual(menuItem, "spec"))		 CapPutAllToSpec(client);
 			else if (StrEqual(menuItem, "random"))  CapAddRandomPlayer(client);
 			else if (StrEqual(menuItem, "capweap"))	OpenWeaponMenu(client);
+			else if (StrEqual(menuItem, "caphealth")) OpenCapHealthMenu(client);
 			else if (StrEqual(menuItem, "start"))
 			{
 				CapStartFight(client);
@@ -132,7 +137,7 @@ public int CapMenuHandler(Menu menu, MenuAction action, int client, int choice)
 		}
 		else CPrintToChat(client, "{%s}[%s]{%s}You can not use this option during a match", prefixcolor, prefix, textcolor);
 
-		if (!(StrEqual(menuItem, "capweap")))	OpenCapMenu(client);	
+		if (!(StrEqual(menuItem, "capweap")) && !(StrEqual(menuItem, "caphealth")))	OpenCapMenu(client);
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuAdmin(client);
 	else if (action == MenuAction_End)					  menu.Close();
@@ -238,6 +243,86 @@ public int WeaponMenuHandler(Menu menu, MenuAction action, int client, int choic
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenCapMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+}
+
+// ***************************************************************************************************************
+// ************************************************ HEALTH MENU **************************************************
+// ***************************************************************************************************************
+public void OpenCapHealthMenu(int client)
+{
+	Menu menu = new Menu(CapHealthMenuHandler);
+	menu.SetTitle("Soccer Mod - Cap - Start Health");
+
+	menu.AddItem("101", "101 HP (Default)");
+	menu.AddItem("100", "100 HP");
+	menu.AddItem("50", "50 HP");
+	menu.AddItem("1", "1 HP");
+	menu.AddItem("custom", "Custom");
+
+	menu.ExitBackButton = true;
+	menu.Display(client, MENU_TIME_FOREVER);
+}
+
+public int CapHealthMenuHandler(Menu menu, MenuAction action, int client, int choice)
+{
+	if (action == MenuAction_Select)
+	{
+		if (!matchStarted)
+		{
+			char menuItem[32];
+			menu.GetItem(choice, menuItem, sizeof(menuItem));
+
+			if (StrEqual(menuItem, "custom"))
+			{
+				CPrintToChat(client, "{%s}[%s] {%s}Type a value for cap fight health (1-1000), 0 to cancel. Current: %i", prefixcolor, prefix, textcolor, capFightHealth);
+				changeSetting[client] = "CustomCapHealth";
+			}
+			else
+			{
+				capFightHealth = StringToInt(menuItem);
+				UpdateConfigInt("Cap Settings", "soccer_mod_cap_fight_health", capFightHealth);
+				CPrintToChatAll("{%s}[%s] {%s}Cap fight health set to: %i", prefixcolor, prefix, textcolor, capFightHealth);
+				OpenCapMenu(client);
+			}
+		}
+		else CPrintToChat(client, "{%s}[%s]{%s}You can not use this option during a match", prefixcolor, prefix, textcolor);
+	}
+	else if (action == MenuAction_Cancel && choice == -6)   OpenCapMenu(client);
+	else if (action == MenuAction_End)					  menu.Close();
+}
+
+public void CapSet(int client, char type[32], int intnumber, int min, int max)
+{
+	if (intnumber >= min && intnumber <= max || intnumber == 0)
+	{
+		char steamid[32];
+		GetClientAuthId(client, AuthId_Engine, steamid, sizeof(steamid));
+
+		if (StrEqual(type, "CustomCapHealth"))
+		{
+			if(intnumber != 0)
+			{
+				capFightHealth = intnumber;
+				UpdateConfigInt("Cap Settings", "soccer_mod_cap_fight_health", capFightHealth);
+
+				for (int player = 1; player <= MaxClients; player++)
+				{
+					if (IsClientInGame(player) && IsClientConnected(player)) CPrintToChat(player, "{%s}[%s] {%s}%N has set cap fight health to %i.", prefixcolor, prefix, textcolor, client, intnumber);
+				}
+
+				LogMessage("%N <%s> has set cap fight health to %i", client, steamid, intnumber);
+
+				changeSetting[client] = "";
+				OpenCapMenu(client);
+			}
+			else
+			{
+				OpenCapHealthMenu(client);
+				CPrintToChat(client, "{%s}[%s] {%s}Cancelled changing this value.", prefixcolor, prefix, textcolor);
+			}
+		}
+	}
+	else CPrintToChat(client, "{%s}[%s] {%s}Type a value between %i and %i.", prefixcolor, prefix, textcolor, min, max);
 }
 
 // ***************************************************************************************************************
@@ -504,7 +589,7 @@ public Action TimerCapFightCountDownEnd(Handle timer)
 				
 				if (StrEqual(weaponName, "weapon_smokegrenade") || StrEqual(weaponName, "weapon_flashbang"))	SetEntProp(player, Prop_Send, "m_iHealth", 1)
 				else if (StrEqual(weaponName, "weapon_hegrenade")) SetEntProp(player, Prop_Send, "m_iHealth", 98)
-				else	SetEntProp(player, Prop_Send, "m_iHealth", 101)
+				else	SetEntProp(player, Prop_Send, "m_iHealth", capFightHealth)
 			}
 		}
 	}

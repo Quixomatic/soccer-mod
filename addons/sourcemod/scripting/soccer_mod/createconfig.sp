@@ -126,7 +126,11 @@ public void CreateSoccerModConfig()
 	kvConfig.SetString("soccer_mod_teamnamet", 					custom_name_t);
 	kvConfig.SetNum("soccer_mod_match_readycheck", 				matchReadyCheck);
 	kvConfig.GoBack();
-	
+
+	kvConfig.JumpToKey("Cap Settings", true);
+	kvConfig.SetNum("soccer_mod_cap_fight_health",				capFightHealth);
+	kvConfig.GoBack();
+
 	kvConfig.JumpToKey("Match Info", true);
 	kvConfig.SetNum("soccer_mod_period_info",					infoPeriods);
 	kvConfig.SetNum("soccer_mod_break_info",					infoBreak);
@@ -482,7 +486,11 @@ public void ReadFromConfig()
 	kvConfig.GetString("soccer_mod_teamnamet", custom_name_t, sizeof(custom_name_t), "T");
 	matchReadyCheck			= kvConfig.GetNum("soccer_mod_match_readycheck", 1);
 	kvConfig.GoBack();
-	
+
+	kvConfig.JumpToKey("Cap Settings", true);
+	capFightHealth			= kvConfig.GetNum("soccer_mod_cap_fight_health", 101);
+	kvConfig.GoBack();
+
 	kvConfig.JumpToKey("Match Info", true);
 	infoPeriods				= kvConfig.GetNum("soccer_mod_period_info", 1);
 	infoBreak				= kvConfig.GetNum("soccer_mod_break_info",	1);
