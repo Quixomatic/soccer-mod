@@ -752,9 +752,9 @@ All changes implemented in v1.4.4:
 
 ### Overview
 When a cap vote fails (doesn't reach >50% yes votes), the system should automatically:
-1. Select two NEW random captains (excluding previously rejected ones)
-2. Start a new vote with the new captains
-3. Continue until vote passes or max attempts reached
+1. Try the next unique captain pair from a pre-shuffled list
+2. Once all unique pairs have been tried, switch to purely random selection
+3. Continue indefinitely until a vote passes (no max attempts)
 
 ### Current Behavior (v1.4.5)
 When vote fails:
@@ -763,59 +763,154 @@ When vote fails:
 - No automatic retry - players must manually trigger `!autocap` again
 
 ### Proposed Behavior
+When `!autocap` starts:
+1. Generate all unique pairs of players (N players = N*(N-1)/2 pairs)
+2. Shuffle the pairs into random order
+3. Pop pairs from the list for each vote attempt
+
 When vote fails:
-- Track rejected captains for the session
 - Wait 5 seconds (brief pause for players to see result)
-- Automatically select 2 NEW random captains (excluding rejected ones)
-- Start new vote
-- If max attempts (3) reached, give up and notify players
+- If pairs remain in shuffled list: use next pair (guaranteed unique)
+- If list exhausted: switch to purely random (can repeat any pair)
+- Continue until vote passes
+
+### Pair Counts
+- 12 players = 66 unique pairs
+- 10 players = 45 unique pairs
+- 8 players = 28 unique pairs
 
 ### New State Variables (globals.sp)
 ```sourcepawn
-int capVoteAttempt = 0;                    // Current vote attempt number (1-3)
-int capVoteMaxAttempts = 3;                // Max attempts before giving up
-ArrayList capRejectedCaptains = null;      // List of rejected captain Steam IDs
+ArrayList capCaptainPairs = null;          // Shuffled list of {client1, client2} pairs
+int capPairIndex = 0;                      // Current position in pairs list
+bool capPairsExhausted = false;            // True when all unique pairs tried
 Handle capRetryTimer = INVALID_HANDLE;     // Timer for retry delay
 ```
 
 ### Implementation
+
+**Generate and shuffle all pairs on `!autocap`:**
+```sourcepawn
+public void CapGenerateCaptainPairs()
+{
+    if (capCaptainPairs != null)
+        delete capCaptainPairs;
+
+    // ArrayList of 2-element arrays: [client1, client2]
+    capCaptainPairs = new ArrayList(2);
+    capPairIndex = 0;
+    capPairsExhausted = false;
+
+    // Get all eligible players
+    ArrayList players = new ArrayList();
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        if (IsClientInGame(i) && !IsFakeClient(i) && !IsClientSourceTV(i))
+            players.Push(i);
+    }
+
+    // Generate all unique pairs
+    int count = players.Length;
+    for (int i = 0; i < count - 1; i++)
+    {
+        for (int j = i + 1; j < count; j++)
+        {
+            int pair[2];
+            pair[0] = players.Get(i);
+            pair[1] = players.Get(j);
+            capCaptainPairs.PushArray(pair, 2);
+        }
+    }
+
+    delete players;
+
+    // Fisher-Yates shuffle
+    int n = capCaptainPairs.Length;
+    for (int i = n - 1; i > 0; i--)
+    {
+        int j = GetRandomInt(0, i);
+        if (i != j)
+            capCaptainPairs.SwapAt(i, j);
+    }
+}
+```
+
+**Get next captain pair:**
+```sourcepawn
+public bool CapGetNextCaptainPair()
+{
+    // Phase 1: Use pre-generated unique pairs
+    if (!capPairsExhausted && capCaptainPairs != null && capPairIndex < capCaptainPairs.Length)
+    {
+        int pair[2];
+        capCaptainPairs.GetArray(capPairIndex, pair, 2);
+        capPairIndex++;
+
+        // Validate both players still connected
+        if (IsClientInGame(pair[0]) && IsClientInGame(pair[1]))
+        {
+            capT = pair[0];
+            capCT = pair[1];
+            return true;
+        }
+
+        // Player disconnected, try next pair
+        return CapGetNextCaptainPair();
+    }
+
+    // Phase 2: All unique pairs exhausted, switch to purely random
+    capPairsExhausted = true;
+    return CapSelectPurelyRandomCaptains();
+}
+
+public bool CapSelectPurelyRandomCaptains()
+{
+    ArrayList eligible = new ArrayList();
+
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        if (IsClientInGame(i) && !IsFakeClient(i) && !IsClientSourceTV(i))
+            eligible.Push(i);
+    }
+
+    if (eligible.Length < 2)
+    {
+        delete eligible;
+        return false;
+    }
+
+    // Purely random - can pick same pair again
+    int idx1 = GetRandomInt(0, eligible.Length - 1);
+    capT = eligible.Get(idx1);
+    eligible.Erase(idx1);
+
+    int idx2 = GetRandomInt(0, eligible.Length - 1);
+    capCT = eligible.Get(idx2);
+
+    delete eligible;
+    return true;
+}
+```
 
 **Update `CapVoteEnd()` on vote failure:**
 ```sourcepawn
 if (percentYes <= 50)
 {
     // Vote failed
-    CPrintToChatAll("%s Vote failed (%d%% yes). Captains rejected.", CHAT_PREFIX, percentYes);
+    CPrintToChatAll("%s Vote failed (%d%% yes).", CHAT_PREFIX, percentYes);
 
-    // Track rejected captains
-    if (capRejectedCaptains == null)
-        capRejectedCaptains = new ArrayList(ByteCountToCells(32));
+    int pairsRemaining = capCaptainPairs != null ? (capCaptainPairs.Length - capPairIndex) : 0;
 
-    char steamT[32], steamCT[32];
-    GetClientAuthId(capT, AuthId_Steam2, steamT, sizeof(steamT));
-    GetClientAuthId(capCT, AuthId_Steam2, steamCT, sizeof(steamCT));
-    capRejectedCaptains.PushString(steamT);
-    capRejectedCaptains.PushString(steamCT);
-
-    capVoteAttempt++;
-
-    if (capVoteAttempt >= capVoteMaxAttempts)
-    {
-        // Max attempts reached - give up
-        CPrintToChatAll("%s Auto cap cancelled after %d failed votes.", CHAT_PREFIX, capVoteAttempt);
-        CapResetVoteState();
-    }
+    if (capPairsExhausted)
+        CPrintToChatAll("%s Selecting random captains in 5 seconds...", CHAT_PREFIX);
     else
-    {
-        // Retry with new captains after delay
-        CPrintToChatAll("%s Selecting new captains in 5 seconds... (attempt %d/%d)",
-            CHAT_PREFIX, capVoteAttempt + 1, capVoteMaxAttempts);
-        capRetryTimer = CreateTimer(5.0, TimerCapVoteRetry);
-    }
+        CPrintToChatAll("%s Trying next pair in 5 seconds... (%d combinations remaining)", CHAT_PREFIX, pairsRemaining);
+
+    capRetryTimer = CreateTimer(5.0, TimerCapVoteRetry);
 }
 ```
 
-**New timer callback:**
+**Timer callback:**
 ```sourcepawn
 public Action TimerCapVoteRetry(Handle timer)
 {
@@ -829,10 +924,10 @@ public Action TimerCapVoteRetry(Handle timer)
         return Plugin_Stop;
     }
 
-    // Select new random captains (excluding rejected ones)
-    if (!CapSelectRandomCaptains(true))  // true = exclude rejected
+    // Get next captain pair
+    if (!CapGetNextCaptainPair())
     {
-        CPrintToChatAll("%s Auto cap cancelled - no eligible captains remaining.", CHAT_PREFIX);
+        CPrintToChatAll("%s Auto cap cancelled - could not select captains.", CHAT_PREFIX);
         CapResetVoteState();
         return Plugin_Stop;
     }
@@ -840,47 +935,6 @@ public Action TimerCapVoteRetry(Handle timer)
     // Start new vote
     CapVoteStart();
     return Plugin_Stop;
-}
-```
-
-**Update `CapSelectRandomCaptains()` to exclude rejected:**
-```sourcepawn
-public bool CapSelectRandomCaptains(bool excludeRejected = false)
-{
-    ArrayList eligible = new ArrayList();
-
-    for (int i = 1; i <= MaxClients; i++)
-    {
-        if (!IsClientInGame(i) || IsFakeClient(i))
-            continue;
-
-        if (excludeRejected && capRejectedCaptains != null)
-        {
-            char steamId[32];
-            GetClientAuthId(i, AuthId_Steam2, steamId, sizeof(steamId));
-            if (capRejectedCaptains.FindString(steamId) != -1)
-                continue;  // Skip rejected player
-        }
-
-        eligible.Push(i);
-    }
-
-    if (eligible.Length < 2)
-    {
-        delete eligible;
-        return false;
-    }
-
-    // Select 2 random from eligible
-    int idx1 = GetRandomInt(0, eligible.Length - 1);
-    capT = eligible.Get(idx1);
-    eligible.Erase(idx1);
-
-    int idx2 = GetRandomInt(0, eligible.Length - 1);
-    capCT = eligible.Get(idx2);
-
-    delete eligible;
-    return true;
 }
 ```
 
@@ -892,12 +946,13 @@ public void CapResetVoteState()
     capCT = 0;
     capAutoActive = false;
     capVoteActive = false;
-    capVoteAttempt = 0;
+    capPairIndex = 0;
+    capPairsExhausted = false;
 
-    if (capRejectedCaptains != null)
+    if (capCaptainPairs != null)
     {
-        delete capRejectedCaptains;
-        capRejectedCaptains = null;
+        delete capCaptainPairs;
+        capCaptainPairs = null;
     }
 
     if (capRetryTimer != INVALID_HANDLE)
@@ -922,26 +977,26 @@ if (capRetryTimer != INVALID_HANDLE)
 
 ### User Experience Flow
 ```
-!autocap
+!autocap (12 players = 66 unique pairs, shuffled)
     │
     ▼
-Vote #1: "Cap fight: Alice vs Bob?"
+Vote #1: "Cap fight: Alice vs Bob?" (pair 1/66)
     │
   FAIL (45% yes)
     │
     ▼
-"Selecting new captains in 5 seconds... (attempt 2/3)"
+"Trying next pair in 5 seconds... (65 combinations remaining)"
     │
     ▼
-Vote #2: "Cap fight: Charlie vs Dave?"
+Vote #2: "Cap fight: Charlie vs Dave?" (pair 2/66)
     │
   FAIL (40% yes)
     │
     ▼
-"Selecting new captains in 5 seconds... (attempt 3/3)"
+... (continues through all 66 unique pairs) ...
     │
     ▼
-Vote #3: "Cap fight: Eve vs Frank?"
+Vote #67: "Cap fight: Eve vs Frank?" (purely random, may repeat)
     │
   PASS (65% yes)
     │
@@ -949,11 +1004,19 @@ Vote #3: "Cap fight: Eve vs Frank?"
 Ready-up phase → knife fight → picking
 ```
 
+### Edge Cases
+- **Player disconnects mid-process**: Skip pairs containing that player, continue to next
+- **Not enough players**: Cancel auto cap, notify players
+- **`!resetcap` during retry**: Kill timer, clear pair list, reset state
+- **Same pair wins after exhaustion**: Purely random can select previously-rejected pairs
+
 ### Testing Checklist
-- [ ] Vote fails → auto-retry with new captains
-- [ ] Rejected captains excluded from selection
+- [ ] Vote fails → auto-retry with next unique pair
+- [ ] Pairs are shuffled (not predictable order)
+- [ ] Shows "X combinations remaining" during unique phase
+- [ ] After all pairs tried, switches to purely random
+- [ ] Purely random message shown (no "remaining" count)
+- [ ] Player disconnect skips affected pairs gracefully
 - [ ] 5 second delay between failed vote and new vote
-- [ ] Max 3 attempts before giving up
 - [ ] `!resetcap` during retry delay cancels the process
-- [ ] Player disconnect during retry delay handled properly
-- [ ] Edge case: not enough non-rejected players remaining
+- [ ] Works with different player counts (8, 10, 12 players)
