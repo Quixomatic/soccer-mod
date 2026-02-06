@@ -1,5 +1,14 @@
 # Soccer Mod Changelog
 
+## 1.4.13
+
+### Fixes
+- Fixed database config not loading from `cfg/sourcemod/soccer_mod.cfg`
+- Added `AutoExecConfig()` to ensure `soccer_mod_database_config` is set on plugin load
+- Plugin now properly connects to MariaDB/MySQL when configured
+
+---
+
 ## 1.4.12
 
 ### Fixes

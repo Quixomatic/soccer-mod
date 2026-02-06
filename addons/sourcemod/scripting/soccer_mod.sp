@@ -137,6 +137,7 @@ public void OnPluginStart()
 	if (StrEqual(gamevar, "cstrike")) HookUserMessage(GetUserMessageId("VGUIMenu"), HookMsg, true);
 	//LoadTranslations("soccer_mod.phrases.txt");
 	
+	AutoExecConfig(true, "soccer_mod");
 	ConnectToDatabase();
 	LoadAllowedMaps();
 	ConfigFunc();
