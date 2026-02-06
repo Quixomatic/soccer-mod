@@ -1,4 +1,5 @@
 ---
+layout: default
 title: Menu Structure
 nav_order: 6
 ---

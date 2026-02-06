@@ -1,4 +1,5 @@
 ---
+layout: default
 title: Skins Config
 parent: Configuration
 nav_order: 3

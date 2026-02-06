@@ -1,4 +1,5 @@
 ---
+layout: default
 title: Map Defaults
 parent: Configuration
 nav_order: 6

@@ -1,4 +1,5 @@
 ---
+layout: default
 title: Downloads Config
 parent: Configuration
 nav_order: 2

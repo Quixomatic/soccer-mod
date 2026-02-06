@@ -1,4 +1,5 @@
 ---
+layout: default
 title: Allowed Maps
 parent: Configuration
 nav_order: 4

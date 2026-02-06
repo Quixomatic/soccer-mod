@@ -1,4 +1,5 @@
 ---
+layout: default
 title: GK Areas
 parent: Configuration
 nav_order: 5
