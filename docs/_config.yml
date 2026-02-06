@@ -29,8 +29,13 @@ aux_links_new_tab: true
 # Footer
 footer_content: "Soccer Mod is open source under GPL-3.0"
 
-# Color scheme
-color_scheme: dark
+# Color scheme - light/dark toggle
+color_scheme: light
+
+# Enable light/dark mode toggle
+color_scheme_toggle:
+  - light
+  - dark
 
 # Search
 search_enabled: true
