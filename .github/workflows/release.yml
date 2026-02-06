@@ -100,9 +100,45 @@ jobs:
           # === sound ===
           [ -d "sound" ] && cp -r sound release/
 
-          # Create release zip
+          # Create main release zip (plugin + assets, no maps)
           cd release
           zip -r ../soccer-mod-${{ steps.version.outputs.version }}.zip .
+          cd ..
+
+          # === Maps package (separate due to size) ===
+          if [ -d "maps" ] && [ "$(ls -A maps/*.bsp 2>/dev/null)" ]; then
+            cd maps
+            zip -r ../maps-${{ steps.version.outputs.version }}.zip *.bsp *.nav 2>/dev/null || zip -r ../maps-${{ steps.version.outputs.version }}.zip *.bsp
+            cd ..
+          fi
+
+          # === Skins package (separate for optional download) ===
+          # Each skin folder contains materials/ and models/ with proper structure
+          if [ -d "skins" ]; then
+            mkdir -p skins-release
+            for skin_dir in skins/*/; do
+              skin_name=$(basename "$skin_dir")
+              # Skip if not a directory or is a hidden folder
+              [ ! -d "$skin_dir" ] && continue
+              [[ "$skin_name" == .* ]] && continue
+
+              # Copy materials and models from each skin
+              if [ -d "${skin_dir}materials" ]; then
+                cp -r "${skin_dir}materials" skins-release/ 2>/dev/null || true
+              fi
+              if [ -d "${skin_dir}models" ]; then
+                cp -r "${skin_dir}models" skins-release/ 2>/dev/null || true
+              fi
+            done
+
+            # Create skins zip if we have content
+            if [ "$(ls -A skins-release 2>/dev/null)" ]; then
+              cd skins-release
+              zip -r ../skins-${{ steps.version.outputs.version }}.zip .
+              cd ..
+            fi
+            rm -rf skins-release
+          fi
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -112,6 +148,9 @@ jobs:
           body: ${{ steps.changelog.outputs.changelog }}
           draft: false
           prerelease: false
-          files: soccer-mod-${{ steps.version.outputs.version }}.zip
+          files: |
+            soccer-mod-${{ steps.version.outputs.version }}.zip
+            maps-${{ steps.version.outputs.version }}.zip
+            skins-${{ steps.version.outputs.version }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
