@@ -10,8 +10,8 @@ dist/
 # Updater plugin (external dependency)
 addons/sourcemod/plugins/updater.smx
 
-# Documentation (hosted separately)
-docs/
+# Old RST documentation (backup)
+docs-rst/
 
 # Work in progress / development folders
 WIP/
