@@ -5,6 +5,11 @@ remote_theme: just-the-docs/just-the-docs
 url: https://quixomatic.github.io
 baseurl: /soccer-mod
 
+plugins:
+  - jekyll-remote-theme
+  - jekyll-seo-tag
+  - jekyll-include-cache
+
 # Repository link
 gh_repo_link: true
 gh_edit_link: true
