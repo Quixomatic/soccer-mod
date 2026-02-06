@@ -17,8 +17,8 @@ public void RegisterClientCommands()
 	RegConsoleCmd("sm_timein", Command_Timein, "End the timeout");
 
 	// Ready check admin commands
-	RegAdminCmd("sm_forceready", Command_ForceReady, ADMFLAG_GENERIC, "Force ready check to proceed");
-	RegAdminCmd("sm_cancelready", Command_CancelReady, ADMFLAG_GENERIC, "Cancel the ready check");
+	RegConsoleCmd("sm_forceready", Command_ForceReady, "Force ready check to proceed");
+	RegConsoleCmd("sm_cancelready", Command_CancelReady, "Cancel the ready check");
 
 	// Panel visibility
 	RegConsoleCmd("sm_hide", Command_HidePanel, "Hide the ready panel");
@@ -31,11 +31,11 @@ public void RegisterClientCommands()
 
 	RegConsoleCmd("sm_admins", AdminListCommand, "Shows a list of Online Admins");
 	RegConsoleCmd("sm_cap", CapCommand, "Opens the Soccer Mod cap menu");
-	RegAdminCmd("sm_stopcap", StopCapCommand, ADMFLAG_GENERIC, "Stops an active cap fight");
-	RegAdminCmd("sm_resetcap", ResetCapCommand, ADMFLAG_GENERIC, "Resets the cap system");
-	RegAdminCmd("sm_startpick", StartPickCommand, ADMFLAG_GENERIC, "Starts the picking phase");
-	RegAdminCmd("sm_autocap", AutoCapCommand, ADMFLAG_GENERIC, "Starts the auto cap system");
-	RegAdminCmd("sm_pug", AutoCapCommand, ADMFLAG_GENERIC, "Starts the auto cap system (alias for !autocap)");
+	RegConsoleCmd("sm_stopcap", StopCapCommand, "Stops an active cap fight");
+	RegConsoleCmd("sm_resetcap", ResetCapCommand, "Resets the cap system");
+	RegConsoleCmd("sm_startpick", StartPickCommand, "Starts the picking phase");
+	RegConsoleCmd("sm_autocap", AutoCapCommand, "Starts the auto cap system");
+	RegConsoleCmd("sm_pug", AutoCapCommand, "Starts the auto cap system (alias for !autocap)");
 	RegConsoleCmd("sm_vote", VoteCommand, "Opens the auto cap vote menu");
 	RegConsoleCmd("sm_k", ReadyCommand, "Ready up for cap fight (captains only)");
 	RegConsoleCmd("sm_commands", CommandsCommand, "Opens the Soccer Mod commands list");
@@ -217,13 +217,29 @@ public Action Command_Timein(int client, int args)
 // Admin commands for ready check
 public Action Command_ForceReady(int client, int args)
 {
-	ReadyCheckForce(client);
+	if (currentMapAllowed)
+	{
+		if(publicmode == 1 || publicmode == 2 || (publicmode == 0 && (CheckCommandAccess(client, "generic_admin", ADMFLAG_GENERIC) || IsSoccerAdmin(client, "match"))))
+		{
+			ReadyCheckForce(client);
+		}
+		else CPrintToChat(client, "{%s}[%s] {%s}You are not allowed to use this command", prefixcolor, prefix, textcolor);
+	}
+	else CPrintToChat(client, "{%s}[%s] {%s}Soccer Mod is not allowed on this map", prefixcolor, prefix, textcolor);
 	return Plugin_Handled;
 }
 
 public Action Command_CancelReady(int client, int args)
 {
-	ReadyCheckCancel(client);
+	if (currentMapAllowed)
+	{
+		if(publicmode == 1 || publicmode == 2 || (publicmode == 0 && (CheckCommandAccess(client, "generic_admin", ADMFLAG_GENERIC) || IsSoccerAdmin(client, "match"))))
+		{
+			ReadyCheckCancel(client);
+		}
+		else CPrintToChat(client, "{%s}[%s] {%s}You are not allowed to use this command", prefixcolor, prefix, textcolor);
+	}
+	else CPrintToChat(client, "{%s}[%s] {%s}Soccer Mod is not allowed on this map", prefixcolor, prefix, textcolor);
 	return Plugin_Handled;
 }
 
@@ -593,7 +609,11 @@ public Action StopCapCommand(int client, int args)
 {
 	if (currentMapAllowed)
 	{
-		CapStopFight(client);
+		if(publicmode == 1 || publicmode == 2 || (publicmode == 0 && (CheckCommandAccess(client, "generic_admin", ADMFLAG_GENERIC) || IsSoccerAdmin(client, "cap"))))
+		{
+			CapStopFight(client);
+		}
+		else CPrintToChat(client, "{%s}[%s] {%s}You are not allowed to use this command", prefixcolor, prefix, textcolor);
 	}
 	else CPrintToChat(client, "{%s}[%s] {%s}Soccer Mod is not allowed on this map", prefixcolor, prefix, textcolor);
 	return Plugin_Handled;
@@ -603,7 +623,11 @@ public Action ResetCapCommand(int client, int args)
 {
 	if (currentMapAllowed)
 	{
-		CapReset(client);
+		if(publicmode == 1 || publicmode == 2 || (publicmode == 0 && (CheckCommandAccess(client, "generic_admin", ADMFLAG_GENERIC) || IsSoccerAdmin(client, "cap"))))
+		{
+			CapReset(client);
+		}
+		else CPrintToChat(client, "{%s}[%s] {%s}You are not allowed to use this command", prefixcolor, prefix, textcolor);
 	}
 	else CPrintToChat(client, "{%s}[%s] {%s}Soccer Mod is not allowed on this map", prefixcolor, prefix, textcolor);
 	return Plugin_Handled;
@@ -613,7 +637,11 @@ public Action StartPickCommand(int client, int args)
 {
 	if (currentMapAllowed)
 	{
-		CapStartPicking(client);
+		if(publicmode == 1 || publicmode == 2 || (publicmode == 0 && (CheckCommandAccess(client, "generic_admin", ADMFLAG_GENERIC) || IsSoccerAdmin(client, "cap"))))
+		{
+			CapStartPicking(client);
+		}
+		else CPrintToChat(client, "{%s}[%s] {%s}You are not allowed to use this command", prefixcolor, prefix, textcolor);
 	}
 	else CPrintToChat(client, "{%s}[%s] {%s}Soccer Mod is not allowed on this map", prefixcolor, prefix, textcolor);
 	return Plugin_Handled;
@@ -623,7 +651,11 @@ public Action AutoCapCommand(int client, int args)
 {
 	if (currentMapAllowed)
 	{
-		CapAutoStart(client);
+		if(publicmode == 1 || publicmode == 2 || (publicmode == 0 && (CheckCommandAccess(client, "generic_admin", ADMFLAG_GENERIC) || IsSoccerAdmin(client, "cap"))))
+		{
+			CapAutoStart(client);
+		}
+		else CPrintToChat(client, "{%s}[%s] {%s}You are not allowed to use this command", prefixcolor, prefix, textcolor);
 	}
 	else CPrintToChat(client, "{%s}[%s] {%s}Soccer Mod is not allowed on this map", prefixcolor, prefix, textcolor);
 	return Plugin_Handled;

@@ -100,17 +100,17 @@ Commands can be used in chat with `!` or `.` prefix, or in console with `sm_` pr
 
 | Command | Requires | Description |
 |---------|----------|-------------|
-| `!autocap` / `!pug` | Generic (b/z) | Starts auto captain selection |
-| `!stopcap` | Generic (b/z) | Stops the current cap fight |
-| `!resetcap` | Generic (b/z) | Resets the cap system |
-| `!startpick` | Generic (b/z) | Skip knife fight, go to picking |
+| `!autocap` / `!pug` | Generic (b/z) or SoccerMod Admin (cap) | Starts auto captain selection |
+| `!stopcap` | Generic (b/z) or SoccerMod Admin (cap) | Stops the current cap fight |
+| `!resetcap` | Generic (b/z) or SoccerMod Admin (cap) | Resets the cap system |
+| `!startpick` | Generic (b/z) or SoccerMod Admin (cap) | Skip knife fight, go to picking |
 
 ### Ready Check Commands
 
 | Command | Requires | Description |
 |---------|----------|-------------|
-| `!forceready` | Generic (b/z) | Force all players ready |
-| `!cancelready` | Generic (b/z) | Cancel ready check |
+| `!forceready` | Generic (b/z) or SoccerMod Admin (match) | Force all players ready |
+| `!cancelready` | Generic (b/z) or SoccerMod Admin (match) | Cancel ready check |
 | `!forcerdy` | RCON (m/z) | Force ready (legacy) |
 | `!forceunp` | RCON (m/z) | Force unpause (legacy) |
 
