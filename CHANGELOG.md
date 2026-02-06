@@ -1,5 +1,15 @@
 # Soccer Mod Changelog
 
+## 1.4.14
+
+### New
+- Added stats URL integration for external stats websites
+- Server command `soccer_mod_stats_url` to configure base stats URL
+- `!mystats` command opens player's stats page in MOTD panel
+- Stats URL uses SteamID3 format: `{baseUrl}/motd/[U:1:XXXXX]`
+
+---
+
 ## 1.4.13
 
 ### Fixes

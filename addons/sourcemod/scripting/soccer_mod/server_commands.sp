@@ -105,6 +105,11 @@ public void RegisterServerCommands()
 		ServerCommands,
 		"Remove a sound with the given name from the map. Best used in autoexec.cfg."
 	);
+	RegServerCmd(
+		"soccer_mod_stats_url",
+		ServerCommands,
+		"Sets the base URL for player stats site (e.g., https://soccermod-stats.turboforge.io)"
+	);
 
 	RegisterServerCommandsHealth();
 	RegisterServerCommandsMatch();
@@ -400,6 +405,21 @@ public Action ServerCommands(int args)
 			PrintToServer("[%s] Duckjumpblock disabled", prefix);
 			CPrintToChatAll("{%s}[%s] {%s}Duckjumpblock disabled", prefixcolor, prefix, textcolor);
 		}
+	}
+	else if (StrEqual(serverCommand, "soccer_mod_stats_url"))
+	{
+		char url[256];
+		GetCmdArgString(url, sizeof(url));
+		TrimString(url);
+		StripQuotes(url);
+		// Remove trailing slash if present
+		int len = strlen(url);
+		if (len > 0 && url[len - 1] == '/')
+		{
+			url[len - 1] = '\0';
+		}
+		strcopy(statsUrl, sizeof(statsUrl), url);
+		PrintToServer("[%s] Stats URL set to: %s", prefix, url);
 	}
 	else if (StrEqual(serverCommand, "soccer_mod_remove_snd"))
 	{

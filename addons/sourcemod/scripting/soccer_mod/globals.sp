@@ -775,3 +775,8 @@ float joinLeaveVolume = 1.0;
 char joinLeaveJoinSound[PLATFORM_MAX_PATH];
 char joinLeaveLeaveSound[PLATFORM_MAX_PATH];
 char joinLeaveReadySound[PLATFORM_MAX_PATH];
+
+// *************************************************** STATS URL ************************************************
+
+// STRINGS
+char statsUrl[256];  // Base URL for stats site (e.g., "https://soccermod-stats.turboforge.io")

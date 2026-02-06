@@ -62,6 +62,7 @@ public void RegisterClientCommands()
 	RegConsoleCmd("sm_spec", SpecCommand, "Puts all players to Spectator");
 	RegConsoleCmd("sm_start", StartCommand, "Starts a match");
 	RegConsoleCmd("sm_stats", StatsCommand, "Opens the Soccer Mod stats menu");
+	RegConsoleCmd("sm_mystats", MyStatsCommand, "Opens your stats page in MOTD");
 	RegConsoleCmd("sm_stop", StopCommand, "Stops a match");
 	RegConsoleCmd("sm_training", TrainingCommand, "Opens the Soccer Mod training menu");
 	RegConsoleCmd("sm_unp", UnpauseCommand, "Unpauses a match");
@@ -117,11 +118,47 @@ public Action ProfileCommand(int client, int args)
 	return Plugin_Handled;
 }
 
+public Action MyStatsCommand(int client, int args)
+{
+	ShowStatsMotd(client);
+	return Plugin_Handled;
+}
+
+// Shows the stats MOTD panel to a client
+public void ShowStatsMotd(int client)
+{
+	if (!IsValidClient(client))
+	{
+		return;
+	}
+
+	// Check if stats URL is configured
+	if (strlen(statsUrl) == 0)
+	{
+		CPrintToChat(client, "{%s}[%s] {%s}Stats URL not configured.", prefixcolor, prefix, textcolor);
+		return;
+	}
+
+	// Get player's Steam ID in SteamID3 format [U:1:XXXXX]
+	char steamId[32];
+	if (!GetClientAuthId(client, AuthId_Steam3, steamId, sizeof(steamId)))
+	{
+		CPrintToChat(client, "{%s}[%s] {%s}Could not get your Steam ID.", prefixcolor, prefix, textcolor);
+		return;
+	}
+
+	// Build the full URL: {baseUrl}/motd/{steamId}
+	char fullUrl[512];
+	Format(fullUrl, sizeof(fullUrl), "%s/motd/%s", statsUrl, steamId);
+
+	// Show the MOTD panel
+	AdvMOTD_ShowMOTDPanel(client, "Player Stats", fullUrl, MOTDPANEL_TYPE_URL, true, false, false);
+}
 
 public Action JoinlistCommand(int client, int args)
 {
 	OpenJoinlistPanel(client);
-	
+
 	return Plugin_Handled;
 }
 
