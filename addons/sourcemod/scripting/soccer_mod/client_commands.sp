@@ -41,6 +41,7 @@ public void RegisterClientCommands()
 	RegConsoleCmd("sm_commands", CommandsCommand, "Opens the Soccer Mod commands list");
 	RegConsoleCmd("sm_credits", CreditsCommand, "Opens the Soccer Mod credits menu");
 	RegConsoleCmd("sm_forfeit", Command_Forfeit, "Starts a forfeit vote");
+	RegConsoleCmd("sm_fug", Command_Forfeit, "Starts a forfeit vote (alias for !forfeit)");
 	RegConsoleCmd("sm_gk", GkCommand, "Toggle the GK skin");	
 	RegConsoleCmd("sm_help", HelpCommand, "Opens the Soccer Mod help menu");
 	RegConsoleCmd("sm_info", CreditsCommand, "Opens the Soccer Mod credits menu");

@@ -425,14 +425,14 @@ public int MenuHandlerHelp(Menu menu, MenuAction action, int client, int choice)
 			CPrintToChat(client, "{%s}[%s] {%s}Check your console for the url.", prefixcolor, prefix, textcolor);
 			PrintToConsole(client, " ");
 			PrintToConsole(client, "----------------------------------");
-			PrintToConsole(client, "https://github.com/MK99MA/SoMoE-19");
+			PrintToConsole(client, "https://github.com/Quixomatic/soccer-mod");
 			PrintToConsole(client, "-----------------------------------");
 			
 			OpenMenuHelp(client);
 		}
 		else if (StrEqual(menuItem, "docs"))
 		{
-			AdvMOTD_ShowMOTDPanel(client, "SoMoE-19 Documentation", "https://somoe-19.readthedocs.io/en/latest/index.html", MOTDPANEL_TYPE_URL, true, true, true, OnMOTDFailure);
+			AdvMOTD_ShowMOTDPanel(client, "SoMoE-19 Documentation", "https://quixomatic.github.io/soccer-mod/", MOTDPANEL_TYPE_URL, true, true, true, OnMOTDFailure);
 			OpenMenuHelp(client);
 		}
 		else if (StrEqual(menuItem, "docs2"))
@@ -440,7 +440,7 @@ public int MenuHandlerHelp(Menu menu, MenuAction action, int client, int choice)
 			CPrintToChat(client, "{%s}[%s] {%s}Check your console for the url.", prefixcolor, prefix, textcolor);
 			PrintToConsole(client, " ");
 			PrintToConsole(client, "----------------------------------------------------");
-			PrintToConsole(client, "https://somoe-19.readthedocs.io/en/latest/index.html");
+			PrintToConsole(client, "https://quixomatic.github.io/soccer-mod/");
 			PrintToConsole(client, "----------------------------------------------------");
 			
 			OpenMenuHelp(client);
@@ -456,10 +456,12 @@ public void OpenMenuCommands(int client)
 
 	menu.SetTitle("Soccer Mod - Help - Chat Commands");
 
-	if(CheckCommandAccess(client, "generic_admin", ADMFLAG_GENERIC) || IsSoccerAdmin(client, "menu")) menu.AddItem("admincom", "Admin Commands");	
+	if(CheckCommandAccess(client, "generic_admin", ADMFLAG_GENERIC) || IsSoccerAdmin(client, "menu")) menu.AddItem("admincom", "Admin Commands");
 	menu.AddItem("menu", "!menu");
+	menu.AddItem("mystats", "!mystats");
 	menu.AddItem("gk", "!gk");
 	menu.AddItem("cap", "!cap");
+	menu.AddItem("autocap", "!autocap, !pug");
 	menu.AddItem("spec", "!spec");
 	menu.AddItem("match", "!match");
 	menu.AddItem("start", "!start");
@@ -467,7 +469,12 @@ public void OpenMenuCommands(int client)
 	menu.AddItem("matchrr", "!matchrr");
 	menu.AddItem("unpause", "!unpause, !unp, !up");
 	menu.AddItem("stop", "!stop");
-	menu.AddItem("rdy", "!rdy");
+	menu.AddItem("forfeit", "!forfeit, !fug");
+	menu.AddItem("ready", "!ready, !r, !rdy");
+	menu.AddItem("notready", "!notready, !nr");
+	menu.AddItem("timeout", "!timeout, !to");
+	menu.AddItem("timein", "!timein, !ti");
+	menu.AddItem("hide", "!hide, !show");
 	menu.AddItem("maprr", "!maprr");
 	menu.AddItem("training", "!training");
 	menu.AddItem("pick", "!pick");
@@ -477,6 +484,8 @@ public void OpenMenuCommands(int client)
 	menu.AddItem("stats", "!stats");
 	menu.AddItem("rank", "!rank");
 	menu.AddItem("prank", "!prank");
+	menu.AddItem("whois", "!whois <name>");
+	menu.AddItem("alias", "!alias <name>");
 	menu.AddItem("adminlist", "!admins");
 	menu.AddItem("lc", "!lc, !late");
 	menu.AddItem("profile", "!profile <name>");
@@ -495,6 +504,7 @@ public int MenuHandlerCommands(Menu menu, MenuAction action, int client, int cho
 		menu.GetItem(choice, menuItem, sizeof(menuItem));
 
 		if (StrEqual(menuItem, "menu"))				CPrintToChat(client, "{%s}[%s] {%s}Opens the Soccer Mod main menu", prefixcolor, prefix, textcolor);
+		else if (StrEqual(menuItem, "mystats"))		CPrintToChat(client, "{%s}[%s] {%s}Opens your player stats page", prefixcolor, prefix, textcolor);
 		else if (StrEqual(menuItem, "help"))		CPrintToChat(client, "{%s}[%s] {%s}Opens the Soccer Mod help menu", prefixcolor, prefix, textcolor);
 		else if (StrEqual(menuItem, "stats"))		CPrintToChat(client, "{%s}[%s] {%s}Opens the Soccer Mod statistics menu", prefixcolor, prefix, textcolor);
 		else if (StrEqual(menuItem, "rank"))		CPrintToChat(client, "{%s}[%s] {%s}Shows your match ranking", prefixcolor, prefix, textcolor);
@@ -503,6 +513,7 @@ public int MenuHandlerCommands(Menu menu, MenuAction action, int client, int cho
 		else if (StrEqual(menuItem, "pick"))		CPrintToChat(client, "{%s}[%s] {%s}Opens the Soccer Mod cap picking menu", prefixcolor, prefix, textcolor);
 		else if (StrEqual(menuItem, "admin"))		CPrintToChat(client, "{%s}[%s] {%s}Opens the Soccer Mod admin menu", prefixcolor, prefix, textcolor);
 		else if (StrEqual(menuItem, "cap"))		 	CPrintToChat(client, "{%s}[%s] {%s}Opens the Soccer Mod cap match menu", prefixcolor, prefix, textcolor);
+		else if (StrEqual(menuItem, "autocap"))		CPrintToChat(client, "{%s}[%s] {%s}Starts the auto cap system", prefixcolor, prefix, textcolor);
 		else if (StrEqual(menuItem, "spec"))		 	CPrintToChat(client, "{%s}[%s] {%s}Move yourself('me'), your target or everyone('all') to spectator.", prefixcolor, prefix, textcolor);
 		else if (StrEqual(menuItem, "maprr"))		CPrintToChat(client, "{%s}[%s] {%s}Reload the current map", prefixcolor, prefix, textcolor);
 		else if (StrEqual(menuItem, "match"))		CPrintToChat(client, "{%s}[%s] {%s}Opens the Soccer Mod match menu", prefixcolor, prefix, textcolor);
@@ -515,10 +526,17 @@ public int MenuHandlerCommands(Menu menu, MenuAction action, int client, int cho
 		else if (StrEqual(menuItem, "pause"))		CPrintToChat(client, "{%s}[%s] {%s}Pause a Match", prefixcolor, prefix, textcolor);
 		else if (StrEqual(menuItem, "unpause"))		CPrintToChat(client, "{%s}[%s] {%s}Unpause a Match", prefixcolor, prefix, textcolor);
 		else if (StrEqual(menuItem, "stop"))		CPrintToChat(client, "{%s}[%s] {%s}Stop a Match", prefixcolor, prefix, textcolor);
-		else if (StrEqual(menuItem, "rdy"))			CPrintToChat(client, "{%s}[%s] {%s}Bring back the ready menu if you closed it by accident", prefixcolor, prefix, textcolor);
+		else if (StrEqual(menuItem, "forfeit"))		CPrintToChat(client, "{%s}[%s] {%s}Starts a forfeit vote", prefixcolor, prefix, textcolor);
+		else if (StrEqual(menuItem, "ready"))		CPrintToChat(client, "{%s}[%s] {%s}Mark yourself as ready", prefixcolor, prefix, textcolor);
+		else if (StrEqual(menuItem, "notready"))	CPrintToChat(client, "{%s}[%s] {%s}Mark yourself as not ready", prefixcolor, prefix, textcolor);
+		else if (StrEqual(menuItem, "timeout"))		CPrintToChat(client, "{%s}[%s] {%s}Call a timeout", prefixcolor, prefix, textcolor);
+		else if (StrEqual(menuItem, "timein"))		CPrintToChat(client, "{%s}[%s] {%s}End the timeout", prefixcolor, prefix, textcolor);
+		else if (StrEqual(menuItem, "hide"))		CPrintToChat(client, "{%s}[%s] {%s}Hide or show the ready panel", prefixcolor, prefix, textcolor);
+		else if (StrEqual(menuItem, "whois"))		CPrintToChat(client, "{%s}[%s] {%s}Look up player information", prefixcolor, prefix, textcolor);
+		else if (StrEqual(menuItem, "alias"))		CPrintToChat(client, "{%s}[%s] {%s}Set your preferred alias", prefixcolor, prefix, textcolor);
 		else if (StrEqual(menuItem, "lc"))			CPrintToChat(client, "{%s}[%s] {%s}Opens the last connected panel", prefixcolor, prefix, textcolor);
 		else if (StrEqual(menuItem, "profile"))		CPrintToChat(client, "{%s}[%s] {%s}Opens the steamprofile of a matching target in the motd window", prefixcolor, prefix, textcolor);
-		else if (StrEqual(menuItem, "adminlist"))	
+		else if (StrEqual(menuItem, "adminlist"))
 		{
 			if(publicmode == 2)						CPrintToChat(client, "{%s}[%s] {%s}Publicmode is set to everyone. Try using !menu yourself", prefixcolor, prefix, textcolor);
 			else 									CPrintToChat(client, "{%s}[%s] {%s}Shows the current online admins", prefixcolor, prefix, textcolor);
@@ -616,7 +634,7 @@ public int MenuHandlerCredits(Menu menu, MenuAction action, int client, int choi
 		menu.GetItem(choice, menuItem, sizeof(menuItem));
 
 		if (StrEqual(menuItem, "group"))   CPrintToChat(client, "{%s}[%s] {%s}http://steamcommunity.com/groups/soccer_mod", prefixcolor, prefix, textcolor);
-		else if (StrEqual(menuItem, "viewcreds")) AdvMOTD_ShowMOTDPanel(client, "SoMoE-19 Documentation", "https://somoe-19.readthedocs.io/en/latest/credits.html", MOTDPANEL_TYPE_URL, true, true, true, OnMOTDFailure);
+		else if (StrEqual(menuItem, "viewcreds")) AdvMOTD_ShowMOTDPanel(client, "SoMoE-19 Documentation", "https://quixomatic.github.io/soccer-mod/credits.html", MOTDPANEL_TYPE_URL, true, true, true, OnMOTDFailure);
 
 		OpenMenuCredits(client);
 	}

@@ -1,5 +1,18 @@
 # Soccer Mod Changelog
 
+## 1.4.15
+
+### New
+- Added `!fug` as alias for `!forfeit` command
+
+### Changes
+- Updated help menu with all current commands (mystats, autocap/pug, forfeit/fug, ready commands, timeout commands, whois, alias)
+- Updated Git URL to https://github.com/Quixomatic/soccer-mod
+- Updated documentation URL to https://quixomatic.github.io/soccer-mod/
+- Updated credits page URL to https://quixomatic.github.io/soccer-mod/credits.html
+
+---
+
 ## 1.4.14
 
 ### New
