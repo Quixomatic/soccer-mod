@@ -1,7 +1,7 @@
 // **************************************************************************************************************
 // ************************************************** DEFINES ***************************************************
 // ************************************************************************************************************** 
-#define PLUGIN_VERSION "1.4.15"
+#define PLUGIN_VERSION "1.4.16"
 #define UPDATE_URL "https://raw.githubusercontent.com/Quixomatic/soccer-mod/main/addons/sourcemod/updatefile.txt"
 #define MAX_NAMES 10
 #define MAXCONES_DYN 15
@@ -44,6 +44,7 @@
 #include "soccer_mod/modules/readycheck.sp"
 #include "soccer_mod/modules/match.sp"
 #include "soccer_mod/modules/kickoffwall.sp"
+#include "soccer_mod/modules/kickoffwalls.sp"
 #include "soccer_mod/modules/ranking.sp"
 #include "soccer_mod/modules/referee.sp"
 #include "soccer_mod/modules/respawn.sp"
@@ -158,6 +159,7 @@ public void OnPluginStart()
 	ConnectlistOnPluginStart();
 	ShoutOnPluginStart();
 	ReplacerOnPluginStart();
+	KickoffWalls_OnPluginStart();
 
 	// Join/Leave cookies
 	h_JOINLEAVE_SOUND_COOKIE = RegClientCookie("sm_joinleave_sound", "Join/Leave sound preference", CookieAccess_Protected);
@@ -691,6 +693,7 @@ public void OnMapStart()
 	currentMapAllowed = IsCurrentMapAllowed();
 
 	GetFieldOrientation();
+	KickoffWalls_OnMapStart();  // Load kickoff walls config and override if saved settings exist
 
 	if (currentMapAllowed)
 	{

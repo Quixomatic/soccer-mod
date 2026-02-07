@@ -63,9 +63,18 @@ public void KickOffWall()
 		float radius;
 		char map[128];
 		GetCurrentMap(map, sizeof(map));
-		if(StrEqual(map, "ka_xsl_indoorcup"))		radius = 175.0;
-		else if(StrEqual(map, "ka_parkhead"))		radius = 350.0;
-		else 										radius = 252.5;
+
+		// Use kw_radius from kickoffwalls config if set, otherwise use hardcoded defaults
+		if (kw_radius > 0.0)
+		{
+			radius = kw_radius;
+		}
+		else
+		{
+			if(StrEqual(map, "ka_xsl_indoorcup"))		radius = 175.0;
+			else if(StrEqual(map, "ka_parkhead"))		radius = 350.0;
+			else 										radius = 252.5;
+		}
 	
 		//wall on line
 		if(xorientation) //orientation of the middle line

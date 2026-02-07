@@ -1,0 +1,5 @@
+"UnlitGeneric"
+{
+	"$basetexture" "models/soccer_mod/goaltarget"
+	"$surfaceprop" "metal"
+}

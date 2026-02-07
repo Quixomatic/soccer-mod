@@ -19,6 +19,7 @@ char DCListKV[PLATFORM_MAX_PATH] 						= "cfg/sm_soccermod/soccer_mod_dclist.txt
 char mapDefaults[PLATFORM_MAX_PATH]						= "cfg/sm_soccermod/soccer_mod_mapdefaults.cfg";
 char matchlogSettingsKV[PLATFORM_MAX_PATH] 				= "cfg/sm_soccermod/soccer_mod_matchlogsettings.cfg";
 char personalSettingsKV[PLATFORM_MAX_PATH]				= "cfg/sm_soccermod/soccer_mod_personalCannonSettings.cfg";
+char kickoffWallsConfigFile[PLATFORM_MAX_PATH]			= "cfg/sm_soccermod/soccer_mod_kickoffwalls.cfg";
 
 // ************************************************** KEYVALUES *************************************************
 KeyValues kvConfig;
@@ -780,3 +781,15 @@ char joinLeaveReadySound[PLATFORM_MAX_PATH];
 
 // STRINGS
 char statsUrl[256];  // Base URL for stats site (e.g., "https://soccermod-stats.turboforge.io")
+
+// ************************************************* KICKOFF WALLS **********************************************
+
+// Per-map cached values (loaded from config or auto-detected)
+float kw_center[3];                     // Ball/center position
+float kw_radius = 252.5;                // Center circle radius
+bool kw_xorientation = true;            // Field orientation (true = X, field runs along Y)
+float kw_t_goal[3];                     // T goal position
+float kw_ct_goal[3];                    // CT goal position
+char kw_ball_entity[64] = "";           // Custom ball entity name (empty = auto-detect)
+bool kw_enabled = true;                 // Walls enabled for this map
+bool kw_configLoaded = false;           // Whether config was loaded for current map

@@ -154,6 +154,7 @@ public void OpenMenuMiscSettings(int client)
 	menu.AddItem("dissolve", DissolveString);
 	menu.AddItem("djblock", DJString);
 	menu.AddItem("kickoffwall", WallString);
+	menu.AddItem("kickoffwalls_setup", "-> Kickoff Walls Setup");
 	menu.AddItem("hostname", HostString);
 	menu.AddItem("first12", First12String);
 	menu.AddItem("rankspam", RankString);
@@ -253,7 +254,7 @@ public int MenuHandlerMiscSettings(Menu menu, MenuAction action, int client, int
 			}
 			OpenMenuMiscSettings(client);
 		}
-		else if(StrEqual(menuItem, "kickoffwall")) 
+		else if(StrEqual(menuItem, "kickoffwall"))
 		{
 			if(KickoffWallSet == 0)
 			{
@@ -266,6 +267,10 @@ public int MenuHandlerMiscSettings(Menu menu, MenuAction action, int client, int
 				UpdateConfigInt("Misc Settings", "soccer_mod_kickoffwall", KickoffWallSet);
 			}
 			OpenMenuMiscSettings(client);
+		}
+		else if(StrEqual(menuItem, "kickoffwalls_setup"))
+		{
+			OpenMenuKickoffWalls(client);
 		}
 		else if(StrEqual(menuItem, "classchoice")) 
 		{

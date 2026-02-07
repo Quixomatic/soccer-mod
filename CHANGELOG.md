@@ -1,5 +1,28 @@
 # Soccer Mod Changelog
 
+## 1.4.16
+
+### New
+- Added configurable kickoff walls system with per-map settings
+- New config file: `soccer_mod_kickoffwalls.cfg` for storing map-specific wall configurations
+- Admin menu: Settings → Misc → Kickoff Walls Setup
+- `!kickoffwalls` command to open kickoff walls configuration menu
+- `!setradius` command - walk to center circle edge and set radius
+- `!setcenter` command - stand at ball spawn and set center position
+- `!kwinfo` command - display current kickoff wall settings
+- Wireframe visualization showing center point, radius circle, midfield line, and goal positions
+- Ball entity auto-detection with fallback search (searches by name, then by model)
+- Manual ball entity selection from list of physics entities
+- Test Walls feature to preview walls for 10 seconds
+- Added missing assets (wall.mdl model for half-circle walls)
+
+### Changes
+- Kickoff walls now use saved radius from config instead of hardcoded values
+- Half-circle walls now work properly with calibrated center and radius
+- Improved ball detection: tries config name → standard names → model search
+
+---
+
 ## 1.4.15
 
 ### New

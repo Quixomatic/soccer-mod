@@ -26,6 +26,7 @@ public void ConfigFunc()
 	if (!FileExists(statsKeygroupGoalkeeperAreas)) CreateGKAreaConfig();
 	if (!FileExists(mapDefaults)) CreateMapDefaultsConfig();
 	if (!FileExists(joinLeaveConfigFile)) CreateJoinLeaveConfig();
+	if (!FileExists(kickoffWallsConfigFile)) CreateKickoffWallsConfig();
 
 	if (FileExists(configFileKV)) ReadFromConfig();
 }

@@ -4,6 +4,9 @@
 # Example release reference
 .example-release/
 
+# Random example stuff
+.example/
+
 # Build output folder
 dist/
 
