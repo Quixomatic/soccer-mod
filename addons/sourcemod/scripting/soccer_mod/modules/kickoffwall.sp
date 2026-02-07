@@ -220,72 +220,67 @@ public void KickOffWall()
 		}
 		else //yorient
 		{
-			// TODO: WallCircle
 			//create box to allow kickoff
 			if(matchLastScored > 1)
 			{
-				if (matchLastScored == CS_TEAM_T) //t scored
+				if (matchLastScored == CS_TEAM_T) //t scored, CT kicks off
 				{
-					//create first half		
-					CreateInvisWall(0.0, -4000.0, -1000.0, 0.0, -130.0, 1300.0, "wallminus", 0, CS_TEAM_CT); 			
-					
+					//create first half
+					CreateInvisWall(0.0, -4000.0, -1000.0, 0.0, -1*radius, 1300.0, "wallminus", 0, CS_TEAM_CT);
+
 					//create second half
-					CreateInvisWall(0.0, 130.0, -1000.0, 0.0, 4000.0, 1300.0, "wallplus", 1, CS_TEAM_CT);
-					
+					CreateInvisWall(0.0, radius, -1000.0, 0.0, 4000.0, 1300.0, "wallplus", 1, CS_TEAM_CT);
+
 					// check coords
-					if (vec_tgoal_origin[0] > vec_ctgoal_origin[0]) //t ct-
+					if (vec_tgoal_origin[0] > vec_ctgoal_origin[0]) //t goal on +X side
 					{
-						//first side
-						CreateInvisWall(0.0, -130.0, 0.0, 130.0, -130.0, 1300.0, "boxside1", 2, CS_TEAM_CT);
-						
-						//second side		
-						CreateInvisWall(0.0, 130.0, 0.0, 130.0, 130.0, 1300.0, "boxside2", 3, CS_TEAM_CT);
-						
-						//backside				
-						CreateInvisWall(130.0, -130.0, 0.0, 130.0, 130.0, 1300.0, "boxback", 4, CS_TEAM_CT);
+						if(FileExists(wallmodel)) CreateInvisWallCircleY("wallcircle", CS_TEAM_CT, radius);
+						else
+						{
+							CreateInvisWall(0.0, -130.0, 0.0, 130.0, -130.0, 1300.0, "boxside1", 2, CS_TEAM_CT);
+							CreateInvisWall(0.0, 130.0, 0.0, 130.0, 130.0, 1300.0, "boxside2", 3, CS_TEAM_CT);
+							CreateInvisWall(130.0, -130.0, 0.0, 130.0, 130.0, 1300.0, "boxback", 4, CS_TEAM_CT);
+						}
 					}
-					else if (vec_tgoal_origin[0] < vec_ctgoal_origin[0]) //t- ct
+					else if (vec_tgoal_origin[0] < vec_ctgoal_origin[0]) //t goal on -X side
 					{
-						//first side
-						CreateInvisWall(-130.0, -130.0, 0.0, 0.0, -130.0, 1300.0, "boxside1", 2, CS_TEAM_CT);
-						
-						//second side		
-						CreateInvisWall(-130.0, 130.0, 0.0, 0.0, 130.0, 1300.0, "boxside2", 3, CS_TEAM_CT);
-						
-						//backside				
-						CreateInvisWall(-130.0, -130.0, 0.0, -130.0, 130.0, 1300.0, "boxback", 4, CS_TEAM_CT);
+						if(FileExists(wallmodel)) CreateInvisWallCircleY("wallcircle", CS_TEAM_CT, -1*radius);
+						else
+						{
+							CreateInvisWall(-130.0, -130.0, 0.0, 0.0, -130.0, 1300.0, "boxside1", 2, CS_TEAM_CT);
+							CreateInvisWall(-130.0, 130.0, 0.0, 0.0, 130.0, 1300.0, "boxside2", 3, CS_TEAM_CT);
+							CreateInvisWall(-130.0, -130.0, 0.0, -130.0, 130.0, 1300.0, "boxback", 4, CS_TEAM_CT);
+						}
 					}
 				}
-				else //ct scored
+				else //ct scored, T kicks off
 				{
-					//create first half		
-					CreateInvisWall(0.0, -4000.0, -1000.0, 0.0, -130.0, 1300.0, "wallminus", 0, CS_TEAM_T); 			
-					
+					//create first half
+					CreateInvisWall(0.0, -4000.0, -1000.0, 0.0, -1*radius, 1300.0, "wallminus", 0, CS_TEAM_T);
+
 					//create second half
-					CreateInvisWall(0.0, 130.0, -1000.0, 0.0, 4000.0, 1300.0, "wallplus", 1, CS_TEAM_T);
-					
+					CreateInvisWall(0.0, radius, -1000.0, 0.0, 4000.0, 1300.0, "wallplus", 1, CS_TEAM_T);
+
 					// check coords
-					if (vec_tgoal_origin[0] > vec_ctgoal_origin[0]) //t ct-
+					if (vec_tgoal_origin[0] > vec_ctgoal_origin[0]) //t goal on +X side
 					{
-						//first side
-						CreateInvisWall(-130.0, -130.0, 0.0, 0.0, -130.0, 1300.0, "boxside1", 2, CS_TEAM_T);
-						
-						//second side		
-						CreateInvisWall(-130.0, 130.0, 0.0, 0.0, 130.0, 1300.0, "boxside2", 3, CS_TEAM_T);
-						
-						//backside				
-						CreateInvisWall(-130.0, -130.0, 0.0, -130.0, 130.0, 1300.0, "boxback", 4, CS_TEAM_T);
+						if(FileExists(wallmodel)) CreateInvisWallCircleY("wallcircle", CS_TEAM_T, -1*radius);
+						else
+						{
+							CreateInvisWall(-130.0, -130.0, 0.0, 0.0, -130.0, 1300.0, "boxside1", 2, CS_TEAM_T);
+							CreateInvisWall(-130.0, 130.0, 0.0, 0.0, 130.0, 1300.0, "boxside2", 3, CS_TEAM_T);
+							CreateInvisWall(-130.0, -130.0, 0.0, -130.0, 130.0, 1300.0, "boxback", 4, CS_TEAM_T);
+						}
 					}
-					else if (vec_tgoal_origin[0] < vec_ctgoal_origin[0]) //t- ct
+					else if (vec_tgoal_origin[0] < vec_ctgoal_origin[0]) //t goal on -X side
 					{
-						//first side
-						CreateInvisWall(0.0, -130.0, 0.0, 130.0, -130.0, 1300.0, "boxside1", 2, CS_TEAM_T);
-						
-						//second side		
-						CreateInvisWall(0.0, 130.0, 0.0, 130.0, 130.0, 1300.0, "boxside2", 3, CS_TEAM_T);
-						
-						//backside				
-						CreateInvisWall(130.0, -130.0, 0.0, 130.0, 130.0, 1300.0, "boxback", 4, CS_TEAM_T);
+						if(FileExists(wallmodel)) CreateInvisWallCircleY("wallcircle", CS_TEAM_T, radius);
+						else
+						{
+							CreateInvisWall(0.0, -130.0, 0.0, 130.0, -130.0, 1300.0, "boxside1", 2, CS_TEAM_T);
+							CreateInvisWall(0.0, 130.0, 0.0, 130.0, 130.0, 1300.0, "boxside2", 3, CS_TEAM_T);
+							CreateInvisWall(130.0, -130.0, 0.0, 130.0, 130.0, 1300.0, "boxback", 4, CS_TEAM_T);
+						}
 					}
 				}
 			}
@@ -293,66 +288,62 @@ public void KickOffWall()
 			{
 				if (matchToss == CS_TEAM_T)	//t starts
 				{
-					//create first half		
-					CreateInvisWall(0.0, -4000.0, -1000.0, 0.0, -130.0, 1300.0, "wallminus", 0, CS_TEAM_T); 			
-					
+					//create first half
+					CreateInvisWall(0.0, -4000.0, -1000.0, 0.0, -1*radius, 1300.0, "wallminus", 0, CS_TEAM_T);
+
 					//create second half
-					CreateInvisWall(0.0, 130.0, -1000.0, 0.0, 4000.0, 1300.0, "wallplus", 1, CS_TEAM_T);
-					
+					CreateInvisWall(0.0, radius, -1000.0, 0.0, 4000.0, 1300.0, "wallplus", 1, CS_TEAM_T);
+
 					// check coords
-					if (vec_tgoal_origin[0] < vec_ctgoal_origin[0]) //t ct-
+					if (vec_tgoal_origin[0] < vec_ctgoal_origin[0]) //t goal on -X side
 					{
-						//first side
-						CreateInvisWall(0.0, -130.0, 0.0, 130.0, -130.0, 1300.0, "boxside1", 2, CS_TEAM_T);
-						
-						//second side		
-						CreateInvisWall(0.0, 130.0, 0.0, 130.0, 130.0, 1300.0, "boxside2", 3, CS_TEAM_T);
-						
-						//backside				
-						CreateInvisWall(130.0, -130.0, 0.0, 130.0, 130.0, 1300.0, "boxback", 4, CS_TEAM_T);
+						if(FileExists(wallmodel)) CreateInvisWallCircleY("wallcircle", CS_TEAM_T, radius);
+						else
+						{
+							CreateInvisWall(0.0, -130.0, 0.0, 130.0, -130.0, 1300.0, "boxside1", 2, CS_TEAM_T);
+							CreateInvisWall(0.0, 130.0, 0.0, 130.0, 130.0, 1300.0, "boxside2", 3, CS_TEAM_T);
+							CreateInvisWall(130.0, -130.0, 0.0, 130.0, 130.0, 1300.0, "boxback", 4, CS_TEAM_T);
+						}
 					}
-					else if (vec_tgoal_origin[0] > vec_ctgoal_origin[0]) //t- ct
+					else if (vec_tgoal_origin[0] > vec_ctgoal_origin[0]) //t goal on +X side
 					{
-						//first side
-						CreateInvisWall(-130.0, -130.0, 0.0, 0.0, -130.0, 1300.0, "boxside1", 2, CS_TEAM_CT);
-						
-						//second side		
-						CreateInvisWall(-130.0, 130.0, 0.0, 0.0, 130.0, 1300.0, "boxside2", 3, CS_TEAM_T);
-						
-						//backside				
-						CreateInvisWall(-130.0, -130.0, 0.0, -130.0, 130.0, 1300.0, "boxback", 4, CS_TEAM_CT);
+						if(FileExists(wallmodel)) CreateInvisWallCircleY("wallcircle", CS_TEAM_T, -1*radius);
+						else
+						{
+							CreateInvisWall(-130.0, -130.0, 0.0, 0.0, -130.0, 1300.0, "boxside1", 2, CS_TEAM_T);
+							CreateInvisWall(-130.0, 130.0, 0.0, 0.0, 130.0, 1300.0, "boxside2", 3, CS_TEAM_T);
+							CreateInvisWall(-130.0, -130.0, 0.0, -130.0, 130.0, 1300.0, "boxback", 4, CS_TEAM_T);
+						}
 					}
 				}
-				else if(matchToss == CS_TEAM_CT)//t starts
+				else if(matchToss == CS_TEAM_CT) //ct starts
 				{
-					//create first half		
-					CreateInvisWall(0.0, -4000.0, -1000.0, 0.0, -130.0, 1300.0, "wallminus", 0, CS_TEAM_CT); 			
-					
+					//create first half
+					CreateInvisWall(0.0, -4000.0, -1000.0, 0.0, -1*radius, 1300.0, "wallminus", 0, CS_TEAM_CT);
+
 					//create second half
-					CreateInvisWall(130.0, 0.0, -1000.0, 4000.0, 0.0, 3000.0, "wallplus", 1, CS_TEAM_CT);
-					
+					CreateInvisWall(0.0, radius, -1000.0, 0.0, 4000.0, 1300.0, "wallplus", 1, CS_TEAM_CT);
+
 					// check coords
-					if (vec_tgoal_origin[0] < vec_ctgoal_origin[0]) //t ct-
+					if (vec_tgoal_origin[0] < vec_ctgoal_origin[0]) //t goal on -X side
 					{
-						//first side
-						CreateInvisWall(-130.0, -130.0, 0.0, 0.0, -130.0, 1300.0, "boxside1", 2, CS_TEAM_CT);
-						
-						//second side		
-						CreateInvisWall(-130.0, 130.0, 0.0, 0.0, 130.0, 1300.0, "boxside2", 3, CS_TEAM_CT);
-						
-						//backside				
-						CreateInvisWall(-130.0, -130.0, 0.0, -130.0, 130.0, 1300.0, "boxback", 4, CS_TEAM_CT);
+						if(FileExists(wallmodel)) CreateInvisWallCircleY("wallcircle", CS_TEAM_CT, -1*radius);
+						else
+						{
+							CreateInvisWall(-130.0, -130.0, 0.0, 0.0, -130.0, 1300.0, "boxside1", 2, CS_TEAM_CT);
+							CreateInvisWall(-130.0, 130.0, 0.0, 0.0, 130.0, 1300.0, "boxside2", 3, CS_TEAM_CT);
+							CreateInvisWall(-130.0, -130.0, 0.0, -130.0, 130.0, 1300.0, "boxback", 4, CS_TEAM_CT);
+						}
 					}
-					else if (vec_tgoal_origin[0] > vec_ctgoal_origin[0]) //t- ct
+					else if (vec_tgoal_origin[0] > vec_ctgoal_origin[0]) //t goal on +X side
 					{
-						//first side
-						CreateInvisWall(0.0, -130.0, 0.0, 130.0, -130.0, 1300.0, "boxside1", 2, CS_TEAM_CT);
-						
-						//second side		
-						CreateInvisWall(0.0, 130.0, 0.0, 130.0, 130.0, 1300.0, "boxside2", 3, CS_TEAM_CT);
-						
-						//backside				
-						CreateInvisWall(130.0, -130.0, 0.0, 130.0, 130.0, 1300.0, "boxback", 4, CS_TEAM_CT);
+						if(FileExists(wallmodel)) CreateInvisWallCircleY("wallcircle", CS_TEAM_CT, radius);
+						else
+						{
+							CreateInvisWall(0.0, -130.0, 0.0, 130.0, -130.0, 1300.0, "boxside1", 2, CS_TEAM_CT);
+							CreateInvisWall(0.0, 130.0, 0.0, 130.0, 130.0, 1300.0, "boxside2", 3, CS_TEAM_CT);
+							CreateInvisWall(130.0, -130.0, 0.0, 130.0, 130.0, 1300.0, "boxback", 4, CS_TEAM_CT);
+						}
 					}
 				}
 			}
@@ -499,76 +490,79 @@ public void CreateInvisWallCircleX(char targetname[32], int team, float radius)
 	DrawLaser(targetname, pos1[0], pos1[1], mapBallStartPosition[2]+110.0, pos2[0], pos2[1], mapBallStartPosition[2]+110.0, color);
 }
 
-/*public void CreateInvisWallCircleY(char targetname[32], int team, float radius)
+// Y-orientation circle walls (field runs along X axis, midfield line along Y)
+public void CreateInvisWallCircleY(char targetname[32], int team, float radius)
 {
 	char color[32];
 	if(team == CS_TEAM_CT) color = "0 0 255";
 	else if (team == CS_TEAM_T) color = "255 0 0";
-	
+
 	float pi = 3.1415926536897932384626433832795;
-	
+
 	float angle, x, y;
-	float ang[3] = {0.0, 90.0, 0.0};
+	float ang[3] = {0.0, 0.0, 0.0};  // Different angle for Y-orientation
 	float pos1[3], pos2[3];
 	int entindex[26];
 	int count = 0;
-	
-	
-	pos2[0] = mapBallStartPosition[0] + radius;
-	pos2[1] = mapBallStartPosition[1];
+
+	// Start position on Y axis (rotated 90 degrees from X-orientation)
+	pos2[0] = mapBallStartPosition[0];
+	pos2[1] = mapBallStartPosition[1] + radius;
 	pos2[2] = mapBallStartPosition[2] - 18.0;
-	
+
 	angle += pi/24;
 	ang[1] += 180.0/24;
-	
+
 	while(angle <= pi)
 	{
 		x = radius * Cosine(angle);
-		y = radius * Sine(angle);			
-		
-		pos1[0] = mapBallStartPosition[0] + x;
-		pos1[1] = mapBallStartPosition[1] + y;
+		y = radius * Sine(angle);
+
+		// Swap x and y for Y-orientation (rotated 90 degrees)
+		pos1[0] = mapBallStartPosition[0] + y;
+		pos1[1] = mapBallStartPosition[1] + x;
 		pos1[2] = mapBallStartPosition[2] - 18.0;
-		
+
 		entindex[count] = CreateEntityByName("prop_dynamic");
-		
+
 		if (!IsModelPrecached(wallmodel)) PrecacheModel(wallmodel);
-		
+
 		if (entindex[count] != -1)
 		{
 			DispatchKeyValue(entindex[count], "solid", "6");
 			DispatchKeyValue(entindex[count], "targetname", targetname);
 			DispatchKeyValue(entindex[count], "model", wallmodel);
 			DispatchKeyValueVector(entindex[count], "origin", pos1);
-		}	
-		
+		}
+
 		DispatchSpawn(entindex[count]);
 		ActivateEntity(entindex[count]);
-		
+
 		TeleportEntity(entindex[count], NULL_VECTOR, ang, NULL_VECTOR);
-		
+
 		int enteffects = GetEntProp(entindex[count], Prop_Send, "m_fEffects");
 		enteffects |= 32;
 		SetEntProp(entindex[count], Prop_Send, "m_fEffects", enteffects);
-		
+
 		DrawLaser(targetname, pos1[0], pos1[1], mapBallStartPosition[2]-18.0, pos1[0], pos1[1], mapBallStartPosition[2]+110.0, color);
 		DrawLaser(targetname, pos1[0], pos1[1], mapBallStartPosition[2]+110.0, pos2[0], pos2[1], mapBallStartPosition[2]+110.0, color);
-		
+
 		pos2[0] = pos1[0];
 		pos2[1] = pos1[1];
 		pos2[2] = pos1[2];
-		
+
 		angle += pi/12;
 		ang[1] += 180.0/12;
 		count += 1;
 	}
-	
-	pos1[0] = mapBallStartPosition[0] - radius;
-	pos1[1] = mapBallStartPosition[1];
+
+	// End position on Y axis
+	pos1[0] = mapBallStartPosition[0];
+	pos1[1] = mapBallStartPosition[1] - radius;
 	pos1[2] = mapBallStartPosition[2] - 18.0;
 
 	DrawLaser(targetname, pos1[0], pos1[1], mapBallStartPosition[2]+110.0, pos2[0], pos2[1], mapBallStartPosition[2]+110.0, color);
-}*/
+}
 
 
 public void KickOffLaser(char targetname[32], float minX, float minY, float minZ, float maxX, float maxY, float maxZ, int index, int team)

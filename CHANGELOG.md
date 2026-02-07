@@ -1,5 +1,15 @@
 # Soccer Mod Changelog
 
+## 1.4.17
+
+### Fixes
+- Fixed kickoff walls for Y-orientation maps (field runs along X-axis)
+- Enabled half-circle walls for Y-orientation maps using `CreateInvisWallCircleY`
+- Fixed wall coordinates to use configured radius instead of hardcoded values
+- Fixed inconsistent team assignments in Y-orientation wall creation
+
+---
+
 ## 1.4.16
 
 ### New
