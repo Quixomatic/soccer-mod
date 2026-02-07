@@ -1,5 +1,13 @@
 # Soccer Mod Changelog
 
+## 1.4.20
+
+### Changes
+- `EnoughPlayers()` uses 80% threshold to handle disconnects near match end
+- 6v6 requires 5+ per team, 5v5 requires 4+, 4v4 requires 3+, etc.
+
+---
+
 ## 1.4.19
 
 ### Changes

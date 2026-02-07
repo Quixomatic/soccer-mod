@@ -1393,7 +1393,10 @@ public bool EnoughPlayers()
 
 	if(matchStarted)
 	{
-		if(tplayers >= matchMaxPlayers && ctplayers >= matchMaxPlayers) return true;
+		// 80% threshold - allows for disconnects near match end
+		int minPlayers = RoundToFloor(float(matchMaxPlayers) * 0.8);
+		if(minPlayers < 1) minPlayers = 1;
+		if(tplayers >= minPlayers && ctplayers >= minPlayers) return true;
 	}
 	else return true;
 
