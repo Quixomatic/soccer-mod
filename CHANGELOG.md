@@ -1,10 +1,18 @@
 # Soccer Mod Changelog
 
+## 1.4.19
+
+### Changes
+- `EnoughPlayers()` now uses `matchMaxPlayers` setting instead of hardcoded 5v5
+- Stats now properly respect configured team size (2v2, 3v3, 4v4, 5v5, 6v6)
+
+---
+
 ## 1.4.18
 
 ### Fixes
 - Fixed all 190 build warnings for clean SourcePawn 1.12 compilation
-- Fixed `EnoughPlayers()` function call bug - was always returning true due to missing parentheses (function pointer instead of function call). Stats now properly require 5v5 during matches.
+- Fixed `EnoughPlayers()` function call bug - was always returning true due to missing parentheses (function pointer instead of function call). Stats now properly require full teams during matches.
 
 ### Technical Changes
 - Added `return 0;` to ~95 menu handlers (warning 209)

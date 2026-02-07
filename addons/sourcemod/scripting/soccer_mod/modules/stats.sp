@@ -1390,13 +1390,13 @@ public bool EnoughPlayers()
 {
 	int ctplayers = GetTeamClientCount(3);
 	int tplayers = GetTeamClientCount(2);
-	
+
 	if(matchStarted)
 	{
-		if(tplayers >= 5 && ctplayers >= 5) return true;
+		if(tplayers >= matchMaxPlayers && ctplayers >= matchMaxPlayers) return true;
 	}
 	else return true;
-	
+
 	return false;
 }
 
