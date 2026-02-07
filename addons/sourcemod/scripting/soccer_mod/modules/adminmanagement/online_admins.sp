@@ -38,6 +38,7 @@ public int MenuHandlerOnlineAdmin(Menu menu, MenuAction action, int client, int 
 		
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuAdminSet(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 public void OpenMenuOnlineAdminAll(int client)
@@ -88,6 +89,7 @@ public int MenuHandlerOnlineAdminAll(Menu menu, MenuAction action, int client, i
 		
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuOnlineAdmin(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 
@@ -131,6 +133,7 @@ public int MenuHandlerOnlineAdminSourcemod(Menu menu, MenuAction action, int cli
 		
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuOnlineAdmin(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 public void OpenMenuOnlineSoccerAdmin(int client)
@@ -169,7 +172,8 @@ public int MenuHandlerOnlineAdminSoccermod(Menu menu, MenuAction action, int cli
 	{
 		PrintToChatAll("bla");
 	}
-		
+
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuOnlineAdmin(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }

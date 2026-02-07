@@ -1449,6 +1449,7 @@ public int WeaponMenuHandler(Menu menu, MenuAction action, int client, int choic
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenCapMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // ***************************************************************************************************************
@@ -1495,6 +1496,7 @@ public int CapHealthMenuHandler(Menu menu, MenuAction action, int client, int ch
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenCapMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 public void CapSet(int client, char type[32], int intnumber, int min, int max)
@@ -1633,6 +1635,7 @@ public int CapPickMenuHandler(Menu menu, MenuAction action, int client, int choi
 		}
 	}
 	else if (action == MenuAction_End) menu.Close();
+	return 0;
 }
 
 // *******************************************************************************************************************
@@ -1733,6 +1736,7 @@ public int CapPositionMenuHandler(Menu menu, MenuAction action, int client, int 
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSoccer(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // ************************************************************************************************************
@@ -1954,7 +1958,7 @@ public void CapStartFight(int client)
 		capFightStarted = true;
 		capPicksLeft = (matchMaxPlayers - 1) * 2;
 		
-		bool noPos[MAXPLAYERS+1] = false;
+		bool noPos[MAXPLAYERS+1];
 		int posnr[MAXPLAYERS+1];
 		
 		// Store timer handles so they can be killed on reset

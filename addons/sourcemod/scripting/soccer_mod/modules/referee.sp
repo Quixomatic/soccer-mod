@@ -71,6 +71,7 @@ public int RefereeMenuHandler(Menu menu, MenuAction action, int client, int choi
 		OpenMenuAdmin(client);
 	}
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // ***********************************************************************************************************************
@@ -211,6 +212,7 @@ public int MatchScoreMenuHandler(Menu menu, MenuAction action, int client, int c
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenRefereeMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // ***********************************************************************************************************************
@@ -343,6 +345,7 @@ public int RefereeYellowCardMenuHandler(Menu menu, MenuAction action, int client
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenRefereeMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 
@@ -456,6 +459,7 @@ public int RefereeRedCardMenuHandler(Menu menu, MenuAction action, int client, i
 	}
 	else if (action == MenuAction_Cancel && choice == -6) OpenRefereeMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // ***********************************************************************************************************************
@@ -553,6 +557,7 @@ public int RemoveYellowCardMenuHandler(Menu menu, MenuAction action, int client,
 	}
 	else if (action == MenuAction_Cancel && choice == -6) OpenRefereeMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // ***********************************************************************************************************************
@@ -651,6 +656,7 @@ public int RemoveRedCardMenuHandler(Menu menu, MenuAction action, int client, in
 	}
 	else if (action == MenuAction_Cancel && choice == -6) OpenRefereeMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 

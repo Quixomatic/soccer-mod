@@ -141,8 +141,8 @@ public Action SprintHud(Handle timer, DataPack pack)
 			delete h_SPRINT_DURATION[client];
 		}
 	}
-	
-	return;
+
+	return Plugin_Continue;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

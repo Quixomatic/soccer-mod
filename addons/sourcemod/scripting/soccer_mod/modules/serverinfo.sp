@@ -89,6 +89,7 @@ public Action HostName_Change_Timer(Handle timer)
 	}
 	
 	hostnameTimer = CreateTimer(hostname_update_time, HostName_Change_Timer);
+	return Plugin_Continue;
 }
 
 public void KillHostnameTimer()

@@ -95,7 +95,7 @@ public int InfoPanelReturn(Handle panel, MenuAction action, int client, int key)
 	}
 	else OpenMenuSoccer(client);
 
-	return;
+	return 0;
 }
 
 public void OpenMenuSprintTimer(int client)
@@ -163,6 +163,7 @@ public int MenuHandlerSprintTimer(Menu menu, MenuAction action, int client, int 
 		delete h_TIMER_SET[client];
 	}
 	else if (action == MenuAction_End)	menu.Close();
+	return 0;
 }
 
 public void OpenMenuSprintTimerColor(int client)
@@ -241,6 +242,7 @@ public int MenuHandlerSprintTimerColor(Menu menu, MenuAction action, int client,
 		delete h_TIMER_SET[client];
 	}
 	else if (action == MenuAction_End)			menu.Close();
+	return 0;
 }
 
 public void DisplayHud(int client)
@@ -310,11 +312,11 @@ public Action DisplayHudText(Handle timer, DataPack tpack)
 			CloseHandle(tpack);
 		}
 	}
-	else 
+	else
 	{
 		showHudPrev[client] = false;
 		delete h_TIMER_SET[client];
 	}
-		
-	return;
+
+	return Plugin_Continue;
 }

@@ -37,6 +37,7 @@ public int MenuHandlerAdminLists(Menu menu, MenuAction action, int client, int c
 		
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuAdminSet(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // *************************************************** SM LIST ******************************************************
@@ -88,6 +89,7 @@ public int MenuHandlerAdminlistSM(Menu menu, MenuAction action, int client, int 
 		
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuAdminLists(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // ************************************************** SIMPLE LIST *****************************************************
@@ -136,6 +138,7 @@ public int MenuHandlerAdminlistSimple(Menu menu, MenuAction action, int client, 
 		
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuAdminLists(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // ************************************************** SOCCER LIST *****************************************************
@@ -182,7 +185,8 @@ public int MenuHandlerAdminlistSoccerMod(Menu menu, MenuAction action, int clien
 	{
 		CPrintToChat(client, "How?");
 	}
-		
+
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuAdminLists(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }

@@ -507,7 +507,7 @@ public int GKAreaPanelHandler(Menu menu, MenuAction action, int client, int key)
 		while ((index = GetEntityIndexByName("gk_area_beam", "env_beam")) != -1) AcceptEntityInput(index, "Kill");
 	}
 	
-	return;
+	return 0;
 }
 
 public void DisplayZones(char type[4], float minx, float miny, float minz, float maxx, float maxy, float maxz)

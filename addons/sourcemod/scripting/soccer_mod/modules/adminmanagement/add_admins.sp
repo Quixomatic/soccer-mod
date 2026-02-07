@@ -46,6 +46,7 @@ public int MenuHandlerAddAdmin(Menu menu, MenuAction action, int client, int cho
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuAdminSet(client);
 	else if (action == MenuAction_End)					  menu.Close();
 	playerindex = 1;
+	return 0;
 }
 
 // *************************************************** TYPE SELECTION ****************************************************
@@ -98,4 +99,5 @@ public int MenuHandlerAddAdminType(Menu menu, MenuAction action, int client, int
 	}
 	else if (action == MenuAction_Cancel && choice == -6) 	OpenMenuAddAdmin(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }

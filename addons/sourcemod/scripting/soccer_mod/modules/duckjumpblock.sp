@@ -3,7 +3,7 @@ public Action DJBOnPlayerRunCmd(int client, int& buttons, int& impulse, float ve
 	if (djbenabled == 1)
 	{
 		int onGround = GetEntPropEnt(client, view_as<PropType>(0), "m_hGroundEntity", 0);
-		float vecPosition[3] = 0.0;
+		float vecPosition[3] = {0.0, 0.0, 0.0};
 		GetClientAbsOrigin(client, vecPosition);
 		if (onGround == -1)
 		{

@@ -78,6 +78,7 @@ public int MenuHandlerSoccer(Menu menu, MenuAction action, int client, int choic
 		}
 	}
 	else if (action == MenuAction_End) menu.Close();
+	return 0;
 }
 
 
@@ -148,6 +149,7 @@ public int MenuHandlerClientSettings(Menu menu, MenuAction action, int client, i
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSoccer(client);
 	else if (action == MenuAction_End)					  	menu.Close();
+	return 0;
 }
 
 // ****************************************************************************************************************
@@ -241,6 +243,7 @@ public int MenuHandlerAdmin(Menu menu, MenuAction action, int client, int choice
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSoccer(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 
@@ -318,6 +321,7 @@ public int MenuHandlerSpecPlayer(Menu menu, MenuAction action, int client, int c
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuAdmin(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 
@@ -387,6 +391,7 @@ public int MenuHandlerMapsChange(Menu menu, MenuAction action, int client, int c
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuAdmin(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 
@@ -448,6 +453,7 @@ public int MenuHandlerHelp(Menu menu, MenuAction action, int client, int choice)
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSoccer(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 public void OpenMenuCommands(int client)
@@ -549,6 +555,7 @@ public int MenuHandlerCommands(Menu menu, MenuAction action, int client, int cho
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuHelp(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 public void OpenMenuCommandsAdmin(int client)
@@ -603,6 +610,7 @@ public int MenuHandlerCommandsAdmin(Menu menu, MenuAction action, int client, in
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuCommands(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // ******************************************************************************************************************
@@ -640,6 +648,7 @@ public int MenuHandlerCredits(Menu menu, MenuAction action, int client, int choi
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSoccer(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 

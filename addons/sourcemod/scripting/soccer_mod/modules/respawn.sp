@@ -30,11 +30,13 @@ public Action TimerRespawn(Handle timer, any client)
 	respawnTimers[client] = null;
 
 	if (client > 0 && IsClientInGame(client) && IsClientConnected(client) && !IsPlayerAlive(client) && !roundEnded && GetClientTeam(client) > 1) CS_RespawnPlayer(client);
+	return Plugin_Continue;
 }
 
 public Action DelayFreezePlayer(Handle timer, any client)
 {
 	SetEntityMoveType(client, MOVETYPE_NONE);
+	return Plugin_Continue;
 }
 
 // ************************************************************************************************************
@@ -42,18 +44,18 @@ public Action DelayFreezePlayer(Handle timer, any client)
 // ************************************************************************************************************
 public Action Dissolve(Handle timer, any client)
 {
-	if (!IsValidEntity(client))		return;
-	
+	if (!IsValidEntity(client))		return Plugin_Continue;
+
 	int ragdoll = GetEntPropEnt(client, Prop_Send, "m_hRagdoll");
 	if (ragdoll<0)
 	{
-		PrintToServer("Could not get ragdoll for player!");	
-		return;
+		PrintToServer("Could not get ragdoll for player!");
+		return Plugin_Continue;
 	}
-	
+
 	char dname[32];
 	Format(dname, sizeof(dname), "dis_%d", client);
-	
+
 	int dis_ent = CreateEntityByName("env_entity_dissolver");
 	if (dis_ent>0)
 	{
@@ -67,4 +69,5 @@ public Action Dissolve(Handle timer, any client)
 		}
 		else if(dissolveSet == 1) AcceptEntityInput(ragdoll, "kill");
 	}
+	return Plugin_Continue;
 }

@@ -259,6 +259,7 @@ public int TrainingMenuHandler(Menu menu, MenuAction action, int client, int cho
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuAdmin(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // **************************************************************************************************************************
@@ -330,6 +331,7 @@ public int TrainingCannonMenuHandler(Menu menu, MenuAction action, int client, i
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenTrainingMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 public void OpenTrainingCannonSelectBallMenu(int client, int count, int[] numbers)
@@ -378,6 +380,7 @@ public int TrainingChooseBallMenuHandler(Menu menu, MenuAction action, int clien
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenTrainingCannonMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 public void OpenTrainingCannonSettingsMenu(int client)
@@ -425,6 +428,7 @@ public int TrainingCannonSettingsMenuHandler(Menu menu, MenuAction action, int c
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenTrainingCannonMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // ************************************************************************************************************
@@ -457,6 +461,7 @@ public Action TrainingCannonShoot(Handle timer)
 			if (IsClientInGame(player) && IsClientConnected(player)) CPrintToChat(player, "{%s}[%s] {%s}Ball cannon entity is invalid", prefixcolor, prefix, textcolor);
 		}
 	}
+	return Plugin_Continue;
 }
 
 // ***************************************************************************************************************
@@ -952,6 +957,7 @@ public Action ResetPropColorTimer(Handle timer, DataPack pack)
 	{
 		if(prop != -1)	SetEntityRenderColor(prop, 255, 0, 0, 255);
 	}
+	return Plugin_Continue;
 }
 
 public void OpenSpawnMenu(int client)
@@ -1048,6 +1054,7 @@ public int OpenSpawnMenuHandler(Menu menu, MenuAction action, int client, int ch
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenTrainingMenu(client);
 	else if (action == MenuAction_End) 		menu.Close();
+	return 0;
 }
 
 
@@ -1139,7 +1146,7 @@ public int ControlPropInfoReturn(Handle panel, MenuAction action, int client, in
 		UnGrabEntity(client);
 	}
 
-	return;
+	return 0;
 }
 
 public Action GrabEntity(int client, char type[32], int team)

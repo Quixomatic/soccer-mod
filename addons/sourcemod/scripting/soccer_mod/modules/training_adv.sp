@@ -102,6 +102,7 @@ public int MenuHandlerAdvTraining(Menu menu, MenuAction action, int client, int 
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenTrainingMenu(client);
 	else if (action == MenuAction_End)					 	menu.Close();
+	return 0;
 }
 
 
@@ -272,6 +273,7 @@ public int MenuHandlerAdvTrainingTarget(Menu menu, MenuAction action, int client
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenAdvancedTrainingMenu(client);
 	else if (action == MenuAction_End)					  	menu.Close();
+	return 0;
 }
 
 public void ResetBall(int client, bool toggle)
@@ -1012,9 +1014,10 @@ public Action ChangeTargetTimer(Handle timer, DataPack pack)
 		}*/
 	}	
 	if(index != -1) SetEntityRenderColor(index, 255, 255, 255, 0);
-	
+
 	if(type == 0) TeleportTarget(index, team, trigger);
 	else if(type == 1) DisableTarget(index, team, trigger, num);
+	return Plugin_Continue;
 }
 
 // *******************************************************************************************************************
@@ -1240,8 +1243,9 @@ public Action AutoResetBall(Handle timer, DataPack pack)
 					trainingBallResetTimer[1] = null;
 				}
 			}
-		}	
+		}
 	}
+	return Plugin_Continue;
 }
 
 public float GetRandomPos(float pos[3], int coord)
@@ -1497,19 +1501,17 @@ public void OpenAdvancedTrainingConeMenu(int client)
 
 	menu.SetTitle("Soccer Mod - Cone Manager");
 
-	char ConeTypeString[32], ConeString[32], RemoveString[32], type[32];
-	
-	if(coneDynamic)				
+	char ConeTypeString[32], ConeString[32], RemoveString[32];
+
+	if(coneDynamic)
 	{
 		ConeTypeString = "Cone Type: Dynamic (red)";
 		RemoveString = "Remove all red cones";
-		type = "Dynamic";
 	}
-	else 						
+	else
 	{
 		ConeTypeString = "Cone Type: Static (blue)";
 		RemoveString = "Remove all blue cones";
-		type = "Static";
 	}
 	
 	Format(ConeString, sizeof(ConeString), "Place/Remove Cone (%i left)", MAXCONES_STA + MAXCONES_DYN - conecounter);
@@ -1553,6 +1555,7 @@ public int MenuHandlerAdvTrainingCone(Menu menu, MenuAction action, int client, 
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenAdvancedTrainingMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // *******************************************************************************************************************

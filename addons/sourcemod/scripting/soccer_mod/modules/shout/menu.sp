@@ -201,6 +201,7 @@ public int MenuHandlerShoutSet(Menu menu, MenuAction action, int client, int cho
 	}
 	else if (action == MenuAction_Cancel && choice == -6)  	OpenMenuSettings(client);
 	else if (action == MenuAction_End)					 	menu.Close();
+	return 0;
 }
 
 // ******************************************************************************************************************
@@ -250,11 +251,12 @@ public int MenuHandlerShoutRadius(Menu menu, MenuAction action, int client, int 
 		menu.SetTitle(title);
 		DisplayMenuAtItem(menu, client, GetMenuSelectionPosition(), MENU_TIME_FOREVER);
 	}
-	else if (action == MenuAction_Cancel && choice == -6)   
+	else if (action == MenuAction_Cancel && choice == -6)
 	{
-		OpenMenuShoutSet(client);	
+		OpenMenuShoutSet(client);
 		CPrintToChat(client, "{%s}[%s] {%s}Radius set to %i", prefixcolor, prefix, textcolor, shoutRadius);
 	}
+	return 0;
 }
 
 // ******************************************************************************************************************
@@ -304,11 +306,12 @@ public int MenuHandlerShoutCD(Menu menu, MenuAction action, int client, int choi
 		menu.SetTitle(title);
 		DisplayMenuAtItem(menu, client, GetMenuSelectionPosition(), MENU_TIME_FOREVER);
 	}
-	else if (action == MenuAction_Cancel && choice == -6)   
+	else if (action == MenuAction_Cancel && choice == -6)
 	{
 		OpenMenuShoutSet(client);
 		CPrintToChat(client, "{%s}[%s] {%s}Cooldown set to %i", prefixcolor, prefix, textcolor, shoutCD);
 	}
+	return 0;
 }
 
 // ******************************************************************************************************************
@@ -366,11 +369,12 @@ public int MenuHandlerShoutVol(Menu menu, MenuAction action, int client, int cho
 		menu.SetTitle(title);
 		DisplayMenuAtItem(menu, client, GetMenuSelectionPosition(), MENU_TIME_FOREVER);
 	}
-	else if (action == MenuAction_Cancel && choice == -6)   
+	else if (action == MenuAction_Cancel && choice == -6)
 	{
 		OpenMenuShoutSet(client);
 		CPrintToChat(client, "{%s}[%s] {%s}Volume set to %i%", prefixcolor, prefix, textcolor, shoutVolume);
 	}
+	return 0;
 }
 
 // ******************************************************************************************************************
@@ -421,11 +425,12 @@ public int MenuHandlerShoutPitch(Menu menu, MenuAction action, int client, int c
 		menu.SetTitle(title);
 		DisplayMenuAtItem(menu, client, GetMenuSelectionPosition(), MENU_TIME_FOREVER);
 	}
-	else if (action == MenuAction_Cancel && choice == -6)   
+	else if (action == MenuAction_Cancel && choice == -6)
 	{
-		OpenMenuShoutSet(client);	
+		OpenMenuShoutSet(client);
 		CPrintToChat(client, "{%s}[%s] {%s}Pitch set to %i", prefixcolor, prefix, textcolor, shoutPitch);
 	}
+	return 0;
 }
 
 // ******************************************************************************************************************
@@ -485,6 +490,7 @@ public int MenuHandlerShoutManager(Menu menu, MenuAction action, int client, int
 		}
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuShoutSet(client);
+	return 0;
 }
 
 // ******************************************************************************************************************
@@ -552,6 +558,7 @@ public int MenuHandlerShoutAdd(Menu menu, MenuAction action, int client, int cho
 		else OpenPanelShoutAddRename(client, ArrayPos);
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuShoutManager(client);
+	return 0;
 }
 
 public void OpenPanelShoutAddRename(int client, int arrayPos)
@@ -643,6 +650,7 @@ public int AddShoutPanelHandler(Menu menu, MenuAction action, int client, int ke
 		GetSounds("sound");
 		OpenMenuShoutAdd(client);
 	}
+	return 0;
 }
 
 // ******************************************************************************************************************
@@ -688,6 +696,7 @@ public int MenuHandlerShoutEdit(Menu menu, MenuAction action, int client, int ch
 		}
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuShoutManager(client);
+	return 0;
 }
 
 // **************************************************** RENAME ******************************************************
@@ -732,9 +741,10 @@ public int MenuHandlerShoutRename(Menu menu, MenuAction action, int client, int 
 		ReplaceString(gFilebuffer, sizeof(gFilebuffer), "sound/", "",false);
 		
 		CPrintToChat(client, "{%s}[%s] {%s}Type in the name of the shout, !cancel to stop. Current name is %s.", prefixcolor, prefix, textcolor, gNamebuffer);
-		changeSetting[client] = "CustomName";		
+		changeSetting[client] = "CustomName";
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuShoutEdit(client);
+	return 0;
 }
 
 // *************************************************** EDITSET ******************************************************
@@ -791,15 +801,16 @@ public int MenuHandlerShoutEditVolPit(Menu menu, MenuAction action, int client, 
 		{
 			char menuItem[64];
 			menu.GetItem(choice, menuItem, sizeof(menuItem));
-			
+
 			int ArrayPos = StringToInt(menuItem);
-			
+
 			GetArrayString(nameArray_Added, ArrayPos, gNamebuffer, sizeof(gNamebuffer));
-			
-			OpenMenuShoutVolOrPit(client, "pitch")	
+
+			OpenMenuShoutVolOrPit(client, "pitch")
 		}
 		else if (action == MenuAction_Cancel && choice == -6)   OpenMenuShoutEdit(client);
 	}
+	return 0;
 }
 
 
@@ -913,6 +924,7 @@ public int MenuHandlerShoutVolPitSet(Menu menu, MenuAction action, int client, i
 		}
 		else if (action == MenuAction_Cancel && choice == -6)   OpenMenuShoutEditSet(client, "pitch");
 	}
+	return 0;
 }
 
 // ******************************************************************************************************************
@@ -976,6 +988,7 @@ public int MenuHandlerShoutRemove(Menu menu, MenuAction action, int client, int 
 		RefreshMenu(menu, client, GetMenuSelectionPosition(), fileArray_Added, nameArray_Added);
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuShoutManager(client);
+	return 0;
 }
 
 // ******************************************************************************************************************
@@ -1010,6 +1023,7 @@ public int MenuHandlerShoutPathList(Menu menu, MenuAction action, int client, in
 		RefreshMenu(menu, client, GetMenuSelectionPosition(), fileArray_Added, nameArray_Added);
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuShoutManager(client);
+	return 0;
 }
 
 // ******************************************************************************************************************
@@ -1078,12 +1092,13 @@ public int MenuHandlerShoutHelp(Menu menu, MenuAction action, int client, int ch
 		}
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuShoutSet(client);
+	return 0;
 }
 
 public void OpenPanelShoutSettings(int client)
 {
 	int panel_keys = 0;
-	
+
 	Panel panel = new Panel();
 	panel.SetTitle("Shoutset Settings");
 	panel.DrawText("══════════════════════════════");
@@ -1186,13 +1201,14 @@ public void OpenPanelShoutCredits(int client)
 public int HelpSettingsShoutPanelHandler(Menu menu, MenuAction action, int client, int key)
 {
 	if (action == MenuAction_Select)
-	{	
+	{
 		OpenMenuShoutHelp(client)
 	}
 	else
 	{
 		OpenMenuShoutHelp(client)
 	}
+	return 0;
 }
 
 

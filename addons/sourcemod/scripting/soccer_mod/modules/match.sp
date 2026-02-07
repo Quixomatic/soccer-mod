@@ -220,6 +220,7 @@ public int MatchMenuHandler(Menu menu, MenuAction action, int client, int choice
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuAdmin(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 
@@ -269,11 +270,12 @@ public int MatchLogMenuHandler(Menu menu, MenuAction action, int client, int cho
 		ClearTimer(matchLogRefresh);
 		OpenMatchMenu(client);
 	}	
-	else if (action == MenuAction_End)					  
+	else if (action == MenuAction_End)
 	{
 		ClearTimer(matchLogRefresh);
 		menu.Close();
 	}
+	return 0;
 }
 
 public void OpenMatchLogCards(int client)
@@ -298,18 +300,19 @@ public int MatchLogCardsHandler(Menu menu, MenuAction action, int client, int ch
 	{
 		OpenMatchLogMenu(client);
 	}	
-	else if (action == MenuAction_End)					  
+	else if (action == MenuAction_End)
 	{
 		menu.Close();
 	}
+	return 0;
 }
 
 public Action RefreshMatchLog(Handle timer, int client)
 {
 	OpenMatchLogMenu(client);
 	matchLogRefresh = CreateTimer(5.0, RefreshMatchLog, client);
-	
-	return;
+
+	return Plugin_Continue;
 }
 
 public void SaveLogsOnMatchStart() //Set everything to default
@@ -370,6 +373,7 @@ public int MenuHandlerMatchSettings(Menu menu, MenuAction action, int client, in
 		else if (action == MenuAction_End)						  menu.Close();
 	}
 	else CPrintToChat(client, "{%s}[%s] {%s}Can't change the settings during a match.", prefixcolor, prefix, textcolor);
+	return 0;
 }
 
 // ************************************** MATCHLOG SETTINGS ************************************************
@@ -487,6 +491,7 @@ public int MenuHandlerMatchlogSettings(Menu menu, MenuAction action, int client,
 		else if (action == MenuAction_End)						  menu.Close();
 	}
 	else CPrintToChat(client, "{%s}[%s] {%s}Can't change the settings during a match.", prefixcolor, prefix, textcolor);
+	return 0;
 }
 
 public void OpenMenuMatchlogDays(int client)
@@ -532,6 +537,7 @@ public int MenuHandlerMatchlogDays(Menu menu, MenuAction action, int client, int
 		else if (action == MenuAction_End)						  menu.Close();
 	}
 	else CPrintToChat(client, "{%s}[%s] {%s}Can't change the settings during a match.", prefixcolor, prefix, textcolor);
+	return 0;
 }
 
 public bool TimeEnabledMatchlog()
@@ -688,6 +694,7 @@ public int MenuHandlerMatchInfoSettings(Menu menu, MenuAction action, int client
 		else if (action == MenuAction_End)					  menu.Close();
 	}
 	else CPrintToChat(client, "{%s}[%s] {%s}Can't change the settings during a match.", prefixcolor, prefix, textcolor);
+	return 0;
 }
 
 public void MatchInfoFunction()
@@ -897,6 +904,7 @@ public int MenuHandlerForfeitSettings(Menu menu, MenuAction action, int client, 
 		else if (action == MenuAction_End)					  menu.Close();
 	}
 	else CPrintToChat(client, "{%s}[%s] {%s}Can't change the settings during a match.", prefixcolor, prefix, textcolor);
+	return 0;
 }
 
 
@@ -1000,6 +1008,7 @@ public int MenuHandlerNameSettings(Menu menu, MenuAction action, int client, int
 		else if (action == MenuAction_End)					  menu.Close();
 	}
 	else CPrintToChat(client, "{%s}[%s] {%s}Can't change the settings during a match.", prefixcolor, prefix, textcolor);
+	return 0;
 }
 
 
@@ -1125,6 +1134,7 @@ public int MenuHandlerTeam(Menu menu, MenuAction action, int client, int choice)
 		else if (action == MenuAction_End)					  menu.Close();
 	}
 	else CPrintToChat(client, "{%s}[%s] {%s}Can't change the settings during a match.", prefixcolor, prefix, textcolor);
+	return 0;
 }
 
 
@@ -1197,6 +1207,7 @@ public int MenuHandlerTeamMenuList(Menu menu, MenuAction action, int client, int
 		tagindex = 1;
 	}
 	else CPrintToChat(client, "{%s}[%s] {%s}Can't change the settings during a match.", prefixcolor, prefix, textcolor);
+	return 0;
 }
 
 public int MenuHandlerTeamMenuList_Match(Menu menu, MenuAction action, int client, int choice)
@@ -1228,6 +1239,7 @@ public int MenuHandlerTeamMenuList_Match(Menu menu, MenuAction action, int clien
 		tagindex = 1;
 	}
 	else CPrintToChat(client, "{%s}[%s] {%s}Can't change the settings during a match.", prefixcolor, prefix, textcolor);
+	return 0;
 }
 
 // ****************************************** PERIOD SETTINGS ************************************************
@@ -1289,6 +1301,7 @@ public int MenuHandlerMatchPeriod(Menu menu, MenuAction action, int client, int 
 		else if (action == MenuAction_End)					  menu.Close();
 	}
 	else CPrintToChat(client, "{%s}[%s] {%s}Can't change the settings during a match.", prefixcolor, prefix, textcolor);
+	return 0;
 }
 
 // ****************************************** BREAK SETTINGS ************************************************
@@ -1360,6 +1373,7 @@ public int MenuHandlerMatchBreak(Menu menu, MenuAction action, int client, int c
 		else if (action == MenuAction_End)					  menu.Close();
 	}
 	else CPrintToChat(client, "{%s}[%s] {%s}Can't change the settings during a match.", prefixcolor, prefix, textcolor);
+	return 0;
 }
 
 // ****************************************** GOLDEN GOAL SETTINGS ************************************************
@@ -1406,6 +1420,7 @@ public int MenuHandlerMatchGolden(Menu menu, MenuAction action, int client, int 
 		else if (action == MenuAction_End)					  menu.Close();
 	}
 	else CPrintToChat(client, "{%s}[%s] {%s}Can't change the settings during a match.", prefixcolor, prefix, textcolor);
+	return 0;
 }
 
 // ***********************************************************************************************************************
@@ -1642,6 +1657,7 @@ public Action MatchDisplayTimerMessage(Handle timer)
 	}
 
 	matchTimer = CreateTimer(1.0, MatchDisplayTimerMessage);
+	return Plugin_Continue;
 }
 
 public Action MatchPeriodTimer(Handle timer, any time)
@@ -1746,6 +1762,7 @@ public Action MatchPeriodTimer(Handle timer, any time)
 
 		matchTimer = CreateTimer(0.0, MatchPeriodStoppageTimer, matchStoppageTime);
 	}
+	return Plugin_Continue;
 }
 
 public Action MatchPeriodStoppageTimer(Handle timer, any time)
@@ -1759,6 +1776,7 @@ public Action MatchPeriodStoppageTimer(Handle timer, any time)
 	PrintHintTextToAll("%s %i - %i %s | %s +%s", custom_name_ct, matchScoreCT, matchScoreT, custom_name_t, timeString, stoppageTimeString);
 
 	matchTimer = CreateTimer(1.0, MatchPeriodStoppageTimer, matchStoppageTime + 1);
+	return Plugin_Continue;
 }
 
 public Action MatchPeriodBreakTimer(Handle timer, any time)
@@ -1799,6 +1817,7 @@ public Action MatchPeriodBreakTimer(Handle timer, any time)
 		else matchToss = CS_TEAM_T;
 	}
 	else matchTimer = CreateTimer(1.0, MatchPeriodBreakTimer, time - 1);
+	return Plugin_Continue;
 }
 
 public Action MatchGoldenGoalTimer(Handle timer, any time)
@@ -1819,6 +1838,7 @@ public Action MatchGoldenGoalTimer(Handle timer, any time)
 	}
 
 	matchTimer = CreateTimer(1.0, MatchGoldenGoalTimer, time + 1);
+	return Plugin_Continue;
 }
 
 public Action MatchUnpauseCountdown(Handle timer, any time)
@@ -1859,6 +1879,7 @@ public Action MatchUnpauseCountdown(Handle timer, any time)
 		}
 	}
 	else matchTimer = CreateTimer(1.0, MatchUnpauseCountdown, time - 1);
+	return Plugin_Continue;
 }
 
 public Action DelayMatchEnd(Handle timer)
@@ -1888,6 +1909,7 @@ public Action DelayMatchEnd(Handle timer)
 	NameReset();
 	ForfeitReset();
 	ServerCommand("mp_restartgame 5");
+	return Plugin_Continue;
 }
 
 // ***************************************************************************************************************
@@ -2254,10 +2276,12 @@ public void KillMatchTimer()
 public Action RRCheckTimer(Handle timer)
 {
 	ForfeitRRCheck = false;
+	return Plugin_Continue;
 }
 
 public Action matchStartTimer(Handle timer)
 {
 	matchStart = false;
+	return Plugin_Continue;
 }
 

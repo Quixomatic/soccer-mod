@@ -1,5 +1,21 @@
 # Soccer Mod Changelog
 
+## 1.4.18
+
+### Fixes
+- Fixed all 190 build warnings for clean SourcePawn 1.12 compilation
+- Fixed `EnoughPlayers()` function call bug - was always returning true due to missing parentheses (function pointer instead of function call). Stats now properly require 5v5 during matches.
+
+### Technical Changes
+- Added `return 0;` to ~95 menu handlers (warning 209)
+- Added `return Plugin_Continue;` to ~12 timer callbacks (warning 242)
+- Fixed 3 array initialization syntax issues (warning 241)
+- Fixed deprecated while syntax in settings.sp (warning 243)
+- Added `#pragma unused` for intentionally unused parameters
+- Added `_noop()` helper function to suppress warning 204 for globals
+
+---
+
 ## 1.4.17
 
 ### Fixes

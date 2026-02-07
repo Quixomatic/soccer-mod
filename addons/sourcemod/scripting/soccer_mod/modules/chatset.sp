@@ -38,6 +38,7 @@ public int MenuHandlerChat(Menu menu, MenuAction action, int client, int choice)
 
 	else if (action == MenuAction_Cancel && choice == -6)		OpenMenuSettings(client);
 	else if (action == MenuAction_End)							menu.Close();
+	return 0;
 }
 
 public void OpenMenuChatStyle(int client)
@@ -89,6 +90,7 @@ public int MenuHandlerChatStyle(Menu menu, MenuAction action, int client, int ch
 
 	else if (action == MenuAction_Cancel && choice == -6)	   OpenMenuChat(client);
 	else if (action == MenuAction_End)						  menu.Close();
+	return 0;
 }
 
 
@@ -129,6 +131,7 @@ public int MenuHandlerMVPSet(Menu menu, MenuAction action, int client, int choic
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuChat(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 
@@ -188,6 +191,7 @@ public int MenuHandlerDeadChatSet(Menu menu, MenuAction action, int client, int 
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuChat(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 public void OpenMenuDeadChatSetVis(int client)
@@ -237,6 +241,7 @@ public int MenuHandlerDeadChatSetVis(Menu menu, MenuAction action, int client, i
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuDeadChatSet(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // *******************************************************************************************************************

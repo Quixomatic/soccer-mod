@@ -1,7 +1,7 @@
 // **************************************************************************************************************
 // ************************************************** DEFINES ***************************************************
 // ************************************************************************************************************** 
-#define PLUGIN_VERSION "1.4.17"
+#define PLUGIN_VERSION "1.4.18"
 #define UPDATE_URL "https://raw.githubusercontent.com/Quixomatic/soccer-mod/main/addons/sourcemod/updatefile.txt"
 #define MAX_NAMES 10
 #define MAXCONES_DYN 15
@@ -89,6 +89,10 @@ public Plugin myinfo =
 // ******************************************************************************************************************
 public void OnPluginStart()
 {
+	// Suppress warning 204 by reading initial values
+	_noop(showPanel);
+	_noop(readydisplay);
+
 	CreateConVar("soccer_mod_version", PLUGIN_VERSION, "Soccer Mod version", FCVAR_NOTIFY| FCVAR_DONTRECORD);
 	
 	// Updater - disabled (requires updater.inc)
@@ -1623,8 +1627,9 @@ stock bool DrawLaser(char[] name, float startX, float startY, float startZ, floa
 
 // *********************************************** VALIDATION ********************************************************
 
-stock bool IsValidClient(int client, bool bAlive = false)
+stock bool IsValidClient(int client, bool _bAlive = false)
 {
+	#pragma unused _bAlive
 	return (client >= 1 && client <= MaxClients && IsClientConnected(client) && IsClientInGame(client) && !IsClientSourceTV(client));
 }
 

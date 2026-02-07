@@ -27,6 +27,7 @@ public int 	MenuHandlerColorlist(Menu menu, MenuAction action, int client, int c
 	}
 	//else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSoccer(client);
 	else if (action == MenuAction_End)                      menu.Close();
+	return 0;
 }
 
 // ****************************************************************************************************************
@@ -114,6 +115,7 @@ public int MenuHandlerColorlistWhite(Menu menu, MenuAction action, int client, i
 		DisplayMenuAtItem(menu, client, GetMenuSelectionPosition(), MENU_TIME_FOREVER);
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuColorlist(client);
+	return 0;
 }
 
 // ****************************************************************************************************************
@@ -238,6 +240,7 @@ public int MenuHandlerColorlistBlue(Menu menu, MenuAction action, int client, in
 		DisplayMenuAtItem(menu, client, GetMenuSelectionPosition(), MENU_TIME_FOREVER);
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuColorlist(client);
+	return 0;
 }
 
 // ****************************************************************************************************************
@@ -330,6 +333,7 @@ public int MenuHandlerColorlistRed(Menu menu, MenuAction action, int client, int
 		DisplayMenuAtItem(menu, client, GetMenuSelectionPosition(), MENU_TIME_FOREVER);
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuColorlist(client);
+	return 0;
 }
 
 // ****************************************************************************************************************
@@ -479,4 +483,5 @@ public int MenuHandlerColorlistYellow(Menu menu, MenuAction action, int client, 
 
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuColorlist(client);
+	return 0;
 }

@@ -176,7 +176,7 @@ public int JoinlistPanelHandler(Menu menu, MenuAction action, int client, int ke
 		}
 	}
 	
-	return;
+	return 0;
 }
 
 public bool bIsOnServer(char steamid[32])
@@ -339,10 +339,11 @@ public Action DCListTimer(Handle timer, DataPack pack)
 	kvConnectlist.GoBack();
 	
 	kvConnectlist.Rewind();
-	//kvConnectlist.ExportToFile(DCListKV); 
+	//kvConnectlist.ExportToFile(DCListKV);
 	//kvConnectlist.Close();
-	
+
 	//KillDCListTimer()
+	return Plugin_Continue;
 }
 
 public void KillDCListTimer(int client)

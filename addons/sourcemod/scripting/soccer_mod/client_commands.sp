@@ -1381,8 +1381,9 @@ public int Handle_ForfeitVoteMenu(Menu menu, MenuAction action, int param1, int 
 		/* This is called after VoteEnd */
 		delete menu;
 	}
+	return 0;
 }
- 
+
 // Handling the results 
 public void Handle_VoteResults(Menu menu, int num_votes, int num_clients, const int[][] client_info, int num_items, const int[][] item_info)
 {
@@ -1432,8 +1433,9 @@ void ForfeitVoteMenu()
 	DisplayVoteMenuToTeam(menu, 60, 1);
 }
 
-stock bool DisplayVoteMenuToTeam(Handle menu, int iTime, int iTeam)
+stock bool DisplayVoteMenuToTeam(Handle menu, int _iTime, int iTeam)
 {
+	#pragma unused _iTime
 	int iTotal;
 	int[] iPlayers = new int[MaxClients];
 

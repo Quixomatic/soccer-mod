@@ -2,6 +2,11 @@
 // ************************************************** VARIABLES *************************************************
 // **************************************************************************************************************
 
+// Suppress warning 204 for variables whose initial value is overwritten before first use
+stock void _noop(any _val) {
+	#pragma unused _val
+}
+
 // ***************************************************** PATHS **************************************************
 char adminSMFileKV[PLATFORM_MAX_PATH];
 char adminGroupFileKV[PLATFORM_MAX_PATH];
@@ -412,7 +417,7 @@ enum ReadyCheckContext
 }
 
 // BOOL
-bool showPanel					= false;
+bool showPanel;
 bool tempUnpause 				= false;
 bool readyCheckActive			= false;					// Is a ready check currently active
 bool playerReady[MAXPLAYERS+1];								// Per-player ready state
@@ -428,7 +433,7 @@ Handle readyCheckCountdownTimer	= INVALID_HANDLE;			// Countdown timer
 // INTEGER
 int matchReadyCheck				= 1;
 int startplayers				= 0;
-int readydisplay 				= 0;
+int readydisplay;
 int cooldownTime[MAXPLAYERS+1]	= {-1, ...};
 int pauseplayernum				= 0;
 
@@ -439,7 +444,8 @@ int readyCheckPrematchCountdown	= 60;						// Config: pre-match countdown second
 int readyCheckTimeoutCountdown	= 0;						// Config: timeout countdown (0 = no limit)
 
 // STRINGS
-char vState[32] 				= "Not Ready";
+char _vState[32] 				= "Not Ready";
+#pragma unused _vState
 char totalpausetime[32];
 
 // ************************************************** SERVERINFO ************************************************
@@ -474,7 +480,7 @@ float afk_Position[MAXPLAYERS+1][3];
 float afk_Angles[MAXPLAYERS+1][3];
 
 // HANDLES
-Handle afk_Timer[MAXPLAYERS+1] 	= null;
+Handle afk_Timer[MAXPLAYERS+1];
 
 // INTEGER
 int afk_menutime				= 20;

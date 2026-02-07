@@ -143,6 +143,7 @@ public int PersonalTrainingCannonMenuHandler(Menu menu, MenuAction action, int c
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenTrainingMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 public void OpenPersonalTrainingCannonSettingsMenu(int client)
@@ -190,6 +191,7 @@ public int PersonalTrainingCannonSettingsMenuHandler(Menu menu, MenuAction actio
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenPersonalTrainingCannonMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // ************************************************************************************************************
@@ -219,6 +221,7 @@ public Action PersonalTrainingCannonShoot(Handle timer, int client)
 
 		CPrintToChat(client, "{%s}[%s] {%s}Ball cannon entity is invalid", prefixcolor, prefix, textcolor);
 	}
+	return Plugin_Continue;
 }
 
 // ***************************************************************************************************************

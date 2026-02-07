@@ -82,6 +82,7 @@ public int MenuHandlerSettings(Menu menu, MenuAction action, int client, int cho
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuAdmin(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 
@@ -413,6 +414,7 @@ public int MenuHandlerMiscSettings(Menu menu, MenuAction action, int client, int
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSettings(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 
@@ -537,6 +539,7 @@ public int MenuHandlerLockSet(Menu menu, MenuAction action, int client, int choi
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSettings(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // *******************************************************************************************************************
@@ -585,6 +588,7 @@ public int MenuHandlerPubMode(Menu menu, MenuAction action, int client, int choi
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSettings(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // ************************************************** TEST **************************************************
@@ -664,6 +668,7 @@ public int MenuHandlerGKAreas(Menu menu, MenuAction action, int client, int choi
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSettings(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 // ************************************************** END TEST **************************************************
 
@@ -696,6 +701,7 @@ public int MenuHandlerMaps(Menu menu, MenuAction action, int client, int choice)
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSettings(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // ******************************************************************************************************************
@@ -733,6 +739,7 @@ public int MenuHandlerMapsAdd(Menu menu, MenuAction action, int client, int choi
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuMaps(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // *********************************************************************************************************************
@@ -792,6 +799,7 @@ public int MenuHandlerMapsRemove(Menu menu, MenuAction action, int client, int c
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuMaps(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // *********************************************************************************************************************
@@ -871,6 +879,7 @@ public int MenuHandlerMapSounds(Menu menu, MenuAction action, int client, int ch
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSettings(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 public void OpenMenuMapSoundsRem(int client)
@@ -946,6 +955,7 @@ public int MenuHandlerMapSoundsRem(Menu menu, MenuAction action, int client, int
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuMapSounds(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 public void OpenMenuMapSoundsAdd(int client)
@@ -974,7 +984,7 @@ public void OpenMenuMapSoundsAdd(int client)
 				menu.AddItem(sound, sound);
 				
 			}	
-			while mapdefaultKV.GotoNextKey();
+			while (mapdefaultKV.GotoNextKey());
 			
 			mapdefaultKV.Rewind();
 			mapdefaultKV.Close();
@@ -1024,6 +1034,7 @@ public int MenuHandlerMapSoundsAdd(Menu menu, MenuAction action, int client, int
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuMapSounds(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // *******************************************************************************************************************
@@ -1090,6 +1101,7 @@ public int MenuHandlerAdvTrainSet(Menu menu, MenuAction action, int client, int 
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSettings(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 

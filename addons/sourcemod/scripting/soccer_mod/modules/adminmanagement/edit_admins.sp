@@ -40,6 +40,7 @@ public int MenuHandlerEditAdmin(Menu menu, MenuAction action, int client, int ch
 		
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuAdminSet(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // *************************************************** ADMINLISTS **************************************************** 
@@ -95,6 +96,7 @@ public int MenuHandlerEditList(Menu menu, MenuAction action, int client, int cho
 		
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuEditAdmin(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 public void OpenMenuEditSoccerAdmin(int client)
@@ -152,6 +154,7 @@ public int MenuHandlerEditSoccerAdmin(Menu menu, MenuAction action, int client, 
 		
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuEditAdmin(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // *************************************************** PROMOTE SELECTION ****************************************************
@@ -209,4 +212,5 @@ public int MenuHandlerPromoteAdminFlags(Menu menu, MenuAction action, int client
 	}
 	else if (action == MenuAction_Cancel && choice == -6)  OpenMenuEditAdmin(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }

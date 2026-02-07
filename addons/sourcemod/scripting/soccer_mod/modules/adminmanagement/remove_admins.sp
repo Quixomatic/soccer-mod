@@ -33,6 +33,7 @@ public int MenuHandlerRemoveAdmin(Menu menu, MenuAction action, int client, int 
 		
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuAdminSet(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // *************************************************** ADMINLISTS ****************************************************
@@ -88,6 +89,7 @@ public int MenuHandlerRemoveSMAdmin(Menu menu, MenuAction action, int client, in
 		
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuRemoveAdmin(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 public void OpenMenuRemoveSoccerAdmin(int client)
@@ -149,4 +151,5 @@ public int MenuHandlerRemoveSoccerAdmin(Menu menu, MenuAction action, int client
 		
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuRemoveAdmin(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }

@@ -52,9 +52,10 @@ public int MenuHandlerAdminSet(Menu menu, MenuAction action, int client, int cho
 			OpenMenuOnlineAdmin(client);
 		}
 
-	}	
+	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSettings(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // ************************************************ MODULES SELECTION **************************************************
@@ -186,6 +187,7 @@ public int MenuHandlerSoccerModules(Menu menu, MenuAction action, int client, in
 		else if(addoredit == 0) OpenMenuAddAdmin(client);
 	}
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // *************************************************** ADMIN VALUES ****************************************************
@@ -263,6 +265,7 @@ public int MenuHandlerAddAdminValues(Menu menu, MenuAction action, int client, i
 		else if(addoredit == 2) OpenMenuPromoteAdminFlags(client);
 	}
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // *************************************************** GROUPLIST ****************************************************
@@ -300,6 +303,7 @@ public int MenuHandlerGroupList(Menu menu, MenuAction action, int client, int ch
 	}
 	else if (action == MenuAction_Cancel && choice == -6) 	OpenMenuAddAdminValues(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // *******************************************************************************************************************
@@ -664,7 +668,7 @@ public int MenuHandlerAddWarning(Menu menu, MenuAction action, int client, int c
 {
 	char menuItem[32];
 	menu.GetItem(choice, menuItem, sizeof(menuItem));
-	
+
 	if (action == MenuAction_Select)
 	{
 		if (StrEqual(menuItem, "Yes"))
@@ -676,16 +680,17 @@ public int MenuHandlerAddWarning(Menu menu, MenuAction action, int client, int c
 		{
 			OpenMenuAddAdminType(client);
 		}
-	}		
+	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuAddAdminType(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 public int MenuHandlerPromoteWarning(Menu menu, MenuAction action, int client, int choice)
 {
 	char menuItem[32];
 	menu.GetItem(choice, menuItem, sizeof(menuItem));
-	
+
 	if (action == MenuAction_Select)
 	{
 		if (StrEqual(menuItem, "Yes"))
@@ -698,9 +703,10 @@ public int MenuHandlerPromoteWarning(Menu menu, MenuAction action, int client, i
 		{
 			OpenMenuPromoteAdminFlags(client);
 		}
-	}		
+	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuPromoteAdminFlags(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 public void OpenMenuFlagInfo(int client, int mode)
@@ -740,6 +746,7 @@ public void OpenMenuFlagInfo(int client, int mode)
 public int MenuHandlerFlagInfo(Menu menu, MenuAction action, int client, int choice)
 {
 	if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 public void ResetAdminValues()

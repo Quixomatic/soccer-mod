@@ -33,7 +33,7 @@ public Action RegSprintCookie()
 	h_GRASS_TOGGLE_COOKIE = RegClientCookie(
 		"client_grass",
 		"Per client grass toggle", CookieAccess_Private);
-	return;
+	return Plugin_Continue;
 }
 
 public Action ReadClientCookie(int client)
@@ -99,7 +99,7 @@ public Action ReadClientCookie(int client)
 			y_val[client]		= 0.8;
 		}
 	}
-	return;
+	return Plugin_Continue;
 }
 
 public Action ReadEveryClientCookie()
@@ -111,7 +111,7 @@ public Action ReadEveryClientCookie()
 			ReadClientCookie(iClient);
 		}
 	}
-	return;
+	return Plugin_Continue;
 }
 
 public Action WriteClientCookie(int client)
@@ -156,7 +156,7 @@ public Action WriteClientCookie(int client)
 		//PrintToServer("Shout Toggle for %N is %s", client, sCookie_val);
 	}
 		
-	return;
+	return Plugin_Continue;
 }
 
 public Action WriteEveryClientCookie()
@@ -168,5 +168,5 @@ public Action WriteEveryClientCookie()
 			WriteClientCookie(iClient);
 		}
 	}
-	return;
+	return Plugin_Continue;
 }

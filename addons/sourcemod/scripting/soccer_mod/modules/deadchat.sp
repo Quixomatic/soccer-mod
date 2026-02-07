@@ -45,27 +45,27 @@ public Action Hook_UserMessage(UserMsg msg_id, BfRead bf, const int[] players, i
 public Action Event_PlayerSay(Handle event, const char[] name, bool dontBroadcast)
 {
 	int mode = DeadChatMode;
-	
+
 	if (mode < 1)
 	{
-		return;
+		return Plugin_Continue;
 	}
-	
+
 	if (mode > 1 && g_hCvarAllTalk != INVALID_HANDLE && !GetConVarBool(g_hCvarAllTalk))
 	{
-		return;
+		return Plugin_Continue;
 	}
-	
+
 	if (GetClientOfUserId(GetEventInt(event, "userid")) != g_msgAuthor)
 	{
-		return;
+		return Plugin_Continue;
 	}
-	
+
 	mode = DeadChatVis;
-	
+
 	if (g_msgIsTeammate && mode < 1)
 	{
-		return;
+		return Plugin_Continue;
 	}
 	
 	int[] players = new int[MaxClients];
@@ -100,11 +100,11 @@ public Action Event_PlayerSay(Handle event, const char[] name, bool dontBroadcas
 	
 	if (playersNum == 0)
 	{
-		return;
+		return Plugin_Continue;
 	}
-	
+
 	Handle SayText2 = StartMessage("SayText2", players, playersNum, USERMSG_RELIABLE | USERMSG_BLOCKHOOKS);
-	
+
 	if (SayText2 != INVALID_HANDLE)
 	{
 		BfWriteByte(SayText2, g_msgAuthor);
@@ -114,6 +114,7 @@ public Action Event_PlayerSay(Handle event, const char[] name, bool dontBroadcas
 		BfWriteString(SayText2, g_msgText);
 		EndMessage();
 	}
+	return Plugin_Continue;
 }
 
 public Action Command_Say(int client, const char[] command, int argc)

@@ -250,6 +250,7 @@ public int SkinsMenuHandler(Menu menu, MenuAction action, int client, int choice
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSettings(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 public void OpenSkinsSelectionMenu(int client, char type[32])
@@ -301,6 +302,7 @@ public int SkinsCTSelectionMenuHandler(Menu menu, MenuAction action, int client,
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenSkinsMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 public int SkinsTSelectionMenuHandler(Menu menu, MenuAction action, int client, int choice)
@@ -317,6 +319,7 @@ public int SkinsTSelectionMenuHandler(Menu menu, MenuAction action, int client, 
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenSkinsMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 public int SkinsCTGKSelectionMenuHandler(Menu menu, MenuAction action, int client, int choice)
@@ -333,6 +336,7 @@ public int SkinsCTGKSelectionMenuHandler(Menu menu, MenuAction action, int clien
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenSkinsMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 public int SkinsTGKSelectionMenuHandler(Menu menu, MenuAction action, int client, int choice)
@@ -349,4 +353,5 @@ public int SkinsTGKSelectionMenuHandler(Menu menu, MenuAction action, int client
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenSkinsMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }

@@ -202,6 +202,7 @@ public int RankingMenuHandler(Menu menu, MenuAction action, int client, int choi
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSoccer(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // ******************************************************************************************************************
@@ -236,6 +237,7 @@ public int RankingResetMenuHandler(Menu menu, MenuAction action, int client, int
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   	OpenRankingMenu(client);
 	else if (action == MenuAction_End)					  		menu.Close();
+	return 0;
 }
 
 
@@ -347,6 +349,7 @@ public int RankingTopMenuHandler(Menu menu, MenuAction action, int client, int c
 	if (action == MenuAction_Select)						OpenRankingMenu(client);
 	else if (action == MenuAction_Cancel && choice == -6)   OpenRankingMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // ***************************************************************************************************************************
@@ -503,6 +506,7 @@ public int RankingPersonalMenuHandler(Menu menu, MenuAction action, int client, 
 	if (action == MenuAction_Select)						OpenRankingMenu(client);
 	else if (action == MenuAction_Cancel && choice == -6)   OpenRankingMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // *************************************************************************************************************************
@@ -595,4 +599,5 @@ public int RankingLastConnectedMenuHandler(Menu menu, MenuAction action, int cli
 	if (action == MenuAction_Select)						OpenRankingMenu(client);
 	else if (action == MenuAction_Cancel && choice == -6)   OpenRankingMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }

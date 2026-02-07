@@ -825,6 +825,7 @@ public int StatisticsMenuHandler(Menu menu, MenuAction action, int client, int c
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSoccer(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // **************************************************************************************************************************
@@ -906,6 +907,7 @@ public int ChatSettingsMenuHandler(Menu menu, MenuAction action, int client, int
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenStatisticsMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 
@@ -956,6 +958,7 @@ public int TeamStatisticsMenuHandler(Menu menu, MenuAction action, int client, i
 	if (action == MenuAction_Select)						OpenStatisticsMenu(client);
 	else if (action == MenuAction_Cancel && choice == -6)   OpenStatisticsMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // ****************************************************************************************************************************
@@ -1002,6 +1005,7 @@ public int MenuHandlerSelectPlayerStatistics(Menu menu, MenuAction action, int c
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenStatisticsMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 public void OpenPlayerStatisticsMenu(int client, int target)
@@ -1062,6 +1066,7 @@ public int MenuHandlerPlayerStatistics(Menu menu, MenuAction action, int client,
 	if (action == MenuAction_Select)						OpenStatisticsMenu(client);
 	else if (action == MenuAction_Cancel && choice == -6)   OpenStatisticsMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // ***************************************************************************************************************************
@@ -1104,6 +1109,7 @@ public int RoundStatisticsMenuHandler(Menu menu, MenuAction action, int client, 
 	if (action == MenuAction_Select)						OpenRoundStatisticsMenu(client);
 	else if (action == MenuAction_Cancel && choice == -6)   OpenStatisticsMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // *************************************************************************************************************************
@@ -1162,6 +1168,7 @@ public int MapStatisticsMenuHandler(Menu menu, MenuAction action, int client, in
 	if (action == MenuAction_Select)						OpenMapStatisticsMenu(client);
 	else if (action == MenuAction_Cancel && choice == -6)   OpenStatisticsMenu(client);
 	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
 }
 
 // ************************************************************************************************************
@@ -1187,6 +1194,7 @@ public Action SetPlayerStats(Handle timer, any client)
 		statsKeygroupMatch.Rewind();
 		// keygroup.Close();
 	}
+	return Plugin_Continue;
 }
 
 // ***************************************************************************************************************
@@ -1424,7 +1432,7 @@ public void AddMatchStat(char type[8])
 				statsKeygroupMatch.GetSectionName(steamid, sizeof(steamid));
 				statsKeygroupMatch.SetNum("matches", 0);
 				
-				if(EnoughPlayers)
+				if(EnoughPlayers())
 				{
 					Format(queryString, sizeof(queryString), "UPDATE soccer_mod_match_stats SET matches = (matches +1) WHERE steamid = '%s'", steamid);
 					ExecuteQuery(queryString);
