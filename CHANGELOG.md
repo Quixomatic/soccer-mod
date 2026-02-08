@@ -1,5 +1,18 @@
 # Soccer Mod Changelog
 
+## 1.4.21
+
+### Fixes
+- Fixed ready check countdown timer spam bug that could crash the plugin
+- Added re-entrancy protection to `ReadyCheckEnd()` to prevent double-execution
+- Timer now properly stops when countdown reaches zero
+
+### New
+- Ball entities are now removed when cap/knife fight starts
+- Prevents goals from being scored during knife fights which caused "Cap fight invalid" errors
+
+---
+
 ## 1.4.20
 
 ### Changes

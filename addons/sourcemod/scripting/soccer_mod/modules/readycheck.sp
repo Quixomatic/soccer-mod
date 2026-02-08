@@ -102,24 +102,31 @@ public void ReadyCheckStart(ReadyCheckContext context, int countdown, int caller
 // End the ready check
 public void ReadyCheckEnd(bool proceed)
 {
-	if (!readyCheckActive) return;
+	// Prevent re-entrancy and double-execution
+	static bool isEnding = false;
+	if (isEnding || !readyCheckActive) return;
+	isEnding = true;
 
 	ReadyCheckContext endedContext = readyCheckContext;
+
+	// Mark as inactive FIRST to prevent timer callbacks from re-entering
+	readyCheckActive = false;
 
 	// Kill timers
 	ReadyCheckKillTimers();
 
-	// Close all panels
+	// Close all panels safely
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		if (IsClientInGame(i) && GetClientMenu(i) != MenuSource_None)
+		if (IsClientInGame(i) && IsClientConnected(i) && !IsFakeClient(i))
 		{
-			CancelClientMenu(i, false);
-			InternalShowMenu(i, "\10", 1);
+			if (GetClientMenu(i) != MenuSource_None)
+			{
+				CancelClientMenu(i, false);
+				InternalShowMenu(i, "\10", 1);
+			}
 		}
 	}
-
-	readyCheckActive = false;
 	readyCheckContext = READY_CONTEXT_NONE;
 	readyCheckTimeoutCaller = 0;
 	readyCheckCountdown = 0;
@@ -154,6 +161,8 @@ public void ReadyCheckEnd(bool proceed)
 			HostName_Change_Status("Public");
 		}
 	}
+
+	isEnding = false;
 }
 
 // Check if all players are ready
@@ -403,7 +412,8 @@ public Action Timer_ReadyCheckRefresh(Handle timer)
 // Timer: Countdown (ticks every second)
 public Action Timer_ReadyCheckCountdown(Handle timer)
 {
-	if (!readyCheckActive)
+	// Safety check - stop if already inactive or countdown already expired
+	if (!readyCheckActive || readyCheckCountdown <= 0)
 	{
 		readyCheckCountdownTimer = INVALID_HANDLE;
 		return Plugin_Stop;
@@ -414,8 +424,8 @@ public Action Timer_ReadyCheckCountdown(Handle timer)
 	if (readyCheckCountdown <= 0)
 	{
 		// Countdown expired - proceed regardless of ready state
+		readyCheckCountdownTimer = INVALID_HANDLE;  // Mark as invalid FIRST
 		CPrintToChatAll("{%s}[%s] {%s}Countdown complete!", prefixcolor, prefix, textcolor);
-		readyCheckCountdownTimer = INVALID_HANDLE;
 		ReadyCheckEnd(true);
 		return Plugin_Stop;
 	}

@@ -1957,7 +1957,27 @@ public void CapStartFight(int client)
 		
 		capFightStarted = true;
 		capPicksLeft = (matchMaxPlayers - 1) * 2;
-		
+
+		// Remove ball entities to prevent goals during knife fight
+		int ballIndex;
+		while ((ballIndex = GetEntityIndexByName("ballon", "func_physbox")) != -1)
+		{
+			AcceptEntityInput(ballIndex, "Kill");
+		}
+		while ((ballIndex = GetEntityIndexByName("ballon", "prop_physics")) != -1)
+		{
+			AcceptEntityInput(ballIndex, "Kill");
+		}
+		// Also check for "ball" named entities
+		while ((ballIndex = GetEntityIndexByName("ball", "func_physbox")) != -1)
+		{
+			AcceptEntityInput(ballIndex, "Kill");
+		}
+		while ((ballIndex = GetEntityIndexByName("ball", "prop_physics")) != -1)
+		{
+			AcceptEntityInput(ballIndex, "Kill");
+		}
+
 		bool noPos[MAXPLAYERS+1];
 		int posnr[MAXPLAYERS+1];
 		
