@@ -19,7 +19,11 @@ public void OpenMenuSettings(int client)
 	if(CheckCommandAccess(client, "generic_admin", ADMFLAG_RCON, true)) menu.AddItem("adminset", "Manage Admins");
 	menu.AddItem("maps", "Allowed Maps");
 	menu.AddItem("pubmode", PubString);
-	menu.AddItem("miscset", "Misc Settings");
+	menu.AddItem("matchset", "Match Settings");
+	menu.AddItem("gameplayset", "Gameplay Settings");
+	menu.AddItem("visualset", "Visual Settings");
+	menu.AddItem("statsset", "Stats & Ranking");
+	menu.AddItem("notifyset", "Notifications");
 	menu.AddItem("skinsmenu", "Skin Settings");
 	menu.AddItem("chatset", "Chat Settings");
 	menu.AddItem("mapsounds", "Sound Control");
@@ -43,7 +47,11 @@ public int MenuHandlerSettings(Menu menu, MenuAction action, int client, int cho
 		else if (StrEqual(menuItem, "chatset"))			OpenMenuChat(client);
 		else if (StrEqual(menuItem, "pubmode"))			OpenMenuPubMode(client);
 		else if (StrEqual(menuItem, "skinsmenu"))		OpenSkinsMenu(client);
-		else if (StrEqual(menuItem, "miscset"))			OpenMenuMiscSettings(client);
+		else if (StrEqual(menuItem, "matchset"))		OpenSettingsMatch(client);
+		else if (StrEqual(menuItem, "gameplayset"))		OpenSettingsGameplay(client);
+		else if (StrEqual(menuItem, "visualset"))		OpenSettingsVisual(client);
+		else if (StrEqual(menuItem, "statsset"))		OpenSettingsStats(client);
+		else if (StrEqual(menuItem, "notifyset"))		OpenSettingsNotifications(client);
 		else if (StrEqual(menuItem, "shoutplug"))		OpenMenuShoutSet(client);
 		else if (StrEqual(menuItem, "mapsounds")) 		OpenMenuMapSounds(client);
 		else if (StrEqual(menuItem, "advtraining"))		OpenMenuAdvTrainSet(client);
@@ -81,338 +89,6 @@ public int MenuHandlerSettings(Menu menu, MenuAction action, int client, int cho
 		}		
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuAdmin(client);
-	else if (action == MenuAction_End)					  menu.Close();
-	return 0;
-}
-
-
-// *******************************************************************************************************************
-// ************************************************** MISC SETTINGS **************************************************
-// *******************************************************************************************************************
-public void OpenMenuMiscSettings(int client)
-{
-	Menu menu = new Menu(MenuHandlerMiscSettings);
-
-	menu.SetTitle("Soccer Mod - Admin - Settings - Misc");
-
-	char ReadyString[32], DamageString[32], DissolveString[32], DJString[32], JoinString[32], RankString[32], HostString[32], DefaultString[32], FeedString[32], GKString[32], RankModeString[32], CelebrateString[32], WallString[32], First12String[32], JoinLeaveString[48], JoinLeaveVolString[48], TeamSizeString[32];
-	Format(TeamSizeString, sizeof(TeamSizeString), "Team Size: %dv%d", matchMaxPlayers, matchMaxPlayers);
-
-	if(matchReadyCheck == 0)			ReadyString = "Ready Check: OFF";
-	else if (matchReadyCheck == 1)		ReadyString = "Ready Check: AUTO";
-	else if (matchReadyCheck == 2)		ReadyString = "Ready Check: ON USE";
-	
-	if(damageSounds == 0)				DamageString = "Damage Sound: OFF";
-	else if(damageSounds == 1)			DamageString = "Damage Sound: ON";
-	
-	if(dissolveSet == 0)				DissolveString = "Remove Ragdoll: OFF";
-	else if(dissolveSet == 1)			DissolveString = "Remove Ragdoll: YES";
-	else if (dissolveSet == 2)			DissolveString = "Remove Ragdoll: Dissolve";
-	
-	if(djbenabled == 0)					DJString = "DuckJumpBlock: OFF";
-	else if (djbenabled == 1)			DJString = "DuckJumpBlock: ON (v1)";
-	else if (djbenabled == 2)			DJString = "DuckJumpBlock: ON (v2)";
-	else if (djbenabled == 3)			DJString = "DuckJumpBlock: ON (v3)";
-	
-	if(KickoffWallSet == 0)				WallString = "Kickoff Wall: OFF";
-	else if (KickoffWallSet == 1)		WallString = "Kickoff Wall: ON";
-	
-	if(joinclassSet == 0)				JoinString = "ClassChoice: OFF";
-	else if (joinclassSet == 1)			JoinString = "ClassChoice: ON";
-	
-	if(hostnameToggle == 0)				HostString = "Hostname Info: OFF";
-	else if (hostnameToggle == 1)		HostString = "Hostname Info: ON";
-	
-	if(defaultSet == 0)					DefaultString = "Load Map Defaults: OFF";
-	else if (defaultSet == 1)			DefaultString = "Load Map Defaults: ON";
-	
-	if(killfeedSet == 0)				FeedString = "Killfeed: OFF";
-	else if (killfeedSet == 1)			FeedString = "Killfeed: ON";
-	
-	if(gksavesSet == 0)					GKString = "GK saves only: OFF";
-	else if (gksavesSet == 1)			GKString = "GK saves only: ON";
-	
-	if(rankMode == 0)					RankModeString = "Ranking: pts/matches";
-	else if (rankMode == 1)				RankModeString = "Ranking: pts/rounds";
-	else if (rankMode == 2)				RankModeString = "Ranking: pts";
-	
-	if(celebrateweaponSet == 0)			CelebrateString = "Celebration: OFF";
-	else if (celebrateweaponSet == 1)	CelebrateString = "Celebration: ON";
-	
-	if(first12Set == 0)					First12String = "First 12 Rule: OFF";
-	else if(first12Set == 1)			First12String = "First 12 Rule: ON";
-	else if(first12Set == 2)			First12String = "First 12 Rule: Pre-Cap Join";
-
-	if(joinLeaveEnabled == 0)			JoinLeaveString = "Join/Leave Notify: OFF";
-	else								JoinLeaveString = "Join/Leave Notify: ON";
-
-	Format(JoinLeaveVolString, sizeof(JoinLeaveVolString), "Join/Leave Volume: %.2f", joinLeaveVolume);
-	Format(RankString, sizeof(RankString), "!rank Cooldown: %i", rankingCDTime);
-	
-	menu.AddItem("teamsize", TeamSizeString);
-	menu.AddItem("classchoice", JoinString);
-	menu.AddItem("loaddefaults", DefaultString);
-	menu.AddItem("dissolve", DissolveString);
-	menu.AddItem("djblock", DJString);
-	menu.AddItem("kickoffwall", WallString);
-	menu.AddItem("kickoffwalls_setup", "-> Kickoff Walls Setup");
-	menu.AddItem("hostname", HostString);
-	menu.AddItem("first12", First12String);
-	menu.AddItem("rankspam", RankString);
-	menu.AddItem("ready", ReadyString);
-	menu.AddItem("damagesound", DamageString);
-	menu.AddItem("killfeed", FeedString);
-	menu.AddItem("gksaves", GKString);
-	menu.AddItem("rankmode", RankModeString);
-	menu.AddItem("celebrate", CelebrateString);
-	menu.AddItem("joinleave", JoinLeaveString);
-	menu.AddItem("joinleavevol", JoinLeaveVolString);
-	/*if (debuggingEnabled == 1 && CheckCommandAccess(client, "generic_admin", ADMFLAG_RCON, true)) menu.AddItem("gk_areas", "Set gk areas");*/
-
-	menu.ExitBackButton = true;
-	menu.Display(client, MENU_TIME_FOREVER);
-}
-
-public int MenuHandlerMiscSettings(Menu menu, MenuAction action, int client, int choice)
-{
-	if (action == MenuAction_Select)
-	{
-		char menuItem[32];
-		menu.GetItem(choice, menuItem, sizeof(menuItem));
-
-		if (StrEqual(menuItem, "teamsize"))
-		{
-			OpenMenuTeamSize(client);
-		}
-		else if (StrEqual(menuItem, "ready"))
-		{
-			if(matchReadyCheck < 2)
-			{
-				matchReadyCheck++;
-				UpdateConfigInt("Match Settings", "soccer_mod_match_readycheck", matchReadyCheck);
-			}
-			else
-			{
-				matchReadyCheck = 0;
-				UpdateConfigInt("Match Settings", "soccer_mod_match_readycheck", matchReadyCheck);
-			}
-			OpenMenuMiscSettings(client);
-		}
-		else if(StrEqual(menuItem, "damagesound")) 
-		{
-			if(damageSounds == 0)
-			{
-				damageSounds = 1;
-				UpdateConfigInt("Misc Settings", "soccer_mod_damagesounds", damageSounds);
-			}
-			else if(damageSounds >0)
-			{
-				damageSounds = 0;
-				UpdateConfigInt("Misc Settings", "soccer_mod_damagesounds", damageSounds);
-			}
-			OpenMenuMiscSettings(client);
-		}
-		else if(StrEqual(menuItem, "dissolve")) 
-		{
-			if(dissolveSet == 0)
-			{
-				dissolveSet = 1;
-				UpdateConfigInt("Misc Settings", "soccer_mod_dissolver", dissolveSet);
-			}
-			else if(dissolveSet == 1)
-			{
-				dissolveSet = 2;
-				UpdateConfigInt("Misc Settings", "soccer_mod_dissolver", dissolveSet);
-			}
-			else if(dissolveSet >= 2)
-			{
-				dissolveSet = 0;
-				UpdateConfigInt("Misc Settings", "soccer_mod_dissolver", dissolveSet);
-			}
-			OpenMenuMiscSettings(client);
-		}
-		else if(StrEqual(menuItem, "djblock")) 
-		{
-			if(djbenabled == 0)
-			{
-				djbenabled = 1;
-				UpdateConfigInt("Misc Settings", "soccer_mod_blockdj_enable", djbenabled);
-			}
-			else if(djbenabled == 1)
-			{
-				djbenabled = 2;
-				UpdateConfigInt("Misc Settings", "soccer_mod_blockdj_enable", djbenabled);
-			}
-			else if(djbenabled == 2)
-			{
-				djbenabled = 3;
-				UpdateConfigInt("Misc Settings", "soccer_mod_blockdj_enable", djbenabled);
-			}
-			else if(djbenabled >= 3)
-			{
-				djbenabled = 0;
-				UpdateConfigInt("Misc Settings", "soccer_mod_blockdj_enable", djbenabled);
-			}
-			OpenMenuMiscSettings(client);
-		}
-		else if(StrEqual(menuItem, "kickoffwall"))
-		{
-			if(KickoffWallSet == 0)
-			{
-				KickoffWallSet = 1;
-				UpdateConfigInt("Misc Settings", "soccer_mod_kickoffwall", KickoffWallSet);
-			}
-			else if(KickoffWallSet == 1)
-			{
-				KickoffWallSet = 0;
-				UpdateConfigInt("Misc Settings", "soccer_mod_kickoffwall", KickoffWallSet);
-			}
-			OpenMenuMiscSettings(client);
-		}
-		else if(StrEqual(menuItem, "kickoffwalls_setup"))
-		{
-			OpenMenuKickoffWalls(client);
-		}
-		else if(StrEqual(menuItem, "classchoice")) 
-		{
-			if(joinclassSet == 0)
-			{
-				joinclassSet = 1;
-				UpdateConfigInt("Misc Settings", "soccer_mod_joinclass", joinclassSet);
-			}
-			else if(joinclassSet == 1)
-			{
-				joinclassSet = 0;
-				UpdateConfigInt("Misc Settings", "soccer_mod_joinclass", joinclassSet);
-			}
-			OpenMenuMiscSettings(client);
-		}
-		else if(StrEqual(menuItem, "rankspam"))
-		{
-			CPrintToChat(client, "{%s}[%s] {%s}Type a value for the cooldown of the !rank command, use negative values to stop. Current value is %i.", prefixcolor, prefix, textcolor, rankingCDTime);
-			changeSetting[client] = "CustomRankCD";
-		}
-		else if(StrEqual(menuItem, "hostname"))
-		{
-			if(hostnameToggle == 0)
-			{
-				hostnameToggle = 1;
-				UpdateConfigInt("Misc Settings", "soccer_mod_hostname", hostnameToggle);
-			}
-			else if(hostnameToggle == 1)
-			{
-				hostnameToggle = 0;
-				UpdateConfigInt("Misc Settings", "soccer_mod_hostname", hostnameToggle);
-			}
-			OpenMenuMiscSettings(client);
-		}
-		else if(StrEqual(menuItem, "loaddefaults"))
-		{
-			if(defaultSet == 0)
-			{
-				defaultSet = 1;
-				UpdateConfigInt("Misc Settings", "soccer_mod_loaddefaults", defaultSet);
-			}
-			else if(defaultSet == 1)
-			{
-				defaultSet = 0;
-				UpdateConfigInt("Misc Settings", "soccer_mod_loaddefaults", defaultSet);
-			}
-			OpenMenuMiscSettings(client);
-		}
-		else if(StrEqual(menuItem, "killfeed"))
-		{
-			if(killfeedSet == 0)
-			{
-				killfeedSet = 1;
-				UpdateConfigInt("Misc Settings", "soccer_mod_killfeed", killfeedSet);
-			}
-			else if(killfeedSet == 1)
-			{
-				killfeedSet = 0;
-				UpdateConfigInt("Misc Settings", "soccer_mod_killfeed", killfeedSet);
-			}
-			OpenMenuMiscSettings(client);
-		}
-		else if(StrEqual(menuItem, "gksaves"))
-		{
-			if(gksavesSet == 0)
-			{
-				gksavesSet = 1;
-				UpdateConfigInt("Stats Settings", "soccer_mod_gksaves_only", gksavesSet);
-			}
-			else if(gksavesSet == 1)
-			{
-				gksavesSet = 0;
-				UpdateConfigInt("Stats Settings", "soccer_mod_gksaves_only", gksavesSet);
-			}
-			OpenMenuMiscSettings(client);
-		}
-		else if(StrEqual(menuItem, "rankmode")) 
-		{
-			if(rankMode == 0)
-			{
-				rankMode = 1;
-				UpdateConfigInt("Stats Settings", "soccer_mod_rankmode", rankMode);
-			}
-			else if(rankMode == 1)
-			{
-				rankMode = 2;
-				UpdateConfigInt("Stats Settings", "soccer_mod_rankmode", rankMode);
-			}
-			else if(rankMode >= 2)
-			{
-				rankMode = 0;
-				UpdateConfigInt("Stats Settings", "soccer_mod_rankmode", rankMode);
-			}
-			OpenMenuMiscSettings(client);
-		}
-		else if(StrEqual(menuItem, "celebrate"))
-		{
-			if(celebrateweaponSet == 0)
-			{
-				celebrateweaponSet = 1;
-				UpdateConfigInt("Misc Settings", "soccer_mod_celebrate", celebrateweaponSet);
-			}
-			else if(celebrateweaponSet == 1)
-			{
-				celebrateweaponSet = 0;
-				UpdateConfigInt("Misc Settings", "soccer_mod_celebrate", celebrateweaponSet);
-			}
-			OpenMenuMiscSettings(client);
-		}
-		else if(StrEqual(menuItem, "first12"))
-		{
-			if(first12Set == 0)
-			{
-				first12Set = 1;
-				UpdateConfigInt("Misc Settings", "soccer_mod_first12", first12Set);
-			}
-			else if(first12Set == 1)
-			{
-				first12Set = 2;
-				UpdateConfigInt("Misc Settings", "soccer_mod_first12", first12Set);
-			}
-			else if(first12Set == 2)
-			{
-				first12Set = 0;
-				UpdateConfigInt("Misc Settings", "soccer_mod_first12", first12Set);
-			}
-			OpenMenuMiscSettings(client);
-		}
-		else if(StrEqual(menuItem, "joinleave"))
-		{
-			joinLeaveEnabled = !joinLeaveEnabled;
-			UpdateJoinLeaveConfigInt("Settings", "enabled", joinLeaveEnabled);
-			OpenMenuMiscSettings(client);
-		}
-		else if(StrEqual(menuItem, "joinleavevol"))
-		{
-			OpenMenuJoinLeaveVolume(client);
-		}
-		/*else if(StrEqual(menuItem, "gk_areas"))		OpenMenuGKAreas(client);*/	
-	}
-	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSettings(client);
 	else if (action == MenuAction_End)					  menu.Close();
 	return 0;
 }
@@ -461,12 +137,458 @@ public int MenuHandlerTeamSize(Menu menu, MenuAction action, int client, int cho
 	}
 	else if (action == MenuAction_Cancel && choice == MenuCancel_ExitBack)
 	{
-		OpenMenuMiscSettings(client);
+		OpenSettingsMatch(client);
 	}
 	else if (action == MenuAction_End)
 	{
 		delete menu;
 	}
+	return 0;
+}
+
+// *******************************************************************************************************************
+// ************************************************** MATCH SETTINGS *************************************************
+// *******************************************************************************************************************
+public void OpenSettingsMatch(int client)
+{
+	Menu menu = new Menu(SettingsMatchHandler);
+
+	menu.SetTitle("Soccer Mod - Admin - Settings - Match");
+
+	char ReadyString[32], First12String[32], TeamSizeString[32];
+	Format(TeamSizeString, sizeof(TeamSizeString), "Team Size: %dv%d", matchMaxPlayers, matchMaxPlayers);
+
+	if(matchReadyCheck == 0)			ReadyString = "Ready Check: OFF";
+	else if (matchReadyCheck == 1)		ReadyString = "Ready Check: AUTO";
+	else if (matchReadyCheck == 2)		ReadyString = "Ready Check: ON USE";
+
+	if(first12Set == 0)					First12String = "First 12 Rule: OFF";
+	else if(first12Set == 1)			First12String = "First 12 Rule: ON";
+	else if(first12Set == 2)			First12String = "First 12 Rule: Pre-Cap Join";
+
+	menu.AddItem("teamsize", TeamSizeString);
+	menu.AddItem("ready", ReadyString);
+	menu.AddItem("first12", First12String);
+
+	menu.ExitBackButton = true;
+	menu.Display(client, MENU_TIME_FOREVER);
+}
+
+public int SettingsMatchHandler(Menu menu, MenuAction action, int client, int choice)
+{
+	if (action == MenuAction_Select)
+	{
+		char menuItem[32];
+		menu.GetItem(choice, menuItem, sizeof(menuItem));
+
+		if (StrEqual(menuItem, "teamsize"))
+		{
+			OpenMenuTeamSize(client);
+		}
+		else if (StrEqual(menuItem, "ready"))
+		{
+			if(matchReadyCheck < 2)
+			{
+				matchReadyCheck++;
+				UpdateConfigInt("Match Settings", "soccer_mod_match_readycheck", matchReadyCheck);
+			}
+			else
+			{
+				matchReadyCheck = 0;
+				UpdateConfigInt("Match Settings", "soccer_mod_match_readycheck", matchReadyCheck);
+			}
+			OpenSettingsMatch(client);
+		}
+		else if(StrEqual(menuItem, "first12"))
+		{
+			if(first12Set == 0)
+			{
+				first12Set = 1;
+				UpdateConfigInt("Misc Settings", "soccer_mod_first12", first12Set);
+			}
+			else if(first12Set == 1)
+			{
+				first12Set = 2;
+				UpdateConfigInt("Misc Settings", "soccer_mod_first12", first12Set);
+			}
+			else if(first12Set == 2)
+			{
+				first12Set = 0;
+				UpdateConfigInt("Misc Settings", "soccer_mod_first12", first12Set);
+			}
+			OpenSettingsMatch(client);
+		}
+	}
+	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSettings(client);
+	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
+}
+
+// *******************************************************************************************************************
+// ************************************************ GAMEPLAY SETTINGS ************************************************
+// *******************************************************************************************************************
+public void OpenSettingsGameplay(int client)
+{
+	Menu menu = new Menu(SettingsGameplayHandler);
+
+	menu.SetTitle("Soccer Mod - Admin - Settings - Gameplay");
+
+	char DJString[32], WallString[32], DamageString[32], GKString[32], CelebrateString[32];
+
+	if(djbenabled == 0)					DJString = "DuckJumpBlock: OFF";
+	else if (djbenabled == 1)			DJString = "DuckJumpBlock: ON (v1)";
+	else if (djbenabled == 2)			DJString = "DuckJumpBlock: ON (v2)";
+	else if (djbenabled == 3)			DJString = "DuckJumpBlock: ON (v3)";
+
+	if(KickoffWallSet == 0)				WallString = "Kickoff Wall: OFF";
+	else if (KickoffWallSet == 1)		WallString = "Kickoff Wall: ON";
+
+	if(damageSounds == 0)				DamageString = "Damage Sound: OFF";
+	else if(damageSounds == 1)			DamageString = "Damage Sound: ON";
+
+	if(gksavesSet == 0)					GKString = "GK saves only: OFF";
+	else if (gksavesSet == 1)			GKString = "GK saves only: ON";
+
+	if(celebrateweaponSet == 0)			CelebrateString = "Celebration: OFF";
+	else if (celebrateweaponSet == 1)	CelebrateString = "Celebration: ON";
+
+	menu.AddItem("djblock", DJString);
+	menu.AddItem("kickoffwall", WallString);
+	menu.AddItem("kickoffwalls_setup", "-> Kickoff Walls Setup");
+	menu.AddItem("damagesound", DamageString);
+	menu.AddItem("gksaves", GKString);
+	menu.AddItem("celebrate", CelebrateString);
+
+	menu.ExitBackButton = true;
+	menu.Display(client, MENU_TIME_FOREVER);
+}
+
+public int SettingsGameplayHandler(Menu menu, MenuAction action, int client, int choice)
+{
+	if (action == MenuAction_Select)
+	{
+		char menuItem[32];
+		menu.GetItem(choice, menuItem, sizeof(menuItem));
+
+		if(StrEqual(menuItem, "djblock"))
+		{
+			if(djbenabled == 0)
+			{
+				djbenabled = 1;
+				UpdateConfigInt("Misc Settings", "soccer_mod_blockdj_enable", djbenabled);
+			}
+			else if(djbenabled == 1)
+			{
+				djbenabled = 2;
+				UpdateConfigInt("Misc Settings", "soccer_mod_blockdj_enable", djbenabled);
+			}
+			else if(djbenabled == 2)
+			{
+				djbenabled = 3;
+				UpdateConfigInt("Misc Settings", "soccer_mod_blockdj_enable", djbenabled);
+			}
+			else if(djbenabled >= 3)
+			{
+				djbenabled = 0;
+				UpdateConfigInt("Misc Settings", "soccer_mod_blockdj_enable", djbenabled);
+			}
+			OpenSettingsGameplay(client);
+		}
+		else if(StrEqual(menuItem, "kickoffwall"))
+		{
+			if(KickoffWallSet == 0)
+			{
+				KickoffWallSet = 1;
+				UpdateConfigInt("Misc Settings", "soccer_mod_kickoffwall", KickoffWallSet);
+			}
+			else if(KickoffWallSet == 1)
+			{
+				KickoffWallSet = 0;
+				UpdateConfigInt("Misc Settings", "soccer_mod_kickoffwall", KickoffWallSet);
+			}
+			OpenSettingsGameplay(client);
+		}
+		else if(StrEqual(menuItem, "kickoffwalls_setup"))
+		{
+			OpenMenuKickoffWalls(client);
+		}
+		else if(StrEqual(menuItem, "damagesound"))
+		{
+			if(damageSounds == 0)
+			{
+				damageSounds = 1;
+				UpdateConfigInt("Misc Settings", "soccer_mod_damagesounds", damageSounds);
+			}
+			else if(damageSounds >0)
+			{
+				damageSounds = 0;
+				UpdateConfigInt("Misc Settings", "soccer_mod_damagesounds", damageSounds);
+			}
+			OpenSettingsGameplay(client);
+		}
+		else if(StrEqual(menuItem, "gksaves"))
+		{
+			if(gksavesSet == 0)
+			{
+				gksavesSet = 1;
+				UpdateConfigInt("Stats Settings", "soccer_mod_gksaves_only", gksavesSet);
+			}
+			else if(gksavesSet == 1)
+			{
+				gksavesSet = 0;
+				UpdateConfigInt("Stats Settings", "soccer_mod_gksaves_only", gksavesSet);
+			}
+			OpenSettingsGameplay(client);
+		}
+		else if(StrEqual(menuItem, "celebrate"))
+		{
+			if(celebrateweaponSet == 0)
+			{
+				celebrateweaponSet = 1;
+				UpdateConfigInt("Misc Settings", "soccer_mod_celebrate", celebrateweaponSet);
+			}
+			else if(celebrateweaponSet == 1)
+			{
+				celebrateweaponSet = 0;
+				UpdateConfigInt("Misc Settings", "soccer_mod_celebrate", celebrateweaponSet);
+			}
+			OpenSettingsGameplay(client);
+		}
+	}
+	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSettings(client);
+	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
+}
+
+// *******************************************************************************************************************
+// ************************************************* VISUAL SETTINGS *************************************************
+// *******************************************************************************************************************
+public void OpenSettingsVisual(int client)
+{
+	Menu menu = new Menu(SettingsVisualHandler);
+
+	menu.SetTitle("Soccer Mod - Admin - Settings - Visual");
+
+	char DissolveString[32], FeedString[32], HostString[32], JoinString[32];
+
+	if(dissolveSet == 0)				DissolveString = "Remove Ragdoll: OFF";
+	else if(dissolveSet == 1)			DissolveString = "Remove Ragdoll: YES";
+	else if (dissolveSet == 2)			DissolveString = "Remove Ragdoll: Dissolve";
+
+	if(killfeedSet == 0)				FeedString = "Killfeed: OFF";
+	else if (killfeedSet == 1)			FeedString = "Killfeed: ON";
+
+	if(hostnameToggle == 0)				HostString = "Hostname Info: OFF";
+	else if (hostnameToggle == 1)		HostString = "Hostname Info: ON";
+
+	if(joinclassSet == 0)				JoinString = "Class Choice: OFF";
+	else if (joinclassSet == 1)			JoinString = "Class Choice: ON";
+
+	menu.AddItem("dissolve", DissolveString);
+	menu.AddItem("killfeed", FeedString);
+	menu.AddItem("hostname", HostString);
+	menu.AddItem("classchoice", JoinString);
+
+	menu.ExitBackButton = true;
+	menu.Display(client, MENU_TIME_FOREVER);
+}
+
+public int SettingsVisualHandler(Menu menu, MenuAction action, int client, int choice)
+{
+	if (action == MenuAction_Select)
+	{
+		char menuItem[32];
+		menu.GetItem(choice, menuItem, sizeof(menuItem));
+
+		if(StrEqual(menuItem, "dissolve"))
+		{
+			if(dissolveSet == 0)
+			{
+				dissolveSet = 1;
+				UpdateConfigInt("Misc Settings", "soccer_mod_dissolver", dissolveSet);
+			}
+			else if(dissolveSet == 1)
+			{
+				dissolveSet = 2;
+				UpdateConfigInt("Misc Settings", "soccer_mod_dissolver", dissolveSet);
+			}
+			else if(dissolveSet >= 2)
+			{
+				dissolveSet = 0;
+				UpdateConfigInt("Misc Settings", "soccer_mod_dissolver", dissolveSet);
+			}
+			OpenSettingsVisual(client);
+		}
+		else if(StrEqual(menuItem, "killfeed"))
+		{
+			if(killfeedSet == 0)
+			{
+				killfeedSet = 1;
+				UpdateConfigInt("Misc Settings", "soccer_mod_killfeed", killfeedSet);
+			}
+			else if(killfeedSet == 1)
+			{
+				killfeedSet = 0;
+				UpdateConfigInt("Misc Settings", "soccer_mod_killfeed", killfeedSet);
+			}
+			OpenSettingsVisual(client);
+		}
+		else if(StrEqual(menuItem, "hostname"))
+		{
+			if(hostnameToggle == 0)
+			{
+				hostnameToggle = 1;
+				UpdateConfigInt("Misc Settings", "soccer_mod_hostname", hostnameToggle);
+			}
+			else if(hostnameToggle == 1)
+			{
+				hostnameToggle = 0;
+				UpdateConfigInt("Misc Settings", "soccer_mod_hostname", hostnameToggle);
+			}
+			OpenSettingsVisual(client);
+		}
+		else if(StrEqual(menuItem, "classchoice"))
+		{
+			if(joinclassSet == 0)
+			{
+				joinclassSet = 1;
+				UpdateConfigInt("Misc Settings", "soccer_mod_joinclass", joinclassSet);
+			}
+			else if(joinclassSet == 1)
+			{
+				joinclassSet = 0;
+				UpdateConfigInt("Misc Settings", "soccer_mod_joinclass", joinclassSet);
+			}
+			OpenSettingsVisual(client);
+		}
+	}
+	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSettings(client);
+	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
+}
+
+// *******************************************************************************************************************
+// ************************************************* STATS SETTINGS **************************************************
+// *******************************************************************************************************************
+public void OpenSettingsStats(int client)
+{
+	Menu menu = new Menu(SettingsStatsHandler);
+
+	menu.SetTitle("Soccer Mod - Admin - Settings - Stats & Ranking");
+
+	char RankModeString[32], RankString[32], DefaultString[32];
+
+	if(rankMode == 0)					RankModeString = "Ranking: pts/matches";
+	else if (rankMode == 1)				RankModeString = "Ranking: pts/rounds";
+	else if (rankMode == 2)				RankModeString = "Ranking: pts";
+
+	Format(RankString, sizeof(RankString), "!rank Cooldown: %i", rankingCDTime);
+
+	if(defaultSet == 0)					DefaultString = "Load Map Defaults: OFF";
+	else if (defaultSet == 1)			DefaultString = "Load Map Defaults: ON";
+
+	menu.AddItem("rankmode", RankModeString);
+	menu.AddItem("rankspam", RankString);
+	menu.AddItem("loaddefaults", DefaultString);
+
+	menu.ExitBackButton = true;
+	menu.Display(client, MENU_TIME_FOREVER);
+}
+
+public int SettingsStatsHandler(Menu menu, MenuAction action, int client, int choice)
+{
+	if (action == MenuAction_Select)
+	{
+		char menuItem[32];
+		menu.GetItem(choice, menuItem, sizeof(menuItem));
+
+		if(StrEqual(menuItem, "rankmode"))
+		{
+			if(rankMode == 0)
+			{
+				rankMode = 1;
+				UpdateConfigInt("Stats Settings", "soccer_mod_rankmode", rankMode);
+			}
+			else if(rankMode == 1)
+			{
+				rankMode = 2;
+				UpdateConfigInt("Stats Settings", "soccer_mod_rankmode", rankMode);
+			}
+			else if(rankMode >= 2)
+			{
+				rankMode = 0;
+				UpdateConfigInt("Stats Settings", "soccer_mod_rankmode", rankMode);
+			}
+			OpenSettingsStats(client);
+		}
+		else if(StrEqual(menuItem, "rankspam"))
+		{
+			CPrintToChat(client, "{%s}[%s] {%s}Type a value for the cooldown of the !rank command, use negative values to stop. Current value is %i.", prefixcolor, prefix, textcolor, rankingCDTime);
+			changeSetting[client] = "CustomRankCD";
+		}
+		else if(StrEqual(menuItem, "loaddefaults"))
+		{
+			if(defaultSet == 0)
+			{
+				defaultSet = 1;
+				UpdateConfigInt("Misc Settings", "soccer_mod_loaddefaults", defaultSet);
+			}
+			else if(defaultSet == 1)
+			{
+				defaultSet = 0;
+				UpdateConfigInt("Misc Settings", "soccer_mod_loaddefaults", defaultSet);
+			}
+			OpenSettingsStats(client);
+		}
+	}
+	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSettings(client);
+	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
+}
+
+// *******************************************************************************************************************
+// ********************************************* NOTIFICATION SETTINGS ***********************************************
+// *******************************************************************************************************************
+public void OpenSettingsNotifications(int client)
+{
+	Menu menu = new Menu(SettingsNotificationsHandler);
+
+	menu.SetTitle("Soccer Mod - Admin - Settings - Notifications");
+
+	char JoinLeaveString[48], JoinLeaveVolString[48];
+
+	if(joinLeaveEnabled == 0)			JoinLeaveString = "Join/Leave Notify: OFF";
+	else								JoinLeaveString = "Join/Leave Notify: ON";
+
+	Format(JoinLeaveVolString, sizeof(JoinLeaveVolString), "Join/Leave Volume: %.2f", joinLeaveVolume);
+
+	menu.AddItem("joinleave", JoinLeaveString);
+	menu.AddItem("joinleavevol", JoinLeaveVolString);
+
+	menu.ExitBackButton = true;
+	menu.Display(client, MENU_TIME_FOREVER);
+}
+
+public int SettingsNotificationsHandler(Menu menu, MenuAction action, int client, int choice)
+{
+	if (action == MenuAction_Select)
+	{
+		char menuItem[32];
+		menu.GetItem(choice, menuItem, sizeof(menuItem));
+
+		if(StrEqual(menuItem, "joinleave"))
+		{
+			joinLeaveEnabled = !joinLeaveEnabled;
+			UpdateJoinLeaveConfigInt("Settings", "enabled", joinLeaveEnabled);
+			OpenSettingsNotifications(client);
+		}
+		else if(StrEqual(menuItem, "joinleavevol"))
+		{
+			OpenMenuJoinLeaveVolume(client);
+		}
+	}
+	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSettings(client);
+	else if (action == MenuAction_End)					  menu.Close();
 	return 0;
 }
 
@@ -1305,13 +1427,13 @@ public void CDSet(int client, char type[32], int intnumber, int min, int max)
 			}
 			else 
 			{
-				OpenMenuMiscSettings(client);
+				OpenSettingsStats(client);
 				CPrintToChat(client, "{%s}[%s] {%s}Cancelled changing this value.", prefixcolor, prefix, textcolor);
 			}
 		}
-		
+
 		changeSetting[client] = "";
-		OpenMenuMiscSettings(client);
+		OpenSettingsStats(client);
 	}
 	else CPrintToChat(client, "{%s}[%s] {%s}Type a value between %i and %i.", prefixcolor, prefix, textcolor, min, max);
 }

@@ -402,7 +402,7 @@ public int MenuHandlerKickoffWalls(Menu menu, MenuAction action, int client, int
     }
     else if (action == MenuAction_Cancel && choice == MenuCancel_ExitBack)
     {
-        OpenMenuMiscSettings(client);
+        OpenSettingsGameplay(client);
     }
     else if (action == MenuAction_End)
     {

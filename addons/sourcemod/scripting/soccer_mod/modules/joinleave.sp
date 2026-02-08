@@ -185,7 +185,7 @@ public int MenuHandlerJoinLeaveVolume(Menu menu, MenuAction action, int client, 
 	}
 	else if (action == MenuAction_Cancel && choice == MenuCancel_ExitBack)
 	{
-		// Back button - let the menu system handle it, user can navigate back via admin menu
+		OpenSettingsNotifications(client);
 	}
 	else if (action == MenuAction_End)
 	{

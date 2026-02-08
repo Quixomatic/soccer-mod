@@ -1,5 +1,18 @@
 # Soccer Mod Changelog
 
+## 1.4.22
+
+### Changes
+- Reorganized Admin > Settings menu structure for better navigation
+- Replaced bloated "Misc Settings" menu (17 items) with 5 focused subcategories:
+  - **Match Settings**: Team Size, Ready Check, First 12 Rule
+  - **Gameplay Settings**: DuckJumpBlock, Kickoff Wall, Kickoff Walls Setup, Damage Sound, GK saves only, Celebration
+  - **Visual Settings**: Remove Ragdoll, Killfeed, Hostname Info, Class Choice
+  - **Stats & Ranking**: Ranking Mode, !rank Cooldown, Load Map Defaults
+  - **Notifications**: Join/Leave Notify, Join/Leave Volume
+
+---
+
 ## 1.4.21
 
 ### Fixes
