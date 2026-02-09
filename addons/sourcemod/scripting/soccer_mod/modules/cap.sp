@@ -49,6 +49,11 @@ public void CapKillTimers()
 		KillTimer(capRetryTimer);
 		capRetryTimer = INVALID_HANDLE;
 	}
+	if (capPickHudTimer != INVALID_HANDLE)
+	{
+		KillTimer(capPickHudTimer);
+		capPickHudTimer = INVALID_HANDLE;
+	}
 }
 
 public void CapStopFight(int client)
@@ -85,10 +90,309 @@ public void CapStopFight(int client)
 	if (client > 0) LogAction(client, -1, "\"%L\" stopped cap fight", client);
 }
 
+// ************************************************************************************************************
+// ********************************************** PICK POOL SYSTEM ********************************************
+// ************************************************************************************************************
+
+// Initialize the pick pool when picking phase starts
+stock void InitializePickPool()
+{
+	// Clear any existing pool
+	ClearPickPool();
+
+	pickingActive = true;
+	pickPoolRequired = (matchMaxPlayers - 1) * 2;
+
+	// Build pool of eligible players
+	for (int player = 1; player <= MaxClients; player++)
+	{
+		if (!IsClientInGame(player) || !IsClientConnected(player)) continue;
+		if (IsFakeClient(player) && !capDebugMode) continue;
+		if (IsClientSourceTV(player)) continue;
+
+		// Skip captains
+		if (player == capT || player == capCT) continue;
+
+		// Check team - only spectators/unassigned are initially eligible
+		int team = GetClientTeam(player);
+		if (team >= 2) continue;  // Already on T or CT
+
+		// Check join order eligibility (first N rule)
+		int joinOrder = GetClientJoinNumber(player);
+
+		bool eligible = true;
+		if (first12Set == 1)
+		{
+			eligible = (joinOrder <= (matchMaxPlayers * 2));
+		}
+		else if (first12Set == 2)
+		{
+			eligible = (joinOrder <= capnr);
+		}
+
+		if (eligible)
+		{
+			pickPool.Push(player);
+		}
+	}
+
+	PrintToServer("[Soccer Mod] Pick pool initialized with %d players (required: %d)", pickPool.Length, pickPoolRequired);
+}
+
+// Add a player to the pick pool
+stock void AddToPickPool(int client, bool isLateJoiner)
+{
+	if (!IsClientInGame(client) || !IsClientConnected(client)) return;
+	if (IsInPickPool(client)) return;  // Already in pool
+
+	pickPool.Push(client);
+
+	if (isLateJoiner)
+	{
+		char steamid[32];
+		GetClientAuthId(client, AuthId_Engine, steamid, sizeof(steamid));
+		pickPoolLateJoiners.PushString(steamid);
+		PrintToServer("[Soccer Mod] Added late joiner to pick pool: %N", client);
+	}
+}
+
+// Remove a player from the pick pool
+stock void RemoveFromPickPool(int client)
+{
+	int idx = pickPool.FindValue(client);
+	if (idx != -1)
+	{
+		pickPool.Erase(idx);
+	}
+}
+
+// Check if a player is in the pick pool
+stock bool IsInPickPool(int client)
+{
+	return pickPool.FindValue(client) != -1;
+}
+
+// Check if a steamid is a late joiner
+stock bool IsInLateJoinerList(const char[] steamid)
+{
+	char checkSteamid[32];
+	for (int i = 0; i < pickPoolLateJoiners.Length; i++)
+	{
+		pickPoolLateJoiners.GetString(i, checkSteamid, sizeof(checkSteamid));
+		if (StrEqual(steamid, checkSteamid))
+			return true;
+	}
+	return false;
+}
+
+// Clear the pick pool
+stock void ClearPickPool()
+{
+	if (pickPool != null)
+		pickPool.Clear();
+	if (pickPoolLateJoiners != null)
+		pickPoolLateJoiners.Clear();
+	pickingActive = false;
+	pickPoolRequired = 0;
+}
+
+// Get count of non-late-joiner players in pool
+stock int GetOriginalPoolCount()
+{
+	int count = 0;
+	for (int i = 0; i < pickPool.Length; i++)
+	{
+		int client = pickPool.Get(i);
+		if (!IsClientInGame(client)) continue;
+
+		char steamid[32];
+		GetClientAuthId(client, AuthId_Engine, steamid, sizeof(steamid));
+		if (!IsInLateJoinerList(steamid))
+			count++;
+	}
+	return count;
+}
+
+// ************************************************************************************************************
+// ********************************************** PICK HUD ****************************************************
+// ************************************************************************************************************
+
+// Update the pick HUD showing available players
+stock void CapPickHudUpdate()
+{
+	if (capPicksLeft <= 0) return;
+
+	// Build player list based on mode with line wrapping at ~40 chars
+	char playerList[512] = "";
+	int playerCount = 0;
+	int lineLen = 0;
+	const int MAX_LINE_LEN = 40;
+
+	if (capPickPoolMode == 1 && pickPool != null)
+	{
+		// Pool mode: iterate over pick pool
+		for (int i = 0; i < pickPool.Length; i++)
+		{
+			int player = pickPool.Get(i);
+			if (!IsClientInGame(player)) continue;
+
+			char name[MAX_NAME_LENGTH];
+			GetClientName(player, name, sizeof(name));
+
+			// Truncate long names
+			if (strlen(name) > 14) name[14] = '\0';
+
+			// Check if late joiner
+			char steamid[32];
+			GetClientAuthId(player, AuthId_Engine, steamid, sizeof(steamid));
+			bool isLate = IsInLateJoinerList(steamid);
+
+			// Calculate entry length (name + ", " or "*")
+			int entryLen = strlen(name) + (isLate ? 1 : 0);
+			if (playerList[0]) entryLen += 2;  // ", " separator
+
+			// Check if we need a new line
+			if (playerList[0] && lineLen + entryLen > MAX_LINE_LEN)
+			{
+				if (isLate)
+					Format(playerList, sizeof(playerList), "%s,\n%s*", playerList, name);
+				else
+					Format(playerList, sizeof(playerList), "%s,\n%s", playerList, name);
+				lineLen = strlen(name) + (isLate ? 1 : 0);
+			}
+			else if (playerList[0])
+			{
+				if (isLate)
+					Format(playerList, sizeof(playerList), "%s, %s*", playerList, name);
+				else
+					Format(playerList, sizeof(playerList), "%s, %s", playerList, name);
+				lineLen += entryLen;
+			}
+			else
+			{
+				if (isLate)
+					Format(playerList, sizeof(playerList), "%s*", name);
+				else
+					Format(playerList, sizeof(playerList), "%s", name);
+				lineLen = strlen(name) + (isLate ? 1 : 0);
+			}
+			playerCount++;
+		}
+	}
+	else
+	{
+		// Legacy mode: iterate all players in spec/unassigned
+		for (int player = 1; player <= MaxClients; player++)
+		{
+			if (!IsClientInGame(player) || !IsClientConnected(player)) continue;
+			if (IsFakeClient(player) && !capDebugMode) continue;
+			if (IsClientSourceTV(player)) continue;
+
+			int team = GetClientTeam(player);
+			if (team >= 2) continue;
+
+			char name[MAX_NAME_LENGTH];
+			GetClientName(player, name, sizeof(name));
+
+			// Truncate long names
+			if (strlen(name) > 14) name[14] = '\0';
+
+			// Calculate entry length (name + ", ")
+			int entryLen = strlen(name);
+			if (playerList[0]) entryLen += 2;  // ", " separator
+
+			// Check if we need a new line
+			if (playerList[0] && lineLen + entryLen > MAX_LINE_LEN)
+			{
+				Format(playerList, sizeof(playerList), "%s,\n%s", playerList, name);
+				lineLen = strlen(name);
+			}
+			else if (playerList[0])
+			{
+				Format(playerList, sizeof(playerList), "%s, %s", playerList, name);
+				lineLen += entryLen;
+			}
+			else
+			{
+				Format(playerList, sizeof(playerList), "%s", name);
+				lineLen = strlen(name);
+			}
+			playerCount++;
+		}
+	}
+
+	// Get picker name
+	char pickerName[MAX_NAME_LENGTH] = "???";
+	if (capPicker > 0 && IsClientInGame(capPicker))
+	{
+		GetClientName(capPicker, pickerName, sizeof(pickerName));
+	}
+
+	// Build HUD text
+	char hudText[600];
+	Format(hudText, sizeof(hudText), "Currently Picking: %s\n─────────────────────\n%s", pickerName, playerList);
+
+	// Add late joiner note if pool mode with late joiners
+	if (capPickPoolMode == 1 && pickPoolLateJoiners != null && pickPoolLateJoiners.Length > 0)
+	{
+		Format(hudText, sizeof(hudText), "%s\n \n* = late", hudText);
+	}
+
+	PrintHintTextToAll("%s", hudText);
+}
+
+// Timer callback for pick HUD refresh
+public Action CapPickHudTimer(Handle timer)
+{
+	if (capPicksLeft <= 0)
+	{
+		capPickHudTimer = INVALID_HANDLE;
+		PrintHintTextToAll("");  // Clear the HUD
+		return Plugin_Stop;
+	}
+
+	CapPickHudUpdate();
+	return Plugin_Continue;
+}
+
+// Start the pick HUD timer
+stock void CapPickHudStart()
+{
+	// Kill existing timer if any
+	if (capPickHudTimer != INVALID_HANDLE)
+	{
+		KillTimer(capPickHudTimer);
+		capPickHudTimer = INVALID_HANDLE;
+	}
+
+	// Start repeating timer (every 1 second)
+	capPickHudTimer = CreateTimer(1.0, CapPickHudTimer, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
+
+	// Show initial HUD
+	CapPickHudUpdate();
+}
+
+// Stop the pick HUD
+stock void CapPickHudStop()
+{
+	if (capPickHudTimer != INVALID_HANDLE)
+	{
+		KillTimer(capPickHudTimer);
+		capPickHudTimer = INVALID_HANDLE;
+	}
+	PrintHintTextToAll("");  // Clear the HUD
+}
+
 public void CapReset(int client)
 {
 	// Kill ALL cap-related timers
 	CapKillTimers();
+
+	// Clear the pick HUD (CapKillTimers handles the timer, this clears the display)
+	PrintHintTextToAll("");
+
+	// Clear pick pool
+	ClearPickPool();
 
 	// Reset all cap state variables
 	capFightStarted = false;
@@ -277,12 +581,50 @@ public void CapStartPicking(int client)
 	// Open pick menu for first picker
 	OpenCapPickMenu(capPicker);
 
+	// Start the pick HUD
+	CapPickHudStart();
+
 	// Log action
 	LogAction(client, -1, "\"%L\" started picking phase", client);
 }
 
+public void CapOnClientPutInServer(int client)
+{
+	// Handle late joiner during picking phase
+	if (capPickPoolMode == 1 && pickingActive)
+	{
+		// Skip bots unless debug mode
+		if (IsFakeClient(client) && !capDebugMode) return;
+
+		// Check if they should be added to the pool
+		int joinOrder = GetClientJoinNumber(client);
+
+		bool eligible = true;
+		if (first12Set == 1)
+		{
+			eligible = (joinOrder <= (matchMaxPlayers * 2));
+		}
+		else if (first12Set == 2)
+		{
+			eligible = (joinOrder <= capnr);
+		}
+
+		if (eligible)
+		{
+			AddToPickPool(client, true);  // true = late joiner
+			CPrintToChatAll("{%s}[%s] {%s}%N joined during picking phase [LATE JOINER]", prefixcolor, prefix, textcolor, client);
+		}
+	}
+}
+
 public void CapOnClientDisconnect(int client)
 {
+	// Remove from pick pool if pool mode is active
+	if (capPickPoolMode == 1 && pickingActive)
+	{
+		RemoveFromPickPool(client);
+	}
+
 	// Check if disconnecting player is a captain during active cap process
 	if (client == capT || client == capCT)
 	{
@@ -343,9 +685,7 @@ public bool IsPlayerEligibleForCap(int client)
 		return true;
 
 	// Get player's join number
-	char steamid[32];
-	GetClientAuthId(client, AuthId_Engine, steamid, sizeof(steamid));
-	int joinNumber = ImportJoinNumber(steamid);
+	int joinNumber = GetClientJoinNumber(client);
 
 	// first12Set == 1: Standard First N rule (N = matchMaxPlayers * 2)
 	if (first12Set == 1)
@@ -1159,6 +1499,9 @@ public Action CapAutoStartFightTimer(Handle timer)
 // ************************************************************************************************************
 public void CapOnPluginStart()
 {
+	// Initialize pick pool ArrayLists
+	pickPool = new ArrayList();
+	pickPoolLateJoiners = new ArrayList(ByteCountToCells(32));  // Steamids are strings
 }
 
 public void CapEventPlayerDeath(Event event)
@@ -1214,6 +1557,12 @@ public void CapEventRoundEnd(Event event)
 		//reenable sprint
 		if (tempSprint)		bSPRINT_ENABLED = 1;
 
+		// Initialize pick pool if pool mode is enabled
+		if (capPickPoolMode == 1)
+		{
+			InitializePickPool();
+		}
+
 		// Initialize snake draft - winner picks first
 		capPickNumber = 0;
 		int winner = event.GetInt("winner");
@@ -1229,6 +1578,9 @@ public void CapEventRoundEnd(Event event)
 			capPicker = capCT;
 			OpenCapPickMenu(capCT);
 		}
+
+		// Start the pick HUD
+		CapPickHudStart();
 	}
 }
 
@@ -1252,7 +1604,10 @@ public void OpenCapMenu(int client)
 		menu.AddItem("start", capString);
 	}
 
-	menu.AddItem("startpick", "Start picking");
+	menu.AddItem("autocap", "Auto Cap (vote + ready-up)");
+
+	// Hidden: Start picking bypasses knife fight, no way to determine who picks first
+	// menu.AddItem("startpick", "Start picking");
 	menu.AddItem("resetcap", "Reset cap");
 
 	menu.AddItem("spec", "Put all players to spectator");
@@ -1260,22 +1615,12 @@ public void OpenCapMenu(int client)
 
 	menu.AddItem("capweap", "Weapon selection");
 
-	char healthString[48];
-	Format(healthString, sizeof(healthString), "Cap fight health: %i", capFightHealth);
-	menu.AddItem("caphealth", healthString);
-
-	char snakeString[48];
-	Format(snakeString, sizeof(snakeString), "Snake draft: %s", capSnakeDraft ? "ON" : "OFF");
-	menu.AddItem("snakedraft", snakeString);
-
-	menu.AddItem("autocap", "Auto Cap (vote + ready-up)");
-
 	char debugString[48];
-	Format(debugString, sizeof(debugString), "Debug mode: %s", capDebugMode ? "ON" : "OFF");
+	Format(debugString, sizeof(debugString), "Debug Cap Mode: %s", capDebugMode ? "ON" : "OFF");
 	menu.AddItem("capdebug", debugString);
 
 	if(publicmode == 0 || publicmode == 2) menu.ExitBackButton = true;
-	else if(publicmode == 1) 
+	else if(publicmode == 1)
 	{
 		if(CheckCommandAccess(client, "generic_admin", ADMFLAG_GENERIC) || IsSoccerAdmin(client, "cap")) menu.ExitBackButton = true;
 		else menu.ExitBackButton = false;
@@ -1303,18 +1648,10 @@ public int CapMenuHandler(Menu menu, MenuAction action, int client, int choice)
 			OpenCapMenu(client);
 			return 0;
 		}
-		else if (StrEqual(menuItem, "snakedraft"))
-		{
-			capSnakeDraft = capSnakeDraft ? 0 : 1;
-			UpdateConfigInt("Cap Settings", "soccer_mod_cap_snake_draft", capSnakeDraft);
-			CPrintToChat(client, "{%s}[%s] {%s}Snake draft: %s", prefixcolor, prefix, textcolor, capSnakeDraft ? "ON" : "OFF");
-			OpenCapMenu(client);
-			return 0;
-		}
 		else if (StrEqual(menuItem, "capdebug"))
 		{
 			capDebugMode = !capDebugMode;
-			CPrintToChat(client, "{%s}[%s] {%s}Cap debug mode: %s", prefixcolor, prefix, textcolor, capDebugMode ? "ON (bots count as players)" : "OFF");
+			CPrintToChat(client, "{%s}[%s] {%s}Debug cap mode: %s", prefixcolor, prefix, textcolor, capDebugMode ? "ON (bots count as players)" : "OFF");
 			OpenCapMenu(client);
 			return 0;
 		}
@@ -1324,7 +1661,6 @@ public int CapMenuHandler(Menu menu, MenuAction action, int client, int choice)
 			if (StrEqual(menuItem, "spec"))		 CapPutAllToSpec(client);
 			else if (StrEqual(menuItem, "random"))  CapAddRandomPlayer(client);
 			else if (StrEqual(menuItem, "capweap"))	OpenWeaponMenu(client);
-			else if (StrEqual(menuItem, "caphealth")) OpenCapHealthMenu(client);
 			else if (StrEqual(menuItem, "startpick")) CapStartPicking(client);
 			else if (StrEqual(menuItem, "start"))
 			{
@@ -1342,7 +1678,7 @@ public int CapMenuHandler(Menu menu, MenuAction action, int client, int choice)
 		}
 		else CPrintToChat(client, "{%s}[%s]{%s}You can not use this option during a match", prefixcolor, prefix, textcolor);
 
-		if (!(StrEqual(menuItem, "capweap")) && !(StrEqual(menuItem, "caphealth")) && !(StrEqual(menuItem, "startpick")) && !(StrEqual(menuItem, "autocap")))	OpenCapMenu(client);
+		if (!(StrEqual(menuItem, "capweap")) && !(StrEqual(menuItem, "startpick")) && !(StrEqual(menuItem, "autocap")))	OpenCapMenu(client);
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuAdmin(client);
 	else if (action == MenuAction_End)					  menu.Close();
@@ -1489,12 +1825,12 @@ public int CapHealthMenuHandler(Menu menu, MenuAction action, int client, int ch
 				capFightHealth = StringToInt(menuItem);
 				UpdateConfigInt("Cap Settings", "soccer_mod_cap_fight_health", capFightHealth);
 				CPrintToChatAll("{%s}[%s] {%s}Cap fight health set to: %i", prefixcolor, prefix, textcolor, capFightHealth);
-				OpenCapMenu(client);
+				OpenSettingsMatch(client);
 			}
 		}
 		else CPrintToChat(client, "{%s}[%s]{%s}You can not use this option during a match", prefixcolor, prefix, textcolor);
 	}
-	else if (action == MenuAction_Cancel && choice == -6)   OpenCapMenu(client);
+	else if (action == MenuAction_Cancel && choice == -6)   OpenSettingsMatch(client);
 	else if (action == MenuAction_End)					  menu.Close();
 	return 0;
 }
@@ -1521,7 +1857,7 @@ public void CapSet(int client, char type[32], int intnumber, int min, int max)
 				LogMessage("%N <%s> has set cap fight health to %i", client, steamid, intnumber);
 
 				changeSetting[client] = "";
-				OpenCapMenu(client);
+				OpenSettingsMatch(client);
 			}
 			else
 			{
@@ -1592,6 +1928,12 @@ public int CapPickMenuHandler(Menu menu, MenuAction action, int client, int choi
 			int team = GetClientTeam(client);
 			ChangeClientTeam(target, team);
 
+			// Remove from pick pool if pool mode is enabled
+			if (capPickPoolMode == 1)
+			{
+				RemoveFromPickPool(target);
+			}
+
 			// Close any open menu on the picked player
 			if(GetClientMenu(target) != MenuSource_None)
 			{
@@ -1612,11 +1954,20 @@ public int CapPickMenuHandler(Menu menu, MenuAction action, int client, int choi
 			{
 				capPicker = GetNextPicker();
 				OpenCapPickMenu(capPicker);
+
+				// Refresh the pick HUD
+				CapPickHudUpdate();
 			}
 			else
 			{
-				// All picks done - start pre-match ready check
+				// All picks done - stop the pick HUD
+				CapPickHudStop();
+
+				// Notify
 				CPrintToChatAll("{%s}[%s] {green}✓ Picking complete! {%s}Starting ready check...", prefixcolor, prefix, textcolor);
+
+				// Clear pick pool
+				ClearPickPool();
 
 				// Reset cap state but keep teams
 				capAutoActive = false;
@@ -1951,7 +2302,7 @@ public void CapStartFight(int client)
 		}
 		if(first12Set == 2)
 		{
-			if (capnr < 12)	capnr = 12;
+			if (capnr < (matchMaxPlayers * 2))	capnr = matchMaxPlayers * 2;
 		}
 		nrhelper = 0;
 		
@@ -2053,66 +2404,134 @@ public void CapStartFight(int client)
 public void CapCreatePickMenu(int client)
 {
 	Menu menu = new Menu(CapPickMenuHandler);
-
 	menu.SetTitle("[Join Nr] Name [Positions]");
 
 	KeyValues keygroup = new KeyValues("capPositions");
 	keygroup.ImportFromFile(pathCapPositionsFile);
 
-	for (int player = 1; player <= MaxClients; player++)
+	// Pool mode: iterate over pick pool
+	if (capPickPoolMode == 1 && pickPool != null)
 	{
-		// In debug mode, include bots in pick menu for testing
-		if (IsClientInGame(player) && IsClientConnected(player) && !IsClientSourceTV(player))
+		int originalCount = GetOriginalPoolCount();
+
+		for (int i = 0; i < pickPool.Length; i++)
 		{
-			if (!capDebugMode && IsFakeClient(player)) continue;  // Skip bots unless debug mode
+			int player = pickPool.Get(i);
+			if (!IsClientInGame(player) || !IsClientConnected(player)) continue;
 
-			int team = GetClientTeam(player);
-			if (team < 2)
+			char playerid[4];
+			IntToString(player, playerid, sizeof(playerid));
+
+			char playerName[MAX_NAME_LENGTH];
+			GetClientName(player, playerName, sizeof(playerName));
+
+			char steamid[32];
+			GetClientAuthId(player, AuthId_Engine, steamid, sizeof(steamid));
+			keygroup.JumpToKey(steamid, true);
+
+			char positions[32] = "";
+			if (keygroup.GetNum("gk", 0)) Format(positions, sizeof(positions), "%s[GK]", positions);
+			if (keygroup.GetNum("lb", 0)) Format(positions, sizeof(positions), "%s[LB]", positions);
+			if (keygroup.GetNum("rb", 0)) Format(positions, sizeof(positions), "%s[RB]", positions);
+			if (keygroup.GetNum("mf", 0)) Format(positions, sizeof(positions), "%s[MF]", positions);
+			if (keygroup.GetNum("lw", 0)) Format(positions, sizeof(positions), "%s[LW]", positions);
+			if (keygroup.GetNum("rw", 0)) Format(positions, sizeof(positions), "%s[RW]", positions);
+			if (keygroup.GetNum("spec", 0)) Format(positions, sizeof(positions), "[SPEC ONLY]");
+
+			int posnr = GetClientJoinNumber(player);
+			bool isLateJoiner = IsInLateJoinerList(steamid);
+
+			char menuString[80];
+			if (positions[0]) Format(menuString, sizeof(menuString), "[%i] %s %s", posnr, playerName, positions);
+			else Format(menuString, sizeof(menuString), "[%i] %s", posnr, playerName);
+
+			// Add [LATE] flag for late joiners
+			if (isLateJoiner)
 			{
-				char playerid[4];
-				IntToString(player, playerid, sizeof(playerid));
+				Format(menuString, sizeof(menuString), "%s [LATE]", menuString);
 
-				char playerName[MAX_NAME_LENGTH];
-				GetClientName(player, playerName, sizeof(playerName));
-
-				char steamid[32];
-				GetClientAuthId(player, AuthId_Engine, steamid, sizeof(steamid));
-				keygroup.JumpToKey(steamid, true);
-
-				char positions[32] = "";
-				if (keygroup.GetNum("gk", 0)) Format(positions, sizeof(positions), "%s[GK]", positions);
-				if (keygroup.GetNum("lb", 0)) Format(positions, sizeof(positions), "%s[LB]", positions);
-				if (keygroup.GetNum("rb", 0)) Format(positions, sizeof(positions), "%s[RB]", positions);
-				if (keygroup.GetNum("mf", 0)) Format(positions, sizeof(positions), "%s[MF]", positions);
-				if (keygroup.GetNum("lw", 0)) Format(positions, sizeof(positions), "%s[LW]", positions);
-				if (keygroup.GetNum("rw", 0)) Format(positions, sizeof(positions), "%s[RW]", positions);
-				if (keygroup.GetNum("spec", 0)) Format(positions, sizeof(positions), "[SPEC ONLY]");
-
-				int posnr = ImportJoinNumber(steamid);
-
-				char menuString[64];
-				if (positions[0]) Format(menuString, sizeof(menuString), "[%i] %s %s", posnr, playerName, positions);
-				else Format(menuString, sizeof(menuString), "[%i] %s", posnr, playerName);
-				//menuString = playerName;
-				if(first12Set == 1)
+				// If disallow late joiners is ON and we have enough original players, disable
+				if (capDisallowLateJoiners && originalCount >= pickPoolRequired)
 				{
-					if(posnr > 12)	menu.AddItem(playerid, menuString, ITEMDRAW_DISABLED);
-					else			menu.AddItem(playerid, menuString);
+					menu.AddItem(playerid, menuString, ITEMDRAW_DISABLED);
 				}
-				else if (first12Set == 2)
+				else
 				{
-					if(posnr > capnr)	menu.AddItem(playerid, menuString, ITEMDRAW_DISABLED);
+					menu.AddItem(playerid, menuString);
+				}
+			}
+			else
+			{
+				menu.AddItem(playerid, menuString);
+			}
+
+			keygroup.Rewind();
+		}
+	}
+	// Legacy mode: iterate over all players and filter by team
+	else
+	{
+		for (int player = 1; player <= MaxClients; player++)
+		{
+			if (IsClientInGame(player) && IsClientConnected(player) && !IsClientSourceTV(player))
+			{
+				if (!capDebugMode && IsFakeClient(player)) continue;
+
+				int team = GetClientTeam(player);
+				if (team < 2)
+				{
+					char playerid[4];
+					IntToString(player, playerid, sizeof(playerid));
+
+					char playerName[MAX_NAME_LENGTH];
+					GetClientName(player, playerName, sizeof(playerName));
+
+					char steamid[32];
+					GetClientAuthId(player, AuthId_Engine, steamid, sizeof(steamid));
+					keygroup.JumpToKey(steamid, true);
+
+					char positions[32] = "";
+					if (keygroup.GetNum("gk", 0)) Format(positions, sizeof(positions), "%s[GK]", positions);
+					if (keygroup.GetNum("lb", 0)) Format(positions, sizeof(positions), "%s[LB]", positions);
+					if (keygroup.GetNum("rb", 0)) Format(positions, sizeof(positions), "%s[RB]", positions);
+					if (keygroup.GetNum("mf", 0)) Format(positions, sizeof(positions), "%s[MF]", positions);
+					if (keygroup.GetNum("lw", 0)) Format(positions, sizeof(positions), "%s[LW]", positions);
+					if (keygroup.GetNum("rw", 0)) Format(positions, sizeof(positions), "%s[RW]", positions);
+					if (keygroup.GetNum("spec", 0)) Format(positions, sizeof(positions), "[SPEC ONLY]");
+
+					int posnr = GetClientJoinNumber(player);
+
+					char menuString[64];
+					if (positions[0]) Format(menuString, sizeof(menuString), "[%i] %s %s", posnr, playerName, positions);
+					else Format(menuString, sizeof(menuString), "[%i] %s", posnr, playerName);
+
+					if(first12Set == 1)
+					{
+						if(posnr > (matchMaxPlayers * 2))	menu.AddItem(playerid, menuString, ITEMDRAW_DISABLED);
+						else								menu.AddItem(playerid, menuString);
+					}
+					else if (first12Set == 2)
+					{
+						if(posnr > capnr)	menu.AddItem(playerid, menuString, ITEMDRAW_DISABLED);
+						else				menu.AddItem(playerid, menuString);
+					}
 					else				menu.AddItem(playerid, menuString);
+					keygroup.Rewind();
 				}
-				else				menu.AddItem(playerid, menuString);
-				keygroup.Rewind();
 			}
 		}
 	}
 
 	delete keygroup;
-
 	menu.Display(client, MENU_TIME_FOREVER);
+}
+
+// Get join number for a client
+public int GetClientJoinNumber(int client)
+{
+	char steamid[32];
+	GetClientAuthId(client, AuthId_Engine, steamid, sizeof(steamid));
+	return ImportJoinNumber(steamid);
 }
 
 public int ImportJoinNumber(char steamid[32])
@@ -2120,10 +2539,10 @@ public int ImportJoinNumber(char steamid[32])
 	int nr = 0;
 	int entries = 0;
 	char buffer[32];
-	
+
 	//kvConnectlist = new KeyValues("connectlist");
 	kvConnectlist.ImportFromFile(DCListKV);
-	
+
 	if (kvConnectlist.GotoFirstSubKey())
 	{
 		entries++;
@@ -2133,29 +2552,29 @@ public int ImportJoinNumber(char steamid[32])
 		}
 	}
 	kvConnectlist.Rewind();
-	
+
 	kvConnectlist.GotoFirstSubKey();
 	kvConnectlist.SavePosition();
-	
+
 	for (int i = 1; i <= entries; i++)
 	{
 		kvConnectlist.GetSectionName(buffer, sizeof(buffer));
-		
+
 		if(bIsOnServer(buffer))	nr++;
-		
+
 		kvConnectlist.GotoNextKey();
 		kvConnectlist.SavePosition();
-		
-		if (StrEqual(buffer, steamid)) 
+
+		if (StrEqual(buffer, steamid))
 		{
 			kvConnectlist.Rewind();
 			//kvConnectlist.Close();
-			return nr; 
+			return nr;
 		}
 	}
 	kvConnectlist.Rewind();
 	//kvConnectlist.Close();
-	
+
 	return 0;
 }
 
@@ -2183,7 +2602,7 @@ public int ImportJoinNumber(char steamid[32])
 		}
 		if(first12Set == 2)
 		{
-			if (capnr < 12)	capnr = 12;
+			if (capnr < (matchMaxPlayers * 2))	capnr = matchMaxPlayers * 2;
 		}
 		nrhelper = 0;
 		

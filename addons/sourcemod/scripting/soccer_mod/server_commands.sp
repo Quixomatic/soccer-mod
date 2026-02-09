@@ -110,6 +110,16 @@ public void RegisterServerCommands()
 		ServerCommands,
 		"Sets the base URL for player stats site (e.g., https://soccermod-stats.turboforge.io)"
 	);
+	RegServerCmd(
+		"soccer_mod_cap_pick_pool_mode",
+		ServerCommands,
+		"Pick pool mode: 0=legacy (team-based), 1=pool system - default: 0"
+	);
+	RegServerCmd(
+		"soccer_mod_cap_disallow_late_joiners",
+		ServerCommands,
+		"Late joiner policy: 0=allow (with [LATE] flag), 1=only if needed to fill slots - default: 0"
+	);
 
 	RegisterServerCommandsHealth();
 	RegisterServerCommandsMatch();
@@ -420,6 +430,38 @@ public Action ServerCommands(int args)
 		}
 		strcopy(statsUrl, sizeof(statsUrl), url);
 		PrintToServer("[%s] Stats URL set to: %s", prefix, url);
+	}
+	else if (StrEqual(serverCommand, "soccer_mod_cap_pick_pool_mode"))
+	{
+		int val = StringToInt(cmdArg1);
+		if (val == 0 || val == 1)
+		{
+			capPickPoolMode = val;
+			UpdateConfigInt("Cap Settings", "soccer_mod_cap_pick_pool_mode", capPickPoolMode);
+			PrintToServer("[%s] Pick pool mode: %s", prefix, val == 0 ? "Legacy" : "Pool System");
+		}
+		else
+		{
+			PrintToServer("[%s] Current pick pool mode: %s", prefix, capPickPoolMode == 0 ? "Legacy" : "Pool System");
+			PrintToServer("0 - Legacy (team-based filtering)");
+			PrintToServer("1 - Pool System (robust tracking)");
+		}
+	}
+	else if (StrEqual(serverCommand, "soccer_mod_cap_disallow_late_joiners"))
+	{
+		int val = StringToInt(cmdArg1);
+		if (val == 0 || val == 1)
+		{
+			capDisallowLateJoiners = val;
+			UpdateConfigInt("Cap Settings", "soccer_mod_cap_disallow_late_joiners", capDisallowLateJoiners);
+			PrintToServer("[%s] Disallow late joiners: %s", prefix, val == 0 ? "OFF (allow with [LATE] flag)" : "ON (only if needed)");
+		}
+		else
+		{
+			PrintToServer("[%s] Current disallow late joiners: %s", prefix, capDisallowLateJoiners == 0 ? "OFF" : "ON");
+			PrintToServer("0 - Allow late joiners (shown with [LATE] flag)");
+			PrintToServer("1 - Only allow if needed to fill required slots");
+		}
 	}
 	else if (StrEqual(serverCommand, "soccer_mod_remove_snd"))
 	{

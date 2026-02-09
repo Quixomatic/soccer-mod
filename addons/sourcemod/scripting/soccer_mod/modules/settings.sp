@@ -170,6 +170,23 @@ public void OpenSettingsMatch(int client)
 	menu.AddItem("ready", ReadyString);
 	menu.AddItem("first12", First12String);
 
+	// Cap Settings
+	char healthString[48];
+	Format(healthString, sizeof(healthString), "Cap Fight Health: %i", capFightHealth);
+	menu.AddItem("caphealth", healthString);
+
+	char snakeString[48];
+	Format(snakeString, sizeof(snakeString), "Snake Draft: %s", capSnakeDraft ? "ON" : "OFF");
+	menu.AddItem("snakedraft", snakeString);
+
+	char poolString[48];
+	Format(poolString, sizeof(poolString), "Pick Pool Mode: %s", capPickPoolMode ? "Pool" : "Legacy");
+	menu.AddItem("pickpoolmode", poolString);
+
+	char lateString[48];
+	Format(lateString, sizeof(lateString), "Disallow Late Joiners: %s", capDisallowLateJoiners ? "ON" : "OFF");
+	menu.AddItem("disallowlate", lateString);
+
 	menu.ExitBackButton = true;
 	menu.Display(client, MENU_TIME_FOREVER);
 }
@@ -216,6 +233,31 @@ public int SettingsMatchHandler(Menu menu, MenuAction action, int client, int ch
 				first12Set = 0;
 				UpdateConfigInt("Misc Settings", "soccer_mod_first12", first12Set);
 			}
+			OpenSettingsMatch(client);
+		}
+		else if (StrEqual(menuItem, "caphealth"))
+		{
+			OpenCapHealthMenu(client);
+		}
+		else if (StrEqual(menuItem, "snakedraft"))
+		{
+			capSnakeDraft = capSnakeDraft ? 0 : 1;
+			UpdateConfigInt("Cap Settings", "soccer_mod_cap_snake_draft", capSnakeDraft);
+			CPrintToChat(client, "{%s}[%s] {%s}Snake draft: %s", prefixcolor, prefix, textcolor, capSnakeDraft ? "ON" : "OFF");
+			OpenSettingsMatch(client);
+		}
+		else if (StrEqual(menuItem, "pickpoolmode"))
+		{
+			capPickPoolMode = capPickPoolMode ? 0 : 1;
+			UpdateConfigInt("Cap Settings", "soccer_mod_cap_pick_pool_mode", capPickPoolMode);
+			CPrintToChat(client, "{%s}[%s] {%s}Pick pool mode: %s", prefixcolor, prefix, textcolor, capPickPoolMode ? "Pool System" : "Legacy");
+			OpenSettingsMatch(client);
+		}
+		else if (StrEqual(menuItem, "disallowlate"))
+		{
+			capDisallowLateJoiners = capDisallowLateJoiners ? 0 : 1;
+			UpdateConfigInt("Cap Settings", "soccer_mod_cap_disallow_late_joiners", capDisallowLateJoiners);
+			CPrintToChat(client, "{%s}[%s] {%s}Disallow late joiners: %s", prefixcolor, prefix, textcolor, capDisallowLateJoiners ? "ON (only if needed)" : "OFF");
 			OpenSettingsMatch(client);
 		}
 	}

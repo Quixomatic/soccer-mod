@@ -1730,8 +1730,8 @@ public Action MatchPeriodTimer(Handle timer, any time)
 			if (!IsModelPrecached("models/props/cs_office/vending_machine.mdl")) PrecacheModel("models/props/cs_office/vending_machine.mdl");
 			SetEntityModel(index, "models/props/cs_office/vending_machine.mdl");
 
-			float minbounds[3]
-			float maxbounds[3]
+			float minbounds[3];
+			float maxbounds[3];
 			if(xorientation)
 			{
 				minbounds[0] = -2000.0;

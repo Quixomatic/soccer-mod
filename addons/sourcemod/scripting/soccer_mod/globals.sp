@@ -172,6 +172,7 @@ Handle capGrenadeRefillTimer	= INVALID_HANDLE;
 Handle capVoteTimer				= INVALID_HANDLE;	// Auto cap vote timer
 Handle capVoteHudTimer			= INVALID_HANDLE;	// Vote HUD refresh timer
 Handle capReadyTimer			= INVALID_HANDLE;	// Ready-up HUD refresh timer
+Handle capPickHudTimer			= INVALID_HANDLE;	// Pick phase HUD refresh timer
 Handle capRetryTimer			= INVALID_HANDLE;	// Vote retry delay timer
 ArrayList capCaptainPairs		= null;				// Shuffled list of captain pairs
 
@@ -192,6 +193,14 @@ int capVotesNo			= 0;	// Auto cap no votes
 int capVoteTotal		= 0;	// Total voters
 int capVoteCountdown	= 30;	// Vote countdown seconds
 int capPlayerVote[MAXPLAYERS+1];	// 0=not voted, 1=yes, 2=no
+
+// Pick Pool System
+int capPickPoolMode			= 0;	// 0=legacy (team-based), 1=pool system
+int capDisallowLateJoiners	= 0;	// 0=allow late joiners, 1=only if needed to fill slots
+int pickPoolRequired		= 0;	// Required picks count for current match
+bool pickingActive			= false;	// True when picking phase is active
+ArrayList pickPool			= null;	// Client indices of players available to pick
+ArrayList pickPoolLateJoiners = null;	// Steamids of players who joined after picking started
 
 // STRINGS
 char capweapon[32]		="knife";

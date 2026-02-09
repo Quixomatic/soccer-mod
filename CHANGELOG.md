@@ -1,5 +1,36 @@
 # Soccer Mod Changelog
 
+## 1.4.23
+
+### New
+- **Pick Pool System**: Robust player tracking during picking phase
+  - Replaces fragile team-based filtering with dedicated pick pool
+  - Players remain pickable even if they accidentally join a team
+  - Properly handles disconnects and late joiners during picking
+- **Pick Pool Mode toggle**: Admin > Cap > Pick pool mode (Legacy/Pool System)
+  - Legacy mode preserves existing behavior for stability
+  - Pool mode enables new robust tracking system
+- **Late Joiner Handling**: Players who join during picking are flagged with `[LATE]`
+  - Disallow late joiners setting: only allow late joiners if needed to fill slots
+  - Admin > Cap > Disallow late joiners (OFF/ON)
+- **Pick HUD**: Hint text showing available players during picking phase
+  - Displays current picker, picks remaining, and all available players
+  - Updates after each pick, shows `*` for late joiners in pool mode
+
+### Fixes
+- Fixed hardcoded "12" values in cap system now use `matchMaxPlayers * 2`
+  - Pick menu threshold now respects configured team size (4v4=8, 5v5=10, 6v6=12)
+  - Minimum capnr calculation now respects configured team size
+
+### Changes
+- Moved cap settings to Admin > Settings > Match Settings:
+  - Cap Fight Health, Snake Draft, Pick Pool Mode, Disallow Late Joiners
+- Reordered Cap menu: Auto Cap now appears above Reset cap
+- Renamed "Debug mode" to "Debug Cap Mode" in Cap menu
+- Hidden "Start picking" menu option (bypassed knife fight with no way to determine who picks first)
+
+---
+
 ## 1.4.22
 
 ### Changes
