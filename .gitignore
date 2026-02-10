@@ -7,6 +7,12 @@
 # Random example stuff
 .example/
 
+# Plans for local work
+.plans/
+
+# Claude Code instructions
+CLAUDE.md
+
 # Build output folder
 dist/
 

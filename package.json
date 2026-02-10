@@ -3,6 +3,7 @@
   "version": "1.4.23",
   "description": "Soccer Mod for Counter-Strike: Source",
   "scripts": {
+    "setup": "powershell -ExecutionPolicy Bypass -File setup.ps1",
     "clean": "if exist dist rmdir /s /q dist",
     "precompile": "if not exist dist mkdir dist",
     "compile": "cd addons/sourcemod/scripting && \"..\\..\\..\\.sourcemod-source\\addons\\sourcemod\\scripting\\spcomp.exe\" soccer_mod.sp -i\"include\" -i\"..\\..\\..\\.sourcemod-source\\addons\\sourcemod\\scripting\\include\" -o\"..\\..\\..\\dist\\soccer_mod.smx\"",

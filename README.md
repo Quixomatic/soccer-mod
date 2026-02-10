@@ -34,7 +34,7 @@ A SourceMod plugin for Counter-Strike: Source soccer servers.
 ## Building from Source
 
 ```bash
-npm install   # No dependencies, but sets up the project
+npm run setup # Download the SourceMod 1.12 compiler (first time only)
 npm run build # Compile and deploy to plugins folder
 ```
 
