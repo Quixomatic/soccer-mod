@@ -1,8 +1,7 @@
 // **************************************************************************************************************
 // ************************************************** DEFINES ***************************************************
 // ************************************************************************************************************** 
-#define PLUGIN_VERSION "1.5.2"
-#define UPDATE_URL "https://raw.githubusercontent.com/Quixomatic/soccer-mod/main/addons/sourcemod/updatefile.txt"
+#define PLUGIN_VERSION "1.5.3"
 #define MAX_NAMES 10
 #define MAXCONES_DYN 15
 #define MAXCONES_STA 15
@@ -20,10 +19,9 @@
 #include <morecolors>
 #include <advanced_motd>
 #include <clientprefs>
-#undef REQUIRE_PLUGIN
-#include <updater>
 #undef REQUIRE_EXTENSIONS
 #include <SteamWorks>
+#include <ripext>
 #undef REQUIRE_PLUGIN
 #include <basecomm>
 #define REQUIRE_PLUGIN
@@ -71,6 +69,7 @@
 #include "soccer_mod/modules/whois.sp"
 #include "soccer_mod/modules/joinleave.sp"
 #include "soccer_mod/modules/playervotes.sp"
+#include "soccer_mod/modules/selfupdater.sp"
 
 #include "soccer_mod/fixes/join_team.sp"
 #include "soccer_mod/fixes/radio_commands.sp"
@@ -98,11 +97,6 @@ public void OnPluginStart()
 	_noop(readydisplay);
 
 	CreateConVar("soccer_mod_version", PLUGIN_VERSION, "Soccer Mod version", FCVAR_NOTIFY| FCVAR_DONTRECORD);
-	
-	if (LibraryExists("updater"))
-	{
-		Updater_AddPlugin(UPDATE_URL);
-	}
 	
 	if (!DirExists("cfg/sm_soccermod"))			CreateDirectory("cfg/sm_soccermod", 511, false);
 	if (!DirExists("cfg/sm_soccermod/logs"))	CreateDirectory("cfg/sm_soccermod/logs", 511, false);
@@ -168,6 +162,7 @@ public void OnPluginStart()
 	ReplacerOnPluginStart();
 	KickoffWalls_OnPluginStart();
 	PlayerVotesOnPluginStart();
+	SelfUpdaterOnPluginStart();
 
 	// Join/Leave cookies
 	h_JOINLEAVE_SOUND_COOKIE = RegClientCookie("sm_joinleave_sound", "Join/Leave sound preference", CookieAccess_Protected);
@@ -183,14 +178,6 @@ public void OnPluginEnd()
 	//Clientprefs
 	WriteEveryClientCookie();
 	return;
-}
-
-public void OnLibraryAdded(const char[] name)
-{
-	if (StrEqual(name, "updater"))
-	{
-		Updater_AddPlugin(UPDATE_URL);
-	}
 }
 
 public Action HookMsg(UserMsg msg_id, BfRead msg, const int[] players, int playersNum, bool reliable, bool init)
@@ -469,6 +456,11 @@ public Action SayCommandListener(int client, char[] command, int argc)
 		else if (StrEqual(changeSetting[client], "PV_MinPlayers"))
 		{
 			PlayerVoteSet(client, "PV_MinPlayers", intnumber, 2, 20);
+			return Plugin_Handled;
+		}
+		else if (StrEqual(changeSetting[client], "SU_Interval"))
+		{
+			SelfUpdaterSet(client, "SU_Interval", intnumber, 600, 86400);
 			return Plugin_Handled;
 		}
 	}
@@ -768,6 +760,7 @@ public void OnMapStart()
 	ConnectlistOnMapStart();
 	ReadycheckOnMapStart();
 	PlayerVotesOnMapStart();
+	SelfUpdaterOnMapStart();
 	LoadJoinLeaveConfig();
 
 	//shoutset

@@ -88,6 +88,9 @@ jobs:
           mkdir -p release/addons/sourcemod/plugins
           cp dist/soccer_mod.smx release/addons/sourcemod/plugins/
 
+          # === manifest.json (self-updater manifest) ===
+          [ -f "manifest.json" ] && cp manifest.json release/
+
           # === cfg ===
           [ -d "cfg/sm_soccermod" ] && mkdir -p release/cfg && cp -r cfg/sm_soccermod release/cfg/
 

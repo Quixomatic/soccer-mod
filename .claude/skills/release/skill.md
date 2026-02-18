@@ -19,7 +19,7 @@ Where `<version>` is the version number without the `v` prefix (e.g., `1.4.24`).
 3. **Update version in all four locations:**
    - `addons/sourcemod/scripting/soccer_mod.sp` - Update `#define PLUGIN_VERSION "<version>"` (line 4)
    - `package.json` - Update `"version": "<version>"`
-   - `addons/sourcemod/updatefile.txt` - Update `"Latest"` value to `"<version>"`
+   - `manifest.json` - Update `"version": "<version>"` (repo root)
    - `CHANGELOG.md` - Should already have the entry (verified in step 2)
 
 4. **Build to verify** - Run `npm run build` to confirm the plugin compiles successfully with the new version. If build fails, stop and report the error.
@@ -27,7 +27,7 @@ Where `<version>` is the version number without the `v` prefix (e.g., `1.4.24`).
 5. **Show the user a summary** of all changes made and ask for confirmation before committing.
 
 6. **Commit and tag:**
-   - Stage the modified files: `soccer_mod.sp`, `package.json`, `CHANGELOG.md`, `updatefile.txt` (and any other changed files the user confirms)
+   - Stage the modified files: `soccer_mod.sp`, `package.json`, `manifest.json`, `CHANGELOG.md` (and any other changed files the user confirms)
    - Commit with message: `Release v<version>`
    - Create git tag: `v<version>`
 
@@ -48,7 +48,7 @@ This will:
 - Verify `CHANGELOG.md` has a `## 1.4.24` entry
 - Update `PLUGIN_VERSION` to `"1.4.24"` in soccer_mod.sp
 - Update `"version"` to `"1.4.24"` in package.json
-- Update `"Latest"` to `"1.4.24"` in updatefile.txt
+- Update `"version"` to `"1.4.24"` in manifest.json
 - Build with `npm run build`
 - Commit as "Release v1.4.24"
 - Tag as `v1.4.24`

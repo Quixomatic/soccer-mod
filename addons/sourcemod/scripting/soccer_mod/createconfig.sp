@@ -226,6 +226,11 @@ public void CreateSoccerModConfig()
 	kvConfig.SetString("soccer_mod_spawnball",						spawnModelBall);
 	kvConfig.GoBack();
 
+	kvConfig.JumpToKey("Updater Settings", true);
+	kvConfig.SetNum("soccer_mod_su_autocheck",						suAutoCheck);
+	kvConfig.SetNum("soccer_mod_su_check_interval",					suCheckInterval);
+	kvConfig.GoBack();
+
 	kvConfig.JumpToKey("Player Vote Settings", true);
 	kvConfig.SetNum("soccer_mod_pv_votekick",						pvVotekickEnabled);
 	kvConfig.SetNum("soccer_mod_pv_voteban",						pvVotebanEnabled);
@@ -613,6 +618,11 @@ public void ReadFromConfig()
 	kvConfig.JumpToKey("Debug Settings", true);
 	debuggingEnabled		= kvConfig.GetNum("soccer_mod_debug", 0);
 	kvConfig.GetString("soccer_mod_spawnball", spawnModelBall, sizeof(spawnModelBall), "models/soccer_mod/ball_2011.mdl");
+	kvConfig.GoBack();
+
+	kvConfig.JumpToKey("Updater Settings", true);
+	suAutoCheck				= kvConfig.GetNum("soccer_mod_su_autocheck", 0);
+	suCheckInterval			= kvConfig.GetNum("soccer_mod_su_check_interval", 3600);
 	kvConfig.GoBack();
 
 	kvConfig.JumpToKey("Player Vote Settings", true);

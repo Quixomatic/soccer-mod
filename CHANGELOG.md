@@ -1,5 +1,22 @@
 # Soccer Mod Changelog
 
+## 1.5.3
+
+### New
+- **Self-updater**: Built-in update system using ripext extension (replaces broken GoD-Tony updater)
+  - Admin menu: Settings > Updater — check for updates, download patch (.smx only) or full update (all files)
+  - Fetches `manifest.json` from GitHub to detect new versions via semver comparison
+  - Optional auto-check on map start with configurable interval
+  - ripext is an optional dependency — updater silently disabled without it
+- **manifest.json**: Release manifest at repo root tracks all 87 release files with repo-to-server path mapping
+
+### Changes
+- Removed GoD-Tony Updater plugin dependency (broken on x64 servers — requires SteamWorks/cURL)
+- Deleted `updater.inc` and `updatefile.txt`
+- GitHub Action now includes `manifest.json` in release zip
+
+---
+
 ## 1.5.2
 
 ### New
