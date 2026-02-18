@@ -1,5 +1,10 @@
 # Soccer Mod Changelog
 
+## 1.5.2
+
+### New
+- **Auto-updater support**: Re-enabled Updater plugin integration — servers with `updater.smx` installed will automatically receive new `.smx` versions when released
+
 ## 1.5.1
 
 ### New

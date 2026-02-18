@@ -1,7 +1,7 @@
 // **************************************************************************************************************
 // ************************************************** DEFINES ***************************************************
 // ************************************************************************************************************** 
-#define PLUGIN_VERSION "1.5.1"
+#define PLUGIN_VERSION "1.5.2"
 #define UPDATE_URL "https://raw.githubusercontent.com/Quixomatic/soccer-mod/main/addons/sourcemod/updatefile.txt"
 #define MAX_NAMES 10
 #define MAXCONES_DYN 15
@@ -20,8 +20,8 @@
 #include <morecolors>
 #include <advanced_motd>
 #include <clientprefs>
-// #undef REQUIRE_PLUGIN
-// #include <updater>  // Optional - auto-updater
+#undef REQUIRE_PLUGIN
+#include <updater>
 #undef REQUIRE_EXTENSIONS
 #include <SteamWorks>
 #undef REQUIRE_PLUGIN
@@ -99,11 +99,10 @@ public void OnPluginStart()
 
 	CreateConVar("soccer_mod_version", PLUGIN_VERSION, "Soccer Mod version", FCVAR_NOTIFY| FCVAR_DONTRECORD);
 	
-	// Updater - disabled (requires updater.inc)
-	// if (LibraryExists("updater"))
-	// {
-	// 	Updater_AddPlugin(UPDATE_URL)
-	// }
+	if (LibraryExists("updater"))
+	{
+		Updater_AddPlugin(UPDATE_URL);
+	}
 	
 	if (!DirExists("cfg/sm_soccermod"))			CreateDirectory("cfg/sm_soccermod", 511, false);
 	if (!DirExists("cfg/sm_soccermod/logs"))	CreateDirectory("cfg/sm_soccermod/logs", 511, false);
@@ -186,15 +185,13 @@ public void OnPluginEnd()
 	return;
 }
 
-// Updater******************************************
-// Updater - disabled (requires updater.inc)
-// public void OnLibraryAdded(const char []name)
-// {
-// 	if (StrEqual(name, "updater"))
-// 	{
-// 		Updater_AddPlugin(UPDATE_URL);
-// 	}
-// }
+public void OnLibraryAdded(const char[] name)
+{
+	if (StrEqual(name, "updater"))
+	{
+		Updater_AddPlugin(UPDATE_URL);
+	}
+}
 
 public Action HookMsg(UserMsg msg_id, BfRead msg, const int[] players, int playersNum, bool reliable, bool init)
 {
