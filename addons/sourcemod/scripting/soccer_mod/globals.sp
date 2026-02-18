@@ -840,6 +840,7 @@ int suDownloadErrors			= 0;			// count of failed downloads
 bool suFullUpdate				= false;		// true if doing full update, false if patch
 int suRequestingUser			= 0;			// userid of admin who started the download
 ArrayList suPendingFiles		= null;			// temp->dest file pairs waiting to be applied
+bool suRetrying				= false;		// true if this is an automatic retry after cache warming
 
 int pvActiveVoteType		= 0;			// 0=none, 1=kick, 2=ban, 3=mute, 4=map
 int pvActiveVoteTarget		= 0;			// Target client userid

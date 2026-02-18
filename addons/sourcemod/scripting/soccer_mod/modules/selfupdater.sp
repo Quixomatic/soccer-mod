@@ -133,6 +133,7 @@ public void SU_StartUpdate(int client, bool fullUpdate)
 	suFullUpdate = fullUpdate;
 	suDownloadCount = 0;
 	suDownloadErrors = 0;
+	suRetrying = false;
 	suRequestingUser = (client > 0) ? GetClientUserId(client) : 0;
 
 	// Fetch manifest again to get file list
@@ -300,13 +301,25 @@ public void SU_OnFileDownloaded(HTTPStatus status, any data, const char[] error)
 				CPrintToChat(reqClient, "{%s}[%s] {%s}Soccer Mod updated to v%s. Change map or reload plugin to apply.", prefixcolor, prefix, textcolor, suLatestVersion);
 			suUpdateAvailable = false;
 		}
-		else
+		else if (!suRetrying)
 		{
-			// Errors — abort, clean up all temp files
+			// First attempt failed — clean up and retry after delay (first attempt warmed the CF cache)
 			SU_CleanupTempFiles();
 
 			if (reqClient > 0 && IsClientInGame(reqClient))
-				CPrintToChat(reqClient, "{%s}[%s] {%s}Update aborted — %d file(s) failed verification. No files were changed.", prefixcolor, prefix, textcolor, suDownloadErrors);
+				CPrintToChat(reqClient, "{%s}[%s] {%s}%d file(s) failed verification. Retrying in 5 seconds (warming cache)...", prefixcolor, prefix, textcolor, suDownloadErrors);
+
+			suRetrying = true;
+			CreateTimer(5.0, SU_TimerRetryDownload);
+			return;
+		}
+		else
+		{
+			// Retry also failed — abort for real
+			SU_CleanupTempFiles();
+
+			if (reqClient > 0 && IsClientInGame(reqClient))
+				CPrintToChat(reqClient, "{%s}[%s] {%s}Update aborted — %d file(s) failed verification after retry. No files were changed.", prefixcolor, prefix, textcolor, suDownloadErrors);
 		}
 
 		// Reopen menu for the admin who triggered the download
@@ -352,6 +365,29 @@ public void SU_CleanupTempFiles()
 
 	delete suPendingFiles;
 	suPendingFiles = null;
+}
+
+// ************************************************** RETRY ********************************************************
+
+public Action SU_TimerRetryDownload(Handle timer)
+{
+	// Re-fetch manifest and re-download all files
+	suDownloading = true;
+	suDownloadCount = 0;
+	suDownloadErrors = 0;
+
+	char manifestUrl[512];
+	Format(manifestUrl, sizeof(manifestUrl), "%s?t=%d", SU_MANIFEST_URL, GetTime());
+	HTTPRequest request = new HTTPRequest(manifestUrl);
+	request.SetHeader("User-Agent", "SoccerMod");
+
+	request.Get(SU_OnDownloadManifestResponse, suRequestingUser);
+
+	int reqClient = (suRequestingUser > 0) ? GetClientOfUserId(suRequestingUser) : 0;
+	if (reqClient > 0 && IsClientInGame(reqClient))
+		CPrintToChat(reqClient, "{%s}[%s] {%s}Retrying download...", prefixcolor, prefix, textcolor);
+
+	return Plugin_Stop;
 }
 
 // ************************************************** HELPERS ******************************************************

@@ -1,5 +1,12 @@
 # Soccer Mod Changelog
 
+## 1.5.10
+
+### New
+- **Automatic retry with cache warming**: If download verification fails, waits 5 seconds (first attempt warms CF cache) and retries once before aborting
+
+---
+
 ## 1.5.9
 
 ### Fixes
