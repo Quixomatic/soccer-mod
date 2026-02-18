@@ -1,7 +1,7 @@
 // **************************************************************************************************************
 // ************************************************** DEFINES ***************************************************
 // ************************************************************************************************************** 
-#define PLUGIN_VERSION "1.5.3"
+#define PLUGIN_VERSION "1.5.4"
 #define MAX_NAMES 10
 #define MAXCONES_DYN 15
 #define MAXCONES_STA 15
@@ -456,11 +456,6 @@ public Action SayCommandListener(int client, char[] command, int argc)
 		else if (StrEqual(changeSetting[client], "PV_MinPlayers"))
 		{
 			PlayerVoteSet(client, "PV_MinPlayers", intnumber, 2, 20);
-			return Plugin_Handled;
-		}
-		else if (StrEqual(changeSetting[client], "SU_TestURL"))
-		{
-			SU_TestCustomURL(client, admin_value);
 			return Plugin_Handled;
 		}
 		else if (StrEqual(changeSetting[client], "SU_Interval"))
