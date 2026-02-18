@@ -809,3 +809,24 @@ float kw_ct_goal[3];                    // CT goal position
 char kw_ball_entity[64] = "";           // Custom ball entity name (empty = auto-detect)
 bool kw_enabled = true;                 // Walls enabled for this map
 bool kw_configLoaded = false;           // Whether config was loaded for current map
+
+// ************************************************* PLAYER VOTES ***********************************************
+int pvVotekickEnabled		= 0;
+int pvVotebanEnabled		= 0;
+int pvVotemuteEnabled		= 0;
+int pvVotemapEnabled		= 0;
+int pvKickThreshold			= 51;
+int pvBanThreshold			= 75;
+int pvMuteThreshold			= 51;
+int pvMapThreshold			= 51;
+int pvVotebanDuration		= 30;			// minutes
+int pvVotemuteDuration		= 30;			// minutes
+int pvVoteCooldown			= 60;			// seconds per initiator
+int pvMinPlayers			= 4;
+int pvLastVoteTime[MAXPLAYERS+1];			// Per-player cooldown tracking
+bool pvMuted[MAXPLAYERS+1];				// Track muted players for auto-unmute
+Handle pvMuteTimers[MAXPLAYERS+1];			// Timers for auto-unmute
+int pvActiveVoteType		= 0;			// 0=none, 1=kick, 2=ban, 3=mute, 4=map
+int pvActiveVoteTarget		= 0;			// Target client userid
+char pvActiveVoteMap[128];					// Target map name (for votemap)
+int pvPendingVoteType[MAXPLAYERS+1];		// Per-client pending vote type for menu

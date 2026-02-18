@@ -1,7 +1,7 @@
 // **************************************************************************************************************
 // ************************************************** DEFINES ***************************************************
 // ************************************************************************************************************** 
-#define PLUGIN_VERSION "1.4.25"
+#define PLUGIN_VERSION "1.5.0"
 #define UPDATE_URL "https://raw.githubusercontent.com/Quixomatic/soccer-mod/main/addons/sourcemod/updatefile.txt"
 #define MAX_NAMES 10
 #define MAXCONES_DYN 15
@@ -24,6 +24,9 @@
 // #include <updater>  // Optional - auto-updater
 #undef REQUIRE_EXTENSIONS
 #include <SteamWorks>
+#undef REQUIRE_PLUGIN
+#include <basecomm>
+#define REQUIRE_PLUGIN
 
 #pragma newdecls required
 
@@ -67,6 +70,7 @@
 #include "soccer_mod/modules/spawnball.sp"
 #include "soccer_mod/modules/whois.sp"
 #include "soccer_mod/modules/joinleave.sp"
+#include "soccer_mod/modules/playervotes.sp"
 
 #include "soccer_mod/fixes/join_team.sp"
 #include "soccer_mod/fixes/radio_commands.sp"
@@ -164,6 +168,7 @@ public void OnPluginStart()
 	ShoutOnPluginStart();
 	ReplacerOnPluginStart();
 	KickoffWalls_OnPluginStart();
+	PlayerVotesOnPluginStart();
 
 	// Join/Leave cookies
 	h_JOINLEAVE_SOUND_COOKIE = RegClientCookie("sm_joinleave_sound", "Join/Leave sound preference", CookieAccess_Protected);
@@ -725,6 +730,7 @@ public void OnMapStart()
 	ReplacerOnMapStart();
 	ConnectlistOnMapStart();
 	ReadycheckOnMapStart();
+	PlayerVotesOnMapStart();
 	LoadJoinLeaveConfig();
 
 	//shoutset
@@ -1028,6 +1034,7 @@ public void OnClientDisconnect(int client)
 	RadioCommandsOnClientDisconnect(client);
 	SavePersonalCannonSettings(client);
 	ReadyCheckOnClientDisconnect(client);
+	PlayerVotesOnClientDisconnect(client);
 	WriteClientCookie(client);
 
 	LCDisconnect(client);

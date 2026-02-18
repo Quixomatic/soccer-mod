@@ -42,6 +42,10 @@ public void RegisterClientCommands()
 	RegConsoleCmd("sm_credits", CreditsCommand, "Opens the Soccer Mod credits menu");
 	RegConsoleCmd("sm_forfeit", Command_Forfeit, "Starts a forfeit vote");
 	RegConsoleCmd("sm_fug", Command_Forfeit, "Starts a forfeit vote (alias for !forfeit)");
+	RegConsoleCmd("sm_votekick", Command_VoteKick, "Start a vote to kick a player");
+	RegConsoleCmd("sm_voteban", Command_VoteBan, "Start a vote to ban a player");
+	RegConsoleCmd("sm_votemute", Command_VoteMute, "Start a vote to mute a player");
+	RegConsoleCmd("sm_votemap", Command_VoteMap, "Start a vote to change the map");
 	RegConsoleCmd("sm_gk", GkCommand, "Toggle the GK skin");	
 	RegConsoleCmd("sm_help", HelpCommand, "Opens the Soccer Mod help menu");
 	RegConsoleCmd("sm_info", CreditsCommand, "Opens the Soccer Mod credits menu");
@@ -301,8 +305,32 @@ public Action ClientCommands(int client, int args)
 	return Plugin_Handled;
 }
 
+public Action Command_VoteKick(int client, int args)
+{
+	if (currentMapAllowed) PlayerVoteStart(client, 1);
+	return Plugin_Handled;
+}
+
+public Action Command_VoteBan(int client, int args)
+{
+	if (currentMapAllowed) PlayerVoteStart(client, 2);
+	return Plugin_Handled;
+}
+
+public Action Command_VoteMute(int client, int args)
+{
+	if (currentMapAllowed) PlayerVoteStart(client, 3);
+	return Plugin_Handled;
+}
+
+public Action Command_VoteMap(int client, int args)
+{
+	if (currentMapAllowed) PlayerVoteStart(client, 4);
+	return Plugin_Handled;
+}
+
 public Action Command_Forfeit(int client, int args)
-{	
+{
 	if (IsValidClient(client) && GetClientTeam(client) != 1)	
 	{
 		if(matchStarted)

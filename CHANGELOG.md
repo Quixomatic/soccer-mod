@@ -1,5 +1,21 @@
 # Soccer Mod Changelog
 
+## 1.5.0
+
+### New
+- **Player Vote System**: Any player can initiate votes — no admin required
+  - `!votekick` — vote to kick a player
+  - `!voteban` — vote to ban a player (default 30 min)
+  - `!votemute` — vote to mute a player's voice + text chat (default 30 min, auto-unmutes)
+  - `!votemap` — vote to change map (from allowed maps list)
+  - All vote types disabled by default, enable via Admin > Settings > Player Votes
+  - Configurable per-type thresholds (kick/mute 51%, ban 75% default)
+  - Per-initiator cooldown prevents vote spam (default 60s)
+  - Minimum player requirement (default 4)
+  - Admins are immune from being targeted
+  - Menu-based target/map selection for ease of use
+  - Uses SourceMod native vote UI
+
 ## 1.4.25
 
 ### New

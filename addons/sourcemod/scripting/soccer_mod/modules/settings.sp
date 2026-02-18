@@ -29,6 +29,7 @@ public void OpenMenuSettings(int client)
 	menu.AddItem("mapsounds", "Sound Control");
 	if(CheckCommandAccess(client, "generic_admin", ADMFLAG_RCON, true)) menu.AddItem("advtraining", "Training Settings");
 	if(CheckCommandAccess(client, "generic_admin", ADMFLAG_GENERIC, true)) menu.AddItem("shoutplug", "Shout Control");
+	menu.AddItem("playervotes", "Player Votes");
 	menu.AddItem("lockenabled", "Lock Settings");
 	menu.AddItem("debugging", DebugString);
 
@@ -53,6 +54,7 @@ public int MenuHandlerSettings(Menu menu, MenuAction action, int client, int cho
 		else if (StrEqual(menuItem, "statsset"))		OpenSettingsStats(client);
 		else if (StrEqual(menuItem, "notifyset"))		OpenSettingsNotifications(client);
 		else if (StrEqual(menuItem, "shoutplug"))		OpenMenuShoutSet(client);
+		else if (StrEqual(menuItem, "playervotes"))		OpenSettingsPlayerVotes(client);
 		else if (StrEqual(menuItem, "mapsounds")) 		OpenMenuMapSounds(client);
 		else if (StrEqual(menuItem, "advtraining"))		OpenMenuAdvTrainSet(client);
 		else if (StrEqual(menuItem, "debugging"))		

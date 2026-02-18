@@ -225,7 +225,22 @@ public void CreateSoccerModConfig()
 	kvConfig.SetNum("soccer_mod_debug",								debuggingEnabled);
 	kvConfig.SetString("soccer_mod_spawnball",						spawnModelBall);
 	kvConfig.GoBack();
-	
+
+	kvConfig.JumpToKey("Player Vote Settings", true);
+	kvConfig.SetNum("soccer_mod_pv_votekick",						pvVotekickEnabled);
+	kvConfig.SetNum("soccer_mod_pv_voteban",						pvVotebanEnabled);
+	kvConfig.SetNum("soccer_mod_pv_votemute",						pvVotemuteEnabled);
+	kvConfig.SetNum("soccer_mod_pv_votemap",						pvVotemapEnabled);
+	kvConfig.SetNum("soccer_mod_pv_kick_threshold",					pvKickThreshold);
+	kvConfig.SetNum("soccer_mod_pv_ban_threshold",					pvBanThreshold);
+	kvConfig.SetNum("soccer_mod_pv_mute_threshold",					pvMuteThreshold);
+	kvConfig.SetNum("soccer_mod_pv_map_threshold",					pvMapThreshold);
+	kvConfig.SetNum("soccer_mod_pv_ban_duration",					pvVotebanDuration);
+	kvConfig.SetNum("soccer_mod_pv_mute_duration",					pvVotemuteDuration);
+	kvConfig.SetNum("soccer_mod_pv_cooldown",						pvVoteCooldown);
+	kvConfig.SetNum("soccer_mod_pv_min_players",					pvMinPlayers);
+	kvConfig.GoBack();
+
 	kvConfig.Rewind();
 	kvConfig.ExportToFile(configFileKV);
 	kvConfig.Close();
@@ -598,6 +613,21 @@ public void ReadFromConfig()
 	kvConfig.JumpToKey("Debug Settings", true);
 	debuggingEnabled		= kvConfig.GetNum("soccer_mod_debug", 0);
 	kvConfig.GetString("soccer_mod_spawnball", spawnModelBall, sizeof(spawnModelBall), "models/soccer_mod/ball_2011.mdl");
+	kvConfig.GoBack();
+
+	kvConfig.JumpToKey("Player Vote Settings", true);
+	pvVotekickEnabled		= kvConfig.GetNum("soccer_mod_pv_votekick", 0);
+	pvVotebanEnabled		= kvConfig.GetNum("soccer_mod_pv_voteban", 0);
+	pvVotemuteEnabled		= kvConfig.GetNum("soccer_mod_pv_votemute", 0);
+	pvVotemapEnabled		= kvConfig.GetNum("soccer_mod_pv_votemap", 0);
+	pvKickThreshold			= kvConfig.GetNum("soccer_mod_pv_kick_threshold", 51);
+	pvBanThreshold			= kvConfig.GetNum("soccer_mod_pv_ban_threshold", 75);
+	pvMuteThreshold			= kvConfig.GetNum("soccer_mod_pv_mute_threshold", 51);
+	pvMapThreshold			= kvConfig.GetNum("soccer_mod_pv_map_threshold", 51);
+	pvVotebanDuration		= kvConfig.GetNum("soccer_mod_pv_ban_duration", 30);
+	pvVotemuteDuration		= kvConfig.GetNum("soccer_mod_pv_mute_duration", 30);
+	pvVoteCooldown			= kvConfig.GetNum("soccer_mod_pv_cooldown", 60);
+	pvMinPlayers			= kvConfig.GetNum("soccer_mod_pv_min_players", 4);
 	kvConfig.GoBack();
 
 	kvConfig.Rewind();
