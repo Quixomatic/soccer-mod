@@ -479,6 +479,156 @@ public void SU_OnSizeCheckDownloaded(HTTPStatus status, any userid, const char[]
 	}
 }
 
+// ************************************************** CACHE WARMING ************************************************
+
+public void SU_WarmCache(int client)
+{
+	if (!suRipextAvailable)
+	{
+		if (client > 0 && IsClientInGame(client))
+			CPrintToChat(client, "{%s}[%s] {%s}Updater requires the ripext extension.", prefixcolor, prefix, textcolor);
+		return;
+	}
+
+	if (suDownloading || suWarmingCache)
+	{
+		if (client > 0 && IsClientInGame(client))
+			CPrintToChat(client, "{%s}[%s] {%s}A download or cache warming is already in progress.", prefixcolor, prefix, textcolor);
+		return;
+	}
+
+	suWarmingCache = true;
+	suWarmCount = 0;
+	suWarmErrors = 0;
+	suWarmTotal = 0;
+	suRequestingUser = (client > 0) ? GetClientUserId(client) : 0;
+
+	char manifestUrl[512];
+	Format(manifestUrl, sizeof(manifestUrl), "%s?t=%d", SU_MANIFEST_URL, GetTime());
+	HTTPRequest request = new HTTPRequest(manifestUrl);
+	request.SetHeader("User-Agent", "SoccerMod");
+
+	int userid = (client > 0) ? GetClientUserId(client) : 0;
+	request.Get(SU_OnWarmManifestResponse, userid);
+
+	if (client > 0 && IsClientInGame(client))
+		CPrintToChat(client, "{%s}[%s] {%s}Warming cache (full file list)...", prefixcolor, prefix, textcolor);
+}
+
+public void SU_OnWarmManifestResponse(HTTPResponse response, any userid, const char[] error)
+{
+	if (response.Status != HTTPStatus_OK)
+	{
+		suWarmingCache = false;
+		int client = (userid > 0) ? GetClientOfUserId(userid) : 0;
+		if (client > 0 && IsClientInGame(client))
+			CPrintToChat(client, "{%s}[%s] {red}Cache warming failed — could not fetch manifest (HTTP %d)", prefixcolor, prefix, view_as<int>(response.Status));
+		return;
+	}
+
+	JSONObject manifest = view_as<JSONObject>(response.Data);
+	if (manifest == null)
+	{
+		suWarmingCache = false;
+		return;
+	}
+
+	JSONArray files = view_as<JSONArray>(manifest.Get("full"));
+	if (files == null)
+	{
+		suWarmingCache = false;
+		return;
+	}
+
+	suWarmCount = files.Length;
+	suWarmTotal = files.Length;
+
+	for (int i = 0; i < files.Length; i++)
+	{
+		JSONObject fileObj = view_as<JSONObject>(files.Get(i));
+		if (fileObj == null)
+		{
+			suWarmCount--;
+			suWarmTotal--;
+			continue;
+		}
+
+		char repoPath[PLATFORM_MAX_PATH];
+		char destPath[PLATFORM_MAX_PATH];
+		fileObj.GetString("repo", repoPath, sizeof(repoPath));
+		fileObj.GetString("dest", destPath, sizeof(destPath));
+		int expectedSize = fileObj.HasKey("size") ? fileObj.GetInt("size") : 0;
+		delete fileObj;
+
+		char url[512];
+		Format(url, sizeof(url), "%s%s?t=%d", SU_RAW_BASE_URL, repoPath, GetTime());
+
+		char tmpPath[PLATFORM_MAX_PATH];
+		Format(tmpPath, sizeof(tmpPath), "%s.warmup", destPath);
+
+		SU_EnsureDirectoryExists(destPath);
+
+		DataPack pack = new DataPack();
+		pack.WriteString(tmpPath);
+		pack.WriteString(destPath);
+		pack.WriteCell(expectedSize);
+
+		HTTPRequest dlRequest = new HTTPRequest(url);
+		dlRequest.SetHeader("User-Agent", "SoccerMod");
+		dlRequest.DownloadFile(tmpPath, SU_OnWarmFileDownloaded, pack);
+	}
+
+	delete files;
+}
+
+public void SU_OnWarmFileDownloaded(HTTPStatus status, any data, const char[] error)
+{
+	suWarmCount--;
+
+	DataPack pack = view_as<DataPack>(data);
+	pack.Reset();
+	char tmpPath[PLATFORM_MAX_PATH];
+	char destPath[PLATFORM_MAX_PATH];
+	pack.ReadString(tmpPath, sizeof(tmpPath));
+	pack.ReadString(destPath, sizeof(destPath));
+	int expectedSize = pack.ReadCell();
+	delete pack;
+
+	if (status != HTTPStatus_OK)
+	{
+		suWarmErrors++;
+	}
+	else if (expectedSize > 0)
+	{
+		int actualSize = FileSize(tmpPath);
+		if (actualSize != expectedSize)
+			suWarmErrors++;
+	}
+
+	// Always delete the temp file — warming only, no applying
+	if (FileExists(tmpPath))
+		DeleteFile(tmpPath);
+
+	if (suWarmCount <= 0)
+	{
+		suWarmingCache = false;
+		int reqClient = (suRequestingUser > 0) ? GetClientOfUserId(suRequestingUser) : 0;
+
+		if (reqClient > 0 && IsClientInGame(reqClient))
+		{
+			int passed = suWarmTotal - suWarmErrors;
+			if (suWarmErrors == 0)
+				CPrintToChat(reqClient, "{%s}[%s] {%s}Cache warming complete — all %d files verified.", prefixcolor, prefix, textcolor, suWarmTotal);
+			else
+				CPrintToChat(reqClient, "{%s}[%s] {red}Cache warming done — %d/%d files passed, %d failed size check.", prefixcolor, prefix, passed, suWarmTotal, suWarmErrors);
+
+			OpenMenuUpdater(reqClient);
+		}
+
+		suRequestingUser = 0;
+	}
+}
+
 // ************************************************** ADMIN MENU ***************************************************
 
 public void OpenMenuUpdater(int client)
@@ -516,6 +666,7 @@ public void OpenMenuUpdater(int client)
 	menu.AddItem("interval", intervalString);
 
 	menu.AddItem("checksize", "Check Remote .smx Size");
+	menu.AddItem("warmcache", suWarmingCache ? "Warming Cache..." : "Warm Cache (full)", suWarmingCache ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
 
 	if (!suRipextAvailable)
 	{
@@ -551,6 +702,10 @@ public int MenuHandlerUpdater(Menu menu, MenuAction action, int client, int choi
 		{
 			SU_CheckRemoteSize(client);
 			CreateTimer(3.0, SU_TimerReopenMenu, GetClientUserId(client));
+		}
+		else if (StrEqual(menuItem, "warmcache"))
+		{
+			SU_WarmCache(client);
 		}
 		else if (StrEqual(menuItem, "autocheck"))
 		{

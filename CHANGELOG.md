@@ -1,8 +1,9 @@
 # Soccer Mod Changelog
 
-## 1.5.10
+## 1.5.11
 
 ### New
+- **Warm Cache menu option**: Downloads all files from CF Workers to verify sizes without applying — pre-warms CDN cache before updating
 - **Automatic retry with cache warming**: If download verification fails, waits 5 seconds (first attempt warms CF cache) and retries once before aborting
 
 ---
