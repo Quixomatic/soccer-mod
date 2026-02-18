@@ -42,9 +42,19 @@ public void HostName_Change_Status(char type[16])
 		else if (StrEqual(type, "Picking"))			tag = "PICKING";
 		else if (StrEqual(type, "Ready-Up"))		tag = "READY UP";
 		else if (StrEqual(type, "Ready Check"))		tag = "READY CHECK";
-		else if (StrEqual(type, "Periodbreak"))		tag = "PERIOD BREAK";
+		else if (StrEqual(type, "Periodbreak"))
+		{
+			Format(new_hostname, sizeof(new_hostname), "[PERIOD BREAK (%d-%d)] %s", matchScoreCT, matchScoreT, old_hostname);
+			g_hostname.SetString(new_hostname);
+			return;
+		}
+		else if (StrEqual(type, "Halftime"))
+		{
+			Format(new_hostname, sizeof(new_hostname), "[HALFTIME (%d-%d)] %s", matchScoreCT, matchScoreT, old_hostname);
+			g_hostname.SetString(new_hostname);
+			return;
+		}
 		else if (StrEqual(type, "Pre-Golden Goal"))	tag = "PRE-GOLDEN GOAL";
-		else if (StrEqual(type, "Halftime"))		tag = "HALFTIME";
 		else if (StrEqual(type, "Golden"))			tag = "GOLDEN GOAL";
 		else										tag = "SOCCER MOD";
 
@@ -59,28 +69,28 @@ public Action HostName_Change_Timer(Handle timer)
 	getTimeString(timeString, matchTime);
 	char stoppageTimeString[16];
 	getTimeString(stoppageTimeString, matchStoppageTime);
-	
+
 	if(matchTime <= matchPeriodLength && matchStoppageTime == 0)
 	{
-		Format(new_hostname, sizeof(new_hostname), "[%s] %s", timeString, old_hostname)
+		Format(new_hostname, sizeof(new_hostname), "[%s (%d-%d)] %s", timeString, matchScoreCT, matchScoreT, old_hostname);
 		g_hostname.SetString(new_hostname);
 	}
-	else if ((matchTime == matchPeriodLength && matchStoppageTime > 0)|| (matchTime == matchPeriodLength*2&& matchStoppageTime > 0))
+	else if ((matchTime == matchPeriodLength && matchStoppageTime > 0) || (matchTime == matchPeriodLength*2 && matchStoppageTime > 0))
 	{
-		Format(new_hostname, sizeof(new_hostname), "[%s + %s] %s", timeString, stoppageTimeString, old_hostname)
+		Format(new_hostname, sizeof(new_hostname), "[%s + %s (%d-%d)] %s", timeString, stoppageTimeString, matchScoreCT, matchScoreT, old_hostname);
 		g_hostname.SetString(new_hostname);
 	}
 	else if (matchTime <= matchPeriodLength*2 && matchStoppageTime == 0)
 	{
-		Format(new_hostname, sizeof(new_hostname), "[%s] %s", timeString, old_hostname)
+		Format(new_hostname, sizeof(new_hostname), "[%s (%d-%d)] %s", timeString, matchScoreCT, matchScoreT, old_hostname);
 		g_hostname.SetString(new_hostname);
 	}
 	else if (matchTime > matchPeriodLength*matchPeriods)
 	{
-		Format(new_hostname, sizeof(new_hostname), "[OT %s] %s", timeString, old_hostname)
+		Format(new_hostname, sizeof(new_hostname), "[OT %s (%d-%d)] %s", timeString, matchScoreCT, matchScoreT, old_hostname);
 		g_hostname.SetString(new_hostname);
 	}
-	
+
 	hostnameTimer = CreateTimer(hostname_update_time, HostName_Change_Timer);
 	return Plugin_Continue;
 }

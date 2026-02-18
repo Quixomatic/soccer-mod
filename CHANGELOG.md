@@ -1,5 +1,13 @@
 # Soccer Mod Changelog
 
+## 1.4.25
+
+### New
+- **Score in hostname status**: Live match score (CT-T) is now shown in the server hostname during matches
+  - Live: `[5:00 (2-1)]`, stoppage: `[5:00 + 0:30 (2-1)]`, overtime: `[OT 5:00 (3-2)]`
+  - Breaks: `[HALFTIME (2-1)]`, `[PERIOD BREAK (2-1)]`
+  - Golden Goal and Pre-Golden Goal remain score-free (tied is implied)
+
 ## 1.4.24
 
 ### New
