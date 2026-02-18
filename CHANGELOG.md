@@ -1,5 +1,12 @@
 # Soccer Mod Changelog
 
+## 1.5.6
+
+### New
+- **Self-updater file verification**: Downloaded files are now validated against expected file sizes from the manifest to prevent corrupt/partial updates
+
+---
+
 ## 1.5.5
 
 ### Changes

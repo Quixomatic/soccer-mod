@@ -187,6 +187,10 @@ public void SU_OnDownloadManifestResponse(HTTPResponse response, any userid, con
 		return;
 	}
 
+	// Clean up any previous pending files list
+	delete suPendingFiles;
+	suPendingFiles = new ArrayList(ByteCountToCells(PLATFORM_MAX_PATH * 2));
+
 	for (int i = 0; i < files.Length; i++)
 	{
 		JSONObject fileObj = view_as<JSONObject>(files.Get(i));
@@ -200,11 +204,15 @@ public void SU_OnDownloadManifestResponse(HTTPResponse response, any userid, con
 		char destPath[PLATFORM_MAX_PATH];
 		fileObj.GetString("repo", repoPath, sizeof(repoPath));
 		fileObj.GetString("dest", destPath, sizeof(destPath));
+		int expectedSize = fileObj.HasKey("size") ? fileObj.GetInt("size") : 0;
 		delete fileObj;
 
-		// Construct download URL
+		// Construct download URL and temp path
 		char url[512];
 		Format(url, sizeof(url), "%s%s", SU_RAW_BASE_URL, repoPath);
+
+		char tmpPath[PLATFORM_MAX_PATH];
+		Format(tmpPath, sizeof(tmpPath), "%s.update", destPath);
 
 		// Ensure parent directory exists
 		SU_EnsureDirectoryExists(destPath);
@@ -213,9 +221,15 @@ public void SU_OnDownloadManifestResponse(HTTPResponse response, any userid, con
 		if (reqClient > 0 && IsClientInGame(reqClient))
 			CPrintToChat(reqClient, "{%s}[%s] {%s}Downloading: %s", prefixcolor, prefix, textcolor, destPath);
 
+		// Pack temp path, dest path, and expected size for verification
+		DataPack pack = new DataPack();
+		pack.WriteString(tmpPath);
+		pack.WriteString(destPath);
+		pack.WriteCell(expectedSize);
+
 		HTTPRequest dlRequest = new HTTPRequest(url);
 		dlRequest.SetHeader("User-Agent", "SoccerMod");
-		dlRequest.DownloadFile(destPath, SU_OnFileDownloaded);
+		dlRequest.DownloadFile(tmpPath, SU_OnFileDownloaded, pack);
 	}
 
 	delete files;
@@ -225,14 +239,48 @@ public void SU_OnFileDownloaded(HTTPStatus status, any data, const char[] error)
 {
 	suDownloadCount--;
 
+	DataPack pack = view_as<DataPack>(data);
+	pack.Reset();
+	char tmpPath[PLATFORM_MAX_PATH];
+	char destPath[PLATFORM_MAX_PATH];
+	pack.ReadString(tmpPath, sizeof(tmpPath));
+	pack.ReadString(destPath, sizeof(destPath));
+	int expectedSize = pack.ReadCell();
+	delete pack;
+
 	int reqClient = (suRequestingUser > 0) ? GetClientOfUserId(suRequestingUser) : 0;
 
 	if (status != HTTPStatus_OK)
 	{
 		suDownloadErrors++;
-		LogMessage("[Soccer Mod] Download failed (HTTP %d): %s", view_as<int>(status), error);
+		LogMessage("[Soccer Mod] Download failed for %s (HTTP %d): %s", destPath, view_as<int>(status), error);
 		if (reqClient > 0 && IsClientInGame(reqClient))
-			CPrintToChat(reqClient, "{%s}[%s] {red}Download failed (HTTP %d): %s", prefixcolor, prefix, view_as<int>(status), error);
+			CPrintToChat(reqClient, "{%s}[%s] {red}Download failed: %s", prefixcolor, prefix, destPath);
+		DeleteFile(tmpPath);
+	}
+	else if (expectedSize > 0)
+	{
+		int actualSize = FileSize(tmpPath);
+		if (actualSize != expectedSize)
+		{
+			suDownloadErrors++;
+			DeleteFile(tmpPath);
+			LogMessage("[Soccer Mod] Size mismatch for %s: expected %d, got %d", destPath, expectedSize, actualSize);
+			if (reqClient > 0 && IsClientInGame(reqClient))
+				CPrintToChat(reqClient, "{%s}[%s] {red}Size mismatch: %s (expected %d, got %d)", prefixcolor, prefix, destPath, expectedSize, actualSize);
+		}
+		else
+		{
+			// Verified — queue for apply
+			suPendingFiles.PushString(tmpPath);
+			suPendingFiles.PushString(destPath);
+		}
+	}
+	else
+	{
+		// No expected size — trust the download
+		suPendingFiles.PushString(tmpPath);
+		suPendingFiles.PushString(destPath);
 	}
 
 	if (suDownloadCount <= 0)
@@ -241,14 +289,20 @@ public void SU_OnFileDownloaded(HTTPStatus status, any data, const char[] error)
 
 		if (suDownloadErrors == 0)
 		{
+			// All files verified — apply updates
+			SU_ApplyPendingFiles();
+
 			if (reqClient > 0 && IsClientInGame(reqClient))
 				CPrintToChat(reqClient, "{%s}[%s] {%s}Soccer Mod updated to v%s. Change map or reload plugin to apply.", prefixcolor, prefix, textcolor, suLatestVersion);
 			suUpdateAvailable = false;
 		}
 		else
 		{
+			// Errors — abort, clean up all temp files
+			SU_CleanupTempFiles();
+
 			if (reqClient > 0 && IsClientInGame(reqClient))
-				CPrintToChat(reqClient, "{%s}[%s] {%s}Update completed with %d error(s). Check server logs.", prefixcolor, prefix, textcolor, suDownloadErrors);
+				CPrintToChat(reqClient, "{%s}[%s] {%s}Update aborted — %d file(s) failed verification. No files were changed.", prefixcolor, prefix, textcolor, suDownloadErrors);
 		}
 
 		// Reopen menu for the admin who triggered the download
@@ -256,6 +310,44 @@ public void SU_OnFileDownloaded(HTTPStatus status, any data, const char[] error)
 			OpenMenuUpdater(reqClient);
 		suRequestingUser = 0;
 	}
+}
+
+public void SU_ApplyPendingFiles()
+{
+	if (suPendingFiles == null)
+		return;
+
+	for (int i = 0; i < suPendingFiles.Length; i += 2)
+	{
+		char tmpPath[PLATFORM_MAX_PATH];
+		char destPath[PLATFORM_MAX_PATH];
+		suPendingFiles.GetString(i, tmpPath, sizeof(tmpPath));
+		suPendingFiles.GetString(i + 1, destPath, sizeof(destPath));
+
+		if (FileExists(destPath))
+			DeleteFile(destPath);
+		RenameFile(destPath, tmpPath);
+	}
+
+	delete suPendingFiles;
+	suPendingFiles = null;
+}
+
+public void SU_CleanupTempFiles()
+{
+	if (suPendingFiles == null)
+		return;
+
+	for (int i = 0; i < suPendingFiles.Length; i += 2)
+	{
+		char tmpPath[PLATFORM_MAX_PATH];
+		suPendingFiles.GetString(i, tmpPath, sizeof(tmpPath));
+		if (FileExists(tmpPath))
+			DeleteFile(tmpPath);
+	}
+
+	delete suPendingFiles;
+	suPendingFiles = null;
 }
 
 // ************************************************** HELPERS ******************************************************

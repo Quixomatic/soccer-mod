@@ -156,9 +156,25 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Generate manifest with file sizes
+        run: |
+          python3 -c "
+          import json, os
+          with open('manifest.json') as f:
+              manifest = json.load(f)
+          for key in ['patch', 'full']:
+              if key in manifest:
+                  for entry in manifest[key]:
+                      filepath = os.path.join('release', entry['dest'])
+                      if os.path.exists(filepath):
+                          entry['size'] = os.path.getsize(filepath)
+          with open('release/manifest.json', 'w') as f:
+              json.dump(manifest, f, indent=2)
+          print('Generated manifest with file sizes')
+          "
+
       - name: Deploy to Cloudflare Workers (self-updater)
         run: |
-          cp manifest.json release/manifest.json
           npx wrangler deploy --assets release --name soccer-mod --latest
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
