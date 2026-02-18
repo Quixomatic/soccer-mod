@@ -1,7 +1,7 @@
 // **************************************************************************************************************
 // ************************************************** DEFINES ***************************************************
 // ************************************************************************************************************** 
-#define PLUGIN_VERSION "1.5.0"
+#define PLUGIN_VERSION "1.5.1"
 #define UPDATE_URL "https://raw.githubusercontent.com/Quixomatic/soccer-mod/main/addons/sourcemod/updatefile.txt"
 #define MAX_NAMES 10
 #define MAXCONES_DYN 15
@@ -432,7 +432,47 @@ public Action SayCommandListener(int client, char[] command, int argc)
 		else if (StrEqual(changeSetting[client], "CustomName"))
 		{
 			ShoutNameSet(client, "CustomShoutName", admin_value, 3, 64);
-			return Plugin_Handled;			
+			return Plugin_Handled;
+		}
+		else if (StrEqual(changeSetting[client], "PV_KickThreshold"))
+		{
+			PlayerVoteSet(client, "PV_KickThreshold", intnumber, 1, 100);
+			return Plugin_Handled;
+		}
+		else if (StrEqual(changeSetting[client], "PV_BanThreshold"))
+		{
+			PlayerVoteSet(client, "PV_BanThreshold", intnumber, 1, 100);
+			return Plugin_Handled;
+		}
+		else if (StrEqual(changeSetting[client], "PV_MuteThreshold"))
+		{
+			PlayerVoteSet(client, "PV_MuteThreshold", intnumber, 1, 100);
+			return Plugin_Handled;
+		}
+		else if (StrEqual(changeSetting[client], "PV_MapThreshold"))
+		{
+			PlayerVoteSet(client, "PV_MapThreshold", intnumber, 1, 100);
+			return Plugin_Handled;
+		}
+		else if (StrEqual(changeSetting[client], "PV_BanDuration"))
+		{
+			PlayerVoteSet(client, "PV_BanDuration", intnumber, 1, 1440);
+			return Plugin_Handled;
+		}
+		else if (StrEqual(changeSetting[client], "PV_MuteDuration"))
+		{
+			PlayerVoteSet(client, "PV_MuteDuration", intnumber, 1, 1440);
+			return Plugin_Handled;
+		}
+		else if (StrEqual(changeSetting[client], "PV_Cooldown"))
+		{
+			PlayerVoteSet(client, "PV_Cooldown", intnumber, 10, 600);
+			return Plugin_Handled;
+		}
+		else if (StrEqual(changeSetting[client], "PV_MinPlayers"))
+		{
+			PlayerVoteSet(client, "PV_MinPlayers", intnumber, 2, 20);
+			return Plugin_Handled;
 		}
 	}
 
@@ -848,6 +888,7 @@ public void OnClientPostAdminCheck(int client)
 {
 	ReplacerOnClientPostAdminCheck(client);
 	JoinLeaveNotifyJoin(client);
+	PlayerVotesOnClientPostAdminCheck(client);
 }
 
 public void OnClientAuthorized(int client, const char[] auth)

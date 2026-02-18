@@ -826,6 +826,7 @@ int pvMinPlayers			= 4;
 int pvLastVoteTime[MAXPLAYERS+1];			// Per-player cooldown tracking
 bool pvMuted[MAXPLAYERS+1];				// Track muted players for auto-unmute
 Handle pvMuteTimers[MAXPLAYERS+1];			// Timers for auto-unmute
+StringMap pvMuteExpiry;						// SteamID -> expiry timestamp for persistent mutes
 int pvActiveVoteType		= 0;			// 0=none, 1=kick, 2=ban, 3=mute, 4=map
 int pvActiveVoteTarget		= 0;			// Target client userid
 char pvActiveVoteMap[128];					// Target map name (for votemap)

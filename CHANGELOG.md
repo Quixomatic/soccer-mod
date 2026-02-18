@@ -1,5 +1,14 @@
 # Soccer Mod Changelog
 
+## 1.5.1
+
+### New
+- **Chat input for vote settings**: Admin settings for thresholds, durations, cooldown, and min players now use chat input instead of cycling through presets — type any value within the allowed range
+- **Persistent mutes across reconnects**: Vote mutes now survive disconnects and map changes — stored by SteamID with expiry timestamp in `cfg/sm_soccermod/soccer_mod_mutes.cfg`
+  - Re-applied automatically on reconnect with remaining duration
+  - Expired mutes cleaned up on map start
+  - Player notified of remaining mute time on join
+
 ## 1.5.0
 
 ### New

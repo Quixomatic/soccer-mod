@@ -14,6 +14,7 @@ public void PlayerVotesOnPluginStart()
 		pvPendingVoteType[i] = 0;
 	}
 	pvActiveVoteType = 0;
+	pvMuteExpiry = new StringMap();
 }
 
 public void PlayerVotesOnMapStart()
@@ -31,6 +32,19 @@ public void PlayerVotesOnMapStart()
 	}
 	pvActiveVoteType = 0;
 	pvActiveVoteTarget = 0;
+
+	// Load persistent mutes, clean expired entries
+	PV_LoadMuteFile();
+	PV_CleanExpiredMutes();
+
+	// Re-apply mutes to any connected players (map changes keep players connected)
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (IsClientInGame(i) && !IsFakeClient(i))
+		{
+			PV_CheckPersistentMute(i);
+		}
+	}
 }
 
 public void PlayerVotesOnClientDisconnect(int client)
@@ -43,6 +57,12 @@ public void PlayerVotesOnClientDisconnect(int client)
 		KillTimer(pvMuteTimers[client]);
 		pvMuteTimers[client] = null;
 	}
+	// Note: persistent mute stays in pvMuteExpiry/file — that's the whole point
+}
+
+public void PlayerVotesOnClientPostAdminCheck(int client)
+{
+	PV_CheckPersistentMute(client);
 }
 
 // ************************************************************************************************************
@@ -440,6 +460,13 @@ public void PV_ExecuteMute()
 
 	pvMuted[target] = true;
 
+	// Save persistent mute (SteamID + expiry timestamp)
+	int expiry = GetTime() + (pvVotemuteDuration * 60);
+	char steamid[32];
+	GetClientAuthId(target, AuthId_Engine, steamid, sizeof(steamid));
+	pvMuteExpiry.SetValue(steamid, expiry);
+	PV_SaveMuteFile();
+
 	// Auto-unmute timer
 	if (pvMuteTimers[target] != null)
 	{
@@ -473,6 +500,13 @@ public Action PV_TimerUnmute(Handle timer, int userid)
 		}
 
 		pvMuted[client] = false;
+
+		// Remove from persistent store
+		char steamid[32];
+		GetClientAuthId(client, AuthId_Engine, steamid, sizeof(steamid));
+		pvMuteExpiry.Remove(steamid);
+		PV_SaveMuteFile();
+
 		CPrintToChatAll("{%s}[%s] {%s}%N's mute has expired.", prefixcolor, prefix, textcolor, client);
 	}
 
@@ -515,6 +549,136 @@ public int PV_CountEligiblePlayers()
 public bool PV_IsAdminImmune(int client)
 {
 	return CheckCommandAccess(client, "generic_admin", ADMFLAG_GENERIC);
+}
+
+// ************************************************************************************************************
+// ********************************************** PERSISTENT MUTES *********************************************
+// ************************************************************************************************************
+
+#define PV_MUTE_FILE "cfg/sm_soccermod/soccer_mod_mutes.cfg"
+
+public void PV_LoadMuteFile()
+{
+	pvMuteExpiry.Clear();
+
+	if (!FileExists(PV_MUTE_FILE)) return;
+
+	KeyValues kv = new KeyValues("Mutes");
+	if (!kv.ImportFromFile(PV_MUTE_FILE))
+	{
+		delete kv;
+		return;
+	}
+
+	if (kv.GotoFirstSubKey(false))
+	{
+		do
+		{
+			char steamid[32];
+			kv.GetSectionName(steamid, sizeof(steamid));
+			int expiry = kv.GetNum(NULL_STRING, 0);
+			if (expiry > 0)
+			{
+				pvMuteExpiry.SetValue(steamid, expiry);
+			}
+		}
+		while (kv.GotoNextKey(false));
+	}
+
+	delete kv;
+}
+
+public void PV_SaveMuteFile()
+{
+	KeyValues kv = new KeyValues("Mutes");
+
+	StringMapSnapshot snap = pvMuteExpiry.Snapshot();
+	for (int i = 0; i < snap.Length; i++)
+	{
+		char steamid[32];
+		snap.GetKey(i, steamid, sizeof(steamid));
+		int expiry;
+		pvMuteExpiry.GetValue(steamid, expiry);
+		kv.SetNum(steamid, expiry);
+	}
+	delete snap;
+
+	kv.ExportToFile(PV_MUTE_FILE);
+	delete kv;
+}
+
+public void PV_CleanExpiredMutes()
+{
+	int now = GetTime();
+	bool changed = false;
+
+	StringMapSnapshot snap = pvMuteExpiry.Snapshot();
+	for (int i = 0; i < snap.Length; i++)
+	{
+		char steamid[32];
+		snap.GetKey(i, steamid, sizeof(steamid));
+		int expiry;
+		pvMuteExpiry.GetValue(steamid, expiry);
+		if (expiry <= now)
+		{
+			pvMuteExpiry.Remove(steamid);
+			changed = true;
+		}
+	}
+	delete snap;
+
+	if (changed) PV_SaveMuteFile();
+}
+
+public void PV_CheckPersistentMute(int client)
+{
+	if (IsFakeClient(client)) return;
+
+	char steamid[32];
+	GetClientAuthId(client, AuthId_Engine, steamid, sizeof(steamid));
+
+	int expiry;
+	if (!pvMuteExpiry.GetValue(steamid, expiry)) return;
+
+	int now = GetTime();
+	if (expiry <= now)
+	{
+		// Expired, clean up
+		pvMuteExpiry.Remove(steamid);
+		PV_SaveMuteFile();
+		return;
+	}
+
+	// Re-apply mute
+	if (GetFeatureStatus(FeatureType_Native, "BaseComm_SetClientMute") == FeatureStatus_Available)
+	{
+		BaseComm_SetClientMute(client, true);
+		BaseComm_SetClientGag(client, true);
+	}
+	else
+	{
+		SetClientListeningFlags(client, VOICE_MUTED);
+	}
+
+	pvMuted[client] = true;
+
+	// Start timer for remaining duration
+	int remaining = expiry - now;
+	if (pvMuteTimers[client] != null)
+	{
+		KillTimer(pvMuteTimers[client]);
+	}
+	pvMuteTimers[client] = CreateTimer(float(remaining), PV_TimerUnmute, GetClientUserId(client));
+
+	int remainingMin = remaining / 60;
+	if (remainingMin > 0)
+	{
+		CPrintToChat(client, "{%s}[%s] {%s}You are muted for %d more minutes.", prefixcolor, prefix, textcolor, remainingMin);
+	}
+	else
+	{
+		CPrintToChat(client, "{%s}[%s] {%s}You are muted for less than a minute.", prefixcolor, prefix, textcolor);
+	}
 }
 
 // ************************************************************************************************************
@@ -595,57 +759,49 @@ public int SettingsPlayerVotesHandler(Menu menu, MenuAction action, int client, 
 			UpdateConfigInt("Player Vote Settings", "soccer_mod_pv_votemap", pvVotemapEnabled);
 			OpenSettingsPlayerVotes(client);
 		}
-		// Thresholds (cycle: 51 -> 60 -> 67 -> 75 -> 80 -> 51)
+		// Thresholds - chat input (percent)
 		else if (StrEqual(menuItem, "kickth"))
 		{
-			pvKickThreshold = PV_CycleThreshold(pvKickThreshold);
-			UpdateConfigInt("Player Vote Settings", "soccer_mod_pv_kick_threshold", pvKickThreshold);
-			OpenSettingsPlayerVotes(client);
+			CPrintToChat(client, "{%s}[%s] {%s}Type kick threshold in percent (1-100), 0 to cancel. Current: %d%%", prefixcolor, prefix, textcolor, pvKickThreshold);
+			changeSetting[client] = "PV_KickThreshold";
 		}
 		else if (StrEqual(menuItem, "banth"))
 		{
-			pvBanThreshold = PV_CycleThreshold(pvBanThreshold);
-			UpdateConfigInt("Player Vote Settings", "soccer_mod_pv_ban_threshold", pvBanThreshold);
-			OpenSettingsPlayerVotes(client);
+			CPrintToChat(client, "{%s}[%s] {%s}Type ban threshold in percent (1-100), 0 to cancel. Current: %d%%", prefixcolor, prefix, textcolor, pvBanThreshold);
+			changeSetting[client] = "PV_BanThreshold";
 		}
 		else if (StrEqual(menuItem, "muteth"))
 		{
-			pvMuteThreshold = PV_CycleThreshold(pvMuteThreshold);
-			UpdateConfigInt("Player Vote Settings", "soccer_mod_pv_mute_threshold", pvMuteThreshold);
-			OpenSettingsPlayerVotes(client);
+			CPrintToChat(client, "{%s}[%s] {%s}Type mute threshold in percent (1-100), 0 to cancel. Current: %d%%", prefixcolor, prefix, textcolor, pvMuteThreshold);
+			changeSetting[client] = "PV_MuteThreshold";
 		}
 		else if (StrEqual(menuItem, "mapth"))
 		{
-			pvMapThreshold = PV_CycleThreshold(pvMapThreshold);
-			UpdateConfigInt("Player Vote Settings", "soccer_mod_pv_map_threshold", pvMapThreshold);
-			OpenSettingsPlayerVotes(client);
+			CPrintToChat(client, "{%s}[%s] {%s}Type map threshold in percent (1-100), 0 to cancel. Current: %d%%", prefixcolor, prefix, textcolor, pvMapThreshold);
+			changeSetting[client] = "PV_MapThreshold";
 		}
-		// Durations (cycle: 15 -> 30 -> 60 -> 120 -> 1440 -> 15)
+		// Durations - chat input (minutes)
 		else if (StrEqual(menuItem, "bandur"))
 		{
-			pvVotebanDuration = PV_CycleDuration(pvVotebanDuration);
-			UpdateConfigInt("Player Vote Settings", "soccer_mod_pv_ban_duration", pvVotebanDuration);
-			OpenSettingsPlayerVotes(client);
+			CPrintToChat(client, "{%s}[%s] {%s}Type ban duration in minutes (1-1440), 0 to cancel. Current: %d", prefixcolor, prefix, textcolor, pvVotebanDuration);
+			changeSetting[client] = "PV_BanDuration";
 		}
 		else if (StrEqual(menuItem, "mutedur"))
 		{
-			pvVotemuteDuration = PV_CycleDuration(pvVotemuteDuration);
-			UpdateConfigInt("Player Vote Settings", "soccer_mod_pv_mute_duration", pvVotemuteDuration);
-			OpenSettingsPlayerVotes(client);
+			CPrintToChat(client, "{%s}[%s] {%s}Type mute duration in minutes (1-1440), 0 to cancel. Current: %d", prefixcolor, prefix, textcolor, pvVotemuteDuration);
+			changeSetting[client] = "PV_MuteDuration";
 		}
-		// Cooldown (cycle: 30 -> 60 -> 120 -> 180 -> 300 -> 30)
+		// Cooldown - chat input (seconds)
 		else if (StrEqual(menuItem, "cooldown"))
 		{
-			pvVoteCooldown = PV_CycleCooldown(pvVoteCooldown);
-			UpdateConfigInt("Player Vote Settings", "soccer_mod_pv_cooldown", pvVoteCooldown);
-			OpenSettingsPlayerVotes(client);
+			CPrintToChat(client, "{%s}[%s] {%s}Type cooldown in seconds (10-600), 0 to cancel. Current: %d", prefixcolor, prefix, textcolor, pvVoteCooldown);
+			changeSetting[client] = "PV_Cooldown";
 		}
-		// Min players (cycle: 2 -> 3 -> 4 -> 6 -> 8 -> 2)
+		// Min players - chat input (count)
 		else if (StrEqual(menuItem, "minplayers"))
 		{
-			pvMinPlayers = PV_CycleMinPlayers(pvMinPlayers);
-			UpdateConfigInt("Player Vote Settings", "soccer_mod_pv_min_players", pvMinPlayers);
-			OpenSettingsPlayerVotes(client);
+			CPrintToChat(client, "{%s}[%s] {%s}Type minimum players (2-20), 0 to cancel. Current: %d", prefixcolor, prefix, textcolor, pvMinPlayers);
+			changeSetting[client] = "PV_MinPlayers";
 		}
 	}
 	else if (action == MenuAction_Cancel && choice == -6)	OpenMenuSettings(client);
@@ -653,39 +809,83 @@ public int SettingsPlayerVotesHandler(Menu menu, MenuAction action, int client, 
 	return 0;
 }
 
-// Cycle helpers
-int PV_CycleThreshold(int current)
+// Chat input handler for player vote settings
+public void PlayerVoteSet(int client, char type[32], int value, int min, int max)
 {
-	if (current < 60) return 60;
-	if (current < 67) return 67;
-	if (current < 75) return 75;
-	if (current < 80) return 80;
-	return 51;
-}
+	if (value == 0)
+	{
+		CPrintToChat(client, "{%s}[%s] {%s}Cancelled changing this value.", prefixcolor, prefix, textcolor);
+		changeSetting[client] = "";
+		OpenSettingsPlayerVotes(client);
+		return;
+	}
 
-int PV_CycleDuration(int current)
-{
-	if (current < 30) return 30;
-	if (current < 60) return 60;
-	if (current < 120) return 120;
-	if (current < 1440) return 1440;
-	return 15;
-}
+	if (value < min || value > max)
+	{
+		CPrintToChat(client, "{%s}[%s] {%s}Type a value between %d and %d.", prefixcolor, prefix, textcolor, min, max);
+		return;
+	}
 
-int PV_CycleCooldown(int current)
-{
-	if (current < 60) return 60;
-	if (current < 120) return 120;
-	if (current < 180) return 180;
-	if (current < 300) return 300;
-	return 30;
-}
+	char steamid[32];
+	GetClientAuthId(client, AuthId_Engine, steamid, sizeof(steamid));
 
-int PV_CycleMinPlayers(int current)
-{
-	if (current < 3) return 3;
-	if (current < 4) return 4;
-	if (current < 6) return 6;
-	if (current < 8) return 8;
-	return 2;
+	if (StrEqual(type, "PV_KickThreshold"))
+	{
+		pvKickThreshold = value;
+		UpdateConfigInt("Player Vote Settings", "soccer_mod_pv_kick_threshold", value);
+		CPrintToChatAll("{%s}[%s] {%s}%N set kick threshold to %d%%.", prefixcolor, prefix, textcolor, client, value);
+		LogMessage("%N <%s> set kick threshold to %d%%", client, steamid, value);
+	}
+	else if (StrEqual(type, "PV_BanThreshold"))
+	{
+		pvBanThreshold = value;
+		UpdateConfigInt("Player Vote Settings", "soccer_mod_pv_ban_threshold", value);
+		CPrintToChatAll("{%s}[%s] {%s}%N set ban threshold to %d%%.", prefixcolor, prefix, textcolor, client, value);
+		LogMessage("%N <%s> set ban threshold to %d%%", client, steamid, value);
+	}
+	else if (StrEqual(type, "PV_MuteThreshold"))
+	{
+		pvMuteThreshold = value;
+		UpdateConfigInt("Player Vote Settings", "soccer_mod_pv_mute_threshold", value);
+		CPrintToChatAll("{%s}[%s] {%s}%N set mute threshold to %d%%.", prefixcolor, prefix, textcolor, client, value);
+		LogMessage("%N <%s> set mute threshold to %d%%", client, steamid, value);
+	}
+	else if (StrEqual(type, "PV_MapThreshold"))
+	{
+		pvMapThreshold = value;
+		UpdateConfigInt("Player Vote Settings", "soccer_mod_pv_map_threshold", value);
+		CPrintToChatAll("{%s}[%s] {%s}%N set map threshold to %d%%.", prefixcolor, prefix, textcolor, client, value);
+		LogMessage("%N <%s> set map threshold to %d%%", client, steamid, value);
+	}
+	else if (StrEqual(type, "PV_BanDuration"))
+	{
+		pvVotebanDuration = value;
+		UpdateConfigInt("Player Vote Settings", "soccer_mod_pv_ban_duration", value);
+		CPrintToChatAll("{%s}[%s] {%s}%N set ban duration to %d minutes.", prefixcolor, prefix, textcolor, client, value);
+		LogMessage("%N <%s> set ban duration to %d minutes", client, steamid, value);
+	}
+	else if (StrEqual(type, "PV_MuteDuration"))
+	{
+		pvVotemuteDuration = value;
+		UpdateConfigInt("Player Vote Settings", "soccer_mod_pv_mute_duration", value);
+		CPrintToChatAll("{%s}[%s] {%s}%N set mute duration to %d minutes.", prefixcolor, prefix, textcolor, client, value);
+		LogMessage("%N <%s> set mute duration to %d minutes", client, steamid, value);
+	}
+	else if (StrEqual(type, "PV_Cooldown"))
+	{
+		pvVoteCooldown = value;
+		UpdateConfigInt("Player Vote Settings", "soccer_mod_pv_cooldown", value);
+		CPrintToChatAll("{%s}[%s] {%s}%N set vote cooldown to %ds.", prefixcolor, prefix, textcolor, client, value);
+		LogMessage("%N <%s> set vote cooldown to %ds", client, steamid, value);
+	}
+	else if (StrEqual(type, "PV_MinPlayers"))
+	{
+		pvMinPlayers = value;
+		UpdateConfigInt("Player Vote Settings", "soccer_mod_pv_min_players", value);
+		CPrintToChatAll("{%s}[%s] {%s}%N set min players to %d.", prefixcolor, prefix, textcolor, client, value);
+		LogMessage("%N <%s> set min players to %d", client, steamid, value);
+	}
+
+	changeSetting[client] = "";
+	OpenSettingsPlayerVotes(client);
 }
