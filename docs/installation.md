@@ -20,6 +20,7 @@ Complete setup and configuration guide for Soccer Mod on Counter-Strike: Source 
 ### Optional Dependencies
 - **SteamWorks** - Changes game name in server browser to "CS:S Soccer Mod"
 - **MariaDB/MySQL** - For persistent stats and ranking across server restarts
+- **[sm-ripext](https://github.com/ErikMinekus/sm-ripext)** - Enables the built-in [self-updater]({% link self-updater.md %}) for automatic updates
 
 ### Files You Need
 - Soccer Mod plugin (from [GitHub Releases](https://github.com/Quixomatic/soccer-mod/releases))
