@@ -2,8 +2,8 @@
 // ************************************************** SELF-UPDATER *************************************************
 // *******************************************************************************************************************
 
-#define SU_MANIFEST_URL "https://raw.githubusercontent.com/Quixomatic/soccer-mod/main/manifest.json"
-#define SU_RAW_BASE_URL "https://raw.githubusercontent.com/Quixomatic/soccer-mod/main/"
+#define SU_MANIFEST_URL "https://cdn.jsdelivr.net/gh/Quixomatic/soccer-mod@main/manifest.json"
+#define SU_RAW_BASE_URL "https://cdn.jsdelivr.net/gh/Quixomatic/soccer-mod@main/"
 
 // ************************************************** LIFECYCLE ****************************************************
 
@@ -62,9 +62,8 @@ public void SU_OnManifestResponse(HTTPResponse response, any userid, const char[
 	{
 		int client = (userid > 0) ? GetClientOfUserId(userid) : 0;
 		if (client > 0 && IsClientInGame(client))
-			CPrintToChat(client, "{%s}[%s] {%s}Update check failed (HTTP %d).", prefixcolor, prefix, textcolor, view_as<int>(response.Status));
-		else if (userid == 0)
-			LogMessage("[Soccer Mod] Update check failed: HTTP %d", view_as<int>(response.Status));
+			CPrintToChat(client, "{%s}[%s] {%s}Update check failed (HTTP %d): %s", prefixcolor, prefix, textcolor, view_as<int>(response.Status), error);
+		LogMessage("[Soccer Mod] Update check failed: HTTP %d | %s", view_as<int>(response.Status), error);
 		return;
 	}
 
