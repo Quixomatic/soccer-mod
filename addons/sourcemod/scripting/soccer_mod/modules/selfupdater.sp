@@ -2,8 +2,8 @@
 // ************************************************** SELF-UPDATER *************************************************
 // *******************************************************************************************************************
 
-#define SU_MANIFEST_URL "https://cdn.jsdelivr.net/gh/Quixomatic/soccer-mod@main/manifest.json"
-#define SU_RAW_BASE_URL "https://cdn.jsdelivr.net/gh/Quixomatic/soccer-mod@main/"
+#define SU_MANIFEST_URL "https://soccer-mod.jfreund18.workers.dev/manifest.json"
+#define SU_RAW_BASE_URL "https://soccer-mod.jfreund18.workers.dev/"
 
 // ************************************************** LIFECYCLE ****************************************************
 
@@ -49,11 +49,15 @@ public void SU_CheckForUpdate(int client)
 	if (client > 0)
 		userid = GetClientUserId(client);
 
+	LogMessage("[Soccer Mod] Fetching manifest: %s", SU_MANIFEST_URL);
 	request.Get(SU_OnManifestResponse, userid);
 	suLastCheckTime = GetTime();
 
 	if (client > 0 && IsClientInGame(client))
+	{
 		CPrintToChat(client, "{%s}[%s] {%s}Checking for updates...", prefixcolor, prefix, textcolor);
+		CPrintToChat(client, "{%s}[%s] {%s}URL: %s", prefixcolor, prefix, textcolor, SU_MANIFEST_URL);
+	}
 }
 
 public void SU_OnManifestResponse(HTTPResponse response, any userid, const char[] error)
@@ -66,6 +70,12 @@ public void SU_OnManifestResponse(HTTPResponse response, any userid, const char[
 		LogMessage("[Soccer Mod] Update check failed: HTTP %d | %s", view_as<int>(response.Status), error);
 		return;
 	}
+
+	// DEBUG: Log successful connection
+	LogMessage("[Soccer Mod] HTTP request succeeded (HTTP %d)", view_as<int>(response.Status));
+	int client2 = (userid > 0) ? GetClientOfUserId(userid) : 0;
+	if (client2 > 0 && IsClientInGame(client2))
+		CPrintToChat(client2, "{%s}[%s] {%s}HTTP request succeeded (HTTP %d)", prefixcolor, prefix, textcolor, view_as<int>(response.Status));
 
 	JSONObject manifest = view_as<JSONObject>(response.Data);
 	if (manifest == null)
@@ -206,6 +216,8 @@ public void SU_OnDownloadManifestResponse(HTTPResponse response, any userid, con
 		// Ensure parent directory exists
 		SU_EnsureDirectoryExists(destPath);
 
+		PrintToChatAll("[SM Updater] DL: %s -> %s", url, destPath);
+
 		HTTPRequest dlRequest = new HTTPRequest(url);
 		dlRequest.SetHeader("User-Agent", "SoccerMod");
 		dlRequest.DownloadFile(destPath, SU_OnFileDownloaded);
@@ -221,7 +233,11 @@ public void SU_OnFileDownloaded(HTTPStatus status, any data, const char[] error)
 	if (status != HTTPStatus_OK)
 	{
 		suDownloadErrors++;
-		LogMessage("[Soccer Mod] File download failed: %s (HTTP %d)", error, view_as<int>(status));
+		PrintToChatAll("[SM Updater] FAIL (HTTP %d): %s", view_as<int>(status), error);
+	}
+	else
+	{
+		PrintToChatAll("[SM Updater] OK (HTTP %d)", view_as<int>(status));
 	}
 
 	if (suDownloadCount <= 0)
@@ -321,6 +337,9 @@ public void OpenMenuUpdater(int client)
 	Format(intervalString, sizeof(intervalString), "Check Interval: %ds", suCheckInterval);
 	menu.AddItem("interval", intervalString);
 
+	menu.AddItem("testssl", "--- Test SSL Hosts ---");
+	menu.AddItem("testurl", "--- Test Custom URL ---");
+
 	if (!suRipextAvailable)
 	{
 		menu.AddItem("noripext", "ripext extension not loaded!", ITEMDRAW_DISABLED);
@@ -365,6 +384,16 @@ public int MenuHandlerUpdater(Menu menu, MenuAction action, int client, int choi
 			CPrintToChat(client, "{%s}[%s] {%s}Type the check interval in seconds (600-86400). 0 to cancel.", prefixcolor, prefix, textcolor);
 			changeSetting[client] = "SU_Interval";
 		}
+		else if (StrEqual(menuItem, "testssl"))
+		{
+			SU_TestSSL(client);
+			CreateTimer(5.0, SU_TimerReopenMenu, GetClientUserId(client));
+		}
+		else if (StrEqual(menuItem, "testurl"))
+		{
+			CPrintToChat(client, "{%s}[%s] {%s}Type a full URL to test (e.g. https://example.com/file.txt). Type 'cancel' to cancel.", prefixcolor, prefix, textcolor);
+			changeSetting[client] = "SU_TestURL";
+		}
 	}
 	else if (action == MenuAction_Cancel && choice == -6)	OpenMenuSettings(client);
 	else if (action == MenuAction_End)						menu.Close();
@@ -406,4 +435,109 @@ public void SelfUpdaterSet(int client, char[] type, int value, int min, int max)
 
 	changeSetting[client] = "";
 	OpenMenuUpdater(client);
+}
+
+// ************************************************** SSL TESTING (TEMP) ********************************************
+
+public void SU_TestSSL(int client)
+{
+	CPrintToChat(client, "{%s}[%s] {%s}Testing 8 HTTPS hosts...", prefixcolor, prefix, textcolor);
+
+	HTTPRequest r1 = new HTTPRequest("https://httpbin.org/get");
+	r1.SetHeader("User-Agent", "SoccerMod");
+	r1.Get(SU_OnTestResponse, 1);
+
+	HTTPRequest r2 = new HTTPRequest("https://codeberg.org/");
+	r2.SetHeader("User-Agent", "SoccerMod");
+	r2.Get(SU_OnTestResponse, 2);
+
+	HTTPRequest r3 = new HTTPRequest("https://bitbucket.org/");
+	r3.SetHeader("User-Agent", "SoccerMod");
+	r3.Get(SU_OnTestResponse, 3);
+
+	HTTPRequest r4 = new HTTPRequest("https://surge.sh/");
+	r4.SetHeader("User-Agent", "SoccerMod");
+	r4.Get(SU_OnTestResponse, 4);
+
+	HTTPRequest r5 = new HTTPRequest("https://netlify.com/");
+	r5.SetHeader("User-Agent", "SoccerMod");
+	r5.Get(SU_OnTestResponse, 5);
+
+	HTTPRequest r6 = new HTTPRequest("https://sourceforge.net/");
+	r6.SetHeader("User-Agent", "SoccerMod");
+	r6.Get(SU_OnTestResponse, 6);
+
+	HTTPRequest r7 = new HTTPRequest("https://transfer.sh/");
+	r7.SetHeader("User-Agent", "SoccerMod");
+	r7.Get(SU_OnTestResponse, 7);
+
+	HTTPRequest r8 = new HTTPRequest("https://keybase.io/");
+	r8.SetHeader("User-Agent", "SoccerMod");
+	r8.Get(SU_OnTestResponse, 8);
+}
+
+public void SU_OnTestResponse(HTTPResponse response, any testId, const char[] error)
+{
+	char host[32];
+	switch (testId)
+	{
+		case 1: strcopy(host, sizeof(host), "httpbin.org");
+		case 2: strcopy(host, sizeof(host), "codeberg.org");
+		case 3: strcopy(host, sizeof(host), "bitbucket.org");
+		case 4: strcopy(host, sizeof(host), "surge.sh");
+		case 5: strcopy(host, sizeof(host), "netlify.com");
+		case 6: strcopy(host, sizeof(host), "sourceforge.net");
+		case 7: strcopy(host, sizeof(host), "transfer.sh");
+		case 8: strcopy(host, sizeof(host), "keybase.io");
+	}
+
+	if (view_as<int>(response.Status) > 0)
+		PrintToChatAll("[SSL Test] %s = OK (HTTP %d)", host, view_as<int>(response.Status));
+	else
+		PrintToChatAll("[SSL Test] %s = FAIL: %s", host, error);
+}
+
+public void SU_TestCustomURL(int client, const char[] input)
+{
+	if (StrEqual(input, "cancel", false))
+	{
+		CPrintToChat(client, "{%s}[%s] {%s}Cancelled.", prefixcolor, prefix, textcolor);
+		changeSetting[client] = "";
+		OpenMenuUpdater(client);
+		return;
+	}
+
+	// Basic URL validation
+	if (strncmp(input, "http://", 7) != 0 && strncmp(input, "https://", 8) != 0)
+	{
+		CPrintToChat(client, "{%s}[%s] {%s}URL must start with http:// or https://. Try again or type 'cancel'.", prefixcolor, prefix, textcolor);
+		return;
+	}
+
+	CPrintToChat(client, "{%s}[%s] {%s}Testing: %s", prefixcolor, prefix, textcolor, input);
+
+	HTTPRequest request = new HTTPRequest(input);
+	request.SetHeader("User-Agent", "SoccerMod");
+	request.Get(SU_OnCustomTestResponse, GetClientUserId(client));
+
+	// Stay in test mode for rapid iteration
+	CPrintToChat(client, "{%s}[%s] {%s}Enter another URL or type 'cancel' to stop.", prefixcolor, prefix, textcolor);
+}
+
+public void SU_OnCustomTestResponse(HTTPResponse response, any userid, const char[] error)
+{
+	int client = (userid > 0) ? GetClientOfUserId(userid) : 0;
+
+	if (view_as<int>(response.Status) > 0)
+	{
+		if (client > 0 && IsClientInGame(client))
+			CPrintToChat(client, "{%s}[%s] {green}OK (HTTP %d)", prefixcolor, prefix, view_as<int>(response.Status));
+		PrintToChatAll("[SSL Test] Custom URL = OK (HTTP %d)", view_as<int>(response.Status));
+	}
+	else
+	{
+		if (client > 0 && IsClientInGame(client))
+			CPrintToChat(client, "{%s}[%s] {red}FAIL: %s", prefixcolor, prefix, error);
+		PrintToChatAll("[SSL Test] Custom URL = FAIL: %s", error);
+	}
 }

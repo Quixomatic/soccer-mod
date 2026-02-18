@@ -1,5 +1,14 @@
 # Soccer Mod Changelog
 
+## 1.5.4
+
+### Changes
+- **Self-updater**: Switched file hosting to Cloudflare Pages for reliable downloads (ripext SSL compatibility)
+- GitHub Action now deploys release files to Cloudflare Pages for the self-updater
+- Updated manifest and download URLs to use Cloudflare Pages CDN
+
+---
+
 ## 1.5.3
 
 ### New

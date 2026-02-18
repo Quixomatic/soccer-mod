@@ -458,6 +458,11 @@ public Action SayCommandListener(int client, char[] command, int argc)
 			PlayerVoteSet(client, "PV_MinPlayers", intnumber, 2, 20);
 			return Plugin_Handled;
 		}
+		else if (StrEqual(changeSetting[client], "SU_TestURL"))
+		{
+			SU_TestCustomURL(client, admin_value);
+			return Plugin_Handled;
+		}
 		else if (StrEqual(changeSetting[client], "SU_Interval"))
 		{
 			SelfUpdaterSet(client, "SU_Interval", intnumber, 600, 86400);

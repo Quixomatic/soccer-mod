@@ -155,3 +155,11 @@ jobs:
             manifest.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy to Cloudflare Pages (self-updater)
+        run: |
+          cp manifest.json release/manifest.json
+          npx wrangler pages deploy release --project-name=soccer-mod
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
