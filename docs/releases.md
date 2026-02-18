@@ -40,10 +40,16 @@ soccer_mod.zip
 │           └── soccer_mod.smx    # Compiled plugin
 ├── cfg/
 │   └── sm_soccermod/             # Example configs
-├── materials/                     # Textures (if included)
-├── models/                        # Models (if included)
-└── sound/                         # Sounds (if included)
+├── materials/                     # Textures
+├── models/                        # Models
+└── sound/                         # Sounds
 ```
+
+---
+
+## Automatic Updates
+
+Soccer Mod includes a built-in [self-updater]({% link self-updater.md %}) that can download new versions directly from the server. Requires the optional **sm-ripext** extension.
 
 ---
 
@@ -55,12 +61,19 @@ See the [Changelog]({% link changelog.md %}) for detailed version history.
 
 | Version | Highlights |
 |---------|------------|
-| v1.4.12 | Fixed kickoff wall orientation detection, permission updates |
-| v1.4.11 | Configurable team size (2v2 to 6v6), vote menu improvements |
-| v1.4.10 | Auto-retry captain votes, improved vote HUD |
-| v1.4.9 | Join/leave notifications system |
-| v1.4.8 | WhoIS player tracking system |
-| v1.4.7 | Visual HUD for captain voting |
+| v1.5.11 | Cache warming menu option, automatic retry on failed downloads |
+| v1.5.8 | Remote .smx size check diagnostic tool |
+| v1.5.6 | File size verification for self-updater downloads |
+| v1.5.3 | Built-in self-updater (replaces GoD-Tony updater) |
+| v1.5.0 | Player Vote System (votekick, voteban, votemute, votemap) |
+| v1.4.25 | Score in hostname status |
+| v1.4.24 | Configurable cap vote duration and prematch countdown |
+| v1.4.23 | Pick Pool System and picking HUD |
+| v1.4.22 | Reorganized admin settings menu |
+| v1.4.16 | Configurable kickoff walls system |
+| v1.4.11 | Configurable team size (2v2 to 6v6) |
+| v1.4.9 | Join/leave notifications |
+| v1.4.8 | WhoIS player tracking |
 | v1.4.6 | Ready check system, timeout support |
 | v1.4.5 | Auto cap system with voting |
 
@@ -74,6 +87,9 @@ To upgrade an existing installation:
 2. Download and extract the new release
 3. Your configs will be preserved (the plugin doesn't overwrite existing configs)
 4. Restart the server or reload the plugin: `sm plugins reload soccer_mod`
+
+{: .note }
+If you have the [self-updater]({% link self-updater.md %}) set up, you can update directly from the admin menu without downloading manually.
 
 {: .warning }
 Always backup your configuration files before upgrading. While configs are preserved, it's good practice to have a backup.

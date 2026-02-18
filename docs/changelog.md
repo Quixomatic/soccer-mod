@@ -11,11 +11,205 @@ Version history for Soccer Mod.
 
 ---
 
+## 1.5.11
+
+### New
+- **Warm Cache menu option**: Downloads all files from CF Workers to verify sizes without applying — pre-warms CDN cache before updating
+- **Automatic retry with cache warming**: If download verification fails, waits 5 seconds (first attempt warms CF cache) and retries once before aborting
+
+---
+
+## 1.5.9
+
+### Fixes
+- **Cache-busting on all download URLs**: Add `?t=<timestamp>` to all HTTP requests to prevent CDN serving stale/corrupt files
+
+---
+
+## 1.5.8
+
+### New
+- **Remote .smx size check**: Admin menu option to verify the remote .smx file size before updating
+
+---
+
+## 1.5.6
+
+### New
+- **Self-updater file verification**: Downloaded files are now validated against expected file sizes from the manifest to prevent corrupt/partial updates
+
+---
+
+## 1.5.5
+
+### Changes
+- Clean up self-updater debug logging and test code
+- Download progress messages now only visible to the admin who initiated the update
+
+---
+
+## 1.5.4
+
+### Changes
+- **Self-updater**: Switched file hosting to Cloudflare Workers for reliable downloads (ripext SSL compatibility)
+- GitHub Action now deploys release files to Cloudflare Workers for the self-updater
+
+---
+
+## 1.5.3
+
+### New
+- **Self-updater**: Built-in update system using ripext extension (replaces broken GoD-Tony updater)
+  - Admin menu: Settings > Updater — check for updates, download patch (.smx only) or full update (all files)
+  - Fetches manifest from CDN to detect new versions via semver comparison
+  - Optional auto-check on map start with configurable interval
+  - ripext is an optional dependency — updater silently disabled without it
+- **manifest.json**: Release manifest tracks all 87+ release files with repo-to-server path mapping
+
+### Changes
+- Removed GoD-Tony Updater plugin dependency (broken on x64 servers)
+- Deleted `updater.inc` and `updatefile.txt`
+
+---
+
+## 1.5.1
+
+### New
+- **Chat input for vote settings**: Admin settings for thresholds, durations, cooldown, and min players now use chat input instead of cycling through presets
+- **Persistent mutes across reconnects**: Vote mutes now survive disconnects and map changes — stored by SteamID with expiry timestamp
+
+---
+
+## 1.5.0
+
+### New
+- **Player Vote System**: Any player can initiate votes — no admin required
+  - `!votekick` — vote to kick a player
+  - `!voteban` — vote to ban a player (default 30 min)
+  - `!votemute` — vote to mute a player (default 30 min, auto-unmutes)
+  - `!votemap` — vote to change map (from allowed maps list)
+  - All vote types disabled by default, enable via Admin > Settings > Player Votes
+  - Configurable per-type thresholds, cooldown, and minimum players
+
+---
+
+## 1.4.25
+
+### New
+- **Score in hostname status**: Live match score shown in server hostname during matches
+
+---
+
+## 1.4.24
+
+### New
+- **Configurable Cap Vote Duration**: Vote timer for captain approval (10-30 seconds)
+- **Configurable Prematch Countdown**: Ready check countdown before match start (off/15/20/30/45/60 seconds)
+
+### Fixes
+- **Fix hostname status stacking**: Hostname tags no longer stack on repeated state changes
+
+---
+
+## 1.4.23
+
+### New
+- **Pick Pool System**: Robust player tracking during picking phase
+- **Pick Pool Mode toggle**: Admin > Cap > Pick pool mode (Legacy/Pool System)
+- **Late Joiner Handling**: Players who join during picking are flagged with `[LATE]`
+- **Pick HUD**: Hint text showing available players during picking phase
+
+### Fixes
+- Fixed hardcoded "12" values in cap system now use `matchMaxPlayers * 2`
+
+---
+
+## 1.4.22
+
+### Changes
+- Reorganized Admin > Settings menu structure for better navigation
+- Replaced bloated "Misc Settings" menu with 5 focused subcategories:
+  - Match Settings, Gameplay Settings, Visual Settings, Stats & Ranking, Notifications
+
+---
+
+## 1.4.21
+
+### Fixes
+- Fixed ready check countdown timer spam bug
+- Ball entities now removed when cap/knife fight starts
+
+---
+
+## 1.4.20
+
+### Changes
+- `EnoughPlayers()` uses 80% threshold to handle disconnects near match end
+
+---
+
+## 1.4.19
+
+### Changes
+- `EnoughPlayers()` now uses `matchMaxPlayers` setting instead of hardcoded 5v5
+
+---
+
+## 1.4.18
+
+### Fixes
+- Fixed all 190 build warnings for clean SourcePawn 1.12 compilation
+- Fixed `EnoughPlayers()` function call bug (was always returning true)
+
+---
+
+## 1.4.17
+
+### Fixes
+- Fixed kickoff walls for Y-orientation maps
+
+---
+
+## 1.4.16
+
+### New
+- Configurable kickoff walls system with per-map settings
+- New config file: `soccer_mod_kickoffwalls.cfg`
+- Admin menu: Settings > Kickoff Walls Setup
+- Commands: `!kickoffwalls`, `!setradius`, `!setcenter`, `!kwinfo`
+- Wireframe visualization and test walls feature
+
+---
+
+## 1.4.15
+
+### New
+- Added `!fug` as alias for `!forfeit`
+
+### Changes
+- Updated help menu with all current commands
+
+---
+
+## 1.4.14
+
+### New
+- Stats URL integration for external stats websites
+- `!mystats` command opens player's stats page
+
+---
+
+## 1.4.13
+
+### Fixes
+- Fixed database config not loading
+
+---
+
 ## 1.4.12
 
 ### Fixes
 - Fixed kickoff walls not loading on maps due to float equality comparison bug
-- Map orientation detection now uses tolerance-based comparison (xDiff vs yDiff)
 
 ---
 
@@ -23,16 +217,10 @@ Version history for Soccer Mod.
 
 ### New
 - Configurable team size (2v2, 3v3, 4v4, 5v5, 6v6)
-- Config setting: `soccer_mod_match_max_players` in Match Settings
-- Map defaults support: `default_max_players` per map
-- Admin menu: Settings > Misc > Team Size submenu
-- Vote menu auto-reopens if closed without voting
-- Added `!pug` as alias for `!autocap`
+- `!pug` alias for `!autocap`
 
 ### Changes
 - Team size affects autocap, picking, join/leave notifications, First N rule
-- Simplified vote HUD (removed percentage numbers)
-- Debug mode now bypasses First 12 rule for captain eligibility
 
 ---
 
@@ -40,107 +228,59 @@ Version history for Soccer Mod.
 
 ### New
 - Auto-retry failed captain votes with new random captain pairs
-- Generates all unique captain combinations and shuffles them at start
-- Tries each unique pair in random order (no repeats until all tried)
-- After all combinations exhausted, switches to purely random selection
-- Shows remaining combinations count during voting
-- 2-second delay between failed vote and next attempt
-- Respects First 12 rule for captain eligibility
-
-### Changes
-- Vote HUD now uses ASCII characters for consistent alignment
-- Captain selection properly filters by join order (First 12 rule)
 
 ---
 
 ## 1.4.9
 
 ### New
-- Added Join/Leave notification system
-- Chat notifications when players join or leave the server
-- Shows player count vs required players (e.g., "11/12 players")
-- Special "Ready to play!" message when server reaches capacity
-- Per-player preferences for chat and sound notifications (via Settings menu)
-- Sounds off by default (opt-in), chat on by default
-- Admin controls in Misc Settings: global toggle and volume control
-- Configurable sounds via `cfg/sm_soccermod/soccer_mod_joinleave.cfg`
-- Graceful handling when sound files don't exist
+- Join/Leave notification system with per-player preferences
+- Configurable sounds via `soccer_mod_joinleave.cfg`
 
 ---
 
 ## 1.4.8
 
 ### New
-- Integrated WhoIS player tracking system as built-in module
-- Tracks player names across sessions with first name, current name, and alias support
-- Connect announcements: "Known as: [alias/first name]" for returning players
-- Welcome message for new players
-- `!whois` / `.whois` - Look up player info
-- `!alias <name>` / `.alias` - Set your preferred display alias
-- `!whois_history` / `.history` - Admin command to view player name history
+- WhoIS player tracking system (`!whois`, `!alias`, `!whois_history`)
 
 ---
 
 ## 1.4.7
 
 ### New
-- Added visual HUD display during captain voting with progress bars
-- Vote HUD shows: YES/NO bars, percentages, vote counts, countdown timer
-- HUD refreshes every second during voting phase
-
-### Changes
-- Enhanced chat messages with colors throughout cap system
-- Team colors: red for T, blue for CT
-- Player names highlighted in green
-- Vote pass/fail messages now colored
+- Visual HUD during captain voting with progress bars
 
 ---
 
 ## 1.4.6
 
 ### New
-- Added reusable Ready Check system with panel display
-- Pre-match ready check auto-starts after cap picking completes
-- Countdown timer (configurable, default 60s)
+- Ready Check system with panel display
+- Timeout system (`!to`, `!ti`)
 - Ready commands: `!r`, `!rdy`, `!ready`
-- Not ready commands: `!nr`, `!notready`
-- Timeout system: `!to` pauses match and starts ready check
-- Time-in commands: `!ti` (caller or admin can end timeout)
-- Admin commands: `!forceready`, `!cancelready`
-- Panel visibility: `!hide`, `!show`
-
-### Changes
-- Fixed snake draft pick order
 
 ---
 
 ## 1.4.5
 
 ### New
-- Added Auto Cap system (`!autocap`) - automated captain selection with voting
-- Random captain selection from players
-- Server-wide vote: "Start cap fight with X vs Y?"
-- Vote menu shows current status, allows changing vote
-- Ready-up phase for captains (`!k` or `.k` to ready)
-- HUD display shows captain ready status
+- Auto Cap system with voting (`!autocap`)
 
 ---
 
 ## 1.4.4
 
 ### New
-- Added cap control commands: `!stopcap`, `!resetcap`, `!startpick`
-- Added snake draft pick order (configurable)
-- Added "Stop cap fight" option in cap menu
-- Captain disconnect now auto-resets the cap system
+- Cap control commands: `!stopcap`, `!resetcap`, `!startpick`
+- Snake draft pick order
 
 ---
 
 ## 1.4.3
 
 ### New
-- Added configurable cap fight starting health via in-game settings menu
-- New menu option under Cap settings to set health
+- Configurable cap fight starting health
 
 ---
 
@@ -148,7 +288,6 @@ Version history for Soccer Mod.
 
 ### Changes
 - Rebranded from "SoMoE-19" to "Soccer Mod"
-- Updated plugin info and repository URLs
 
 ---
 
@@ -156,15 +295,15 @@ Version history for Soccer Mod.
 
 ### Changes
 - Fixed include paths for cross-platform compatibility
-- Added GitHub Actions workflow for automated releases
+- GitHub Actions workflow for automated releases
 
 ---
 
 ## 1.4.0
 
 ### New
-- Added `sv_alltalk` automatic toggle: turns off when match starts
-- Executes `soccer_match.cfg` on match start and `soccer_public.cfg` on match end
+- `sv_alltalk` automatic toggle
+- Executes `soccer_match.cfg` / `soccer_public.cfg` on match start/end
 
 ### Changes
 - Updated for SourcePawn 1.12 compatibility

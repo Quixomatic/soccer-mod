@@ -283,6 +283,102 @@ Point values are **not** editable in-game. Edit this file directly.
 
 ---
 
+## Cap Settings
+
+```
+"Cap Settings"
+{
+    "soccer_mod_cap_hp"                 "101"
+    "soccer_mod_cap_snake"              "1"
+    "soccer_mod_cap_pickpool"           "1"
+    "soccer_mod_cap_disallow_late"      "0"
+    "soccer_mod_cap_vote_duration"      "20"
+    "soccer_mod_prematch_countdown"     "30"
+}
+```
+
+| Setting | Values | Description |
+|---------|--------|-------------|
+| `soccer_mod_cap_hp` | Number | Health during cap fight (101=default, 1=instant kill) |
+| `soccer_mod_cap_snake` | 0, 1 | Snake draft pick order |
+| `soccer_mod_cap_pickpool` | 0, 1 | Pick pool mode: 0=Legacy, 1=Pool system |
+| `soccer_mod_cap_disallow_late` | 0, 1 | Block late joiners during picking |
+| `soccer_mod_cap_vote_duration` | 10-30 | Seconds for captain approval vote |
+| `soccer_mod_prematch_countdown` | 0-60 | Ready check countdown (0=wait indefinitely) |
+
+---
+
+## Player Votes Settings
+
+```
+"Player Votes"
+{
+    "soccer_mod_pv_votekick"        "0"
+    "soccer_mod_pv_voteban"         "0"
+    "soccer_mod_pv_votemute"        "0"
+    "soccer_mod_pv_votemap"         "0"
+    "soccer_mod_pv_kick_threshold"  "51"
+    "soccer_mod_pv_ban_threshold"   "75"
+    "soccer_mod_pv_mute_threshold"  "51"
+    "soccer_mod_pv_map_threshold"   "51"
+    "soccer_mod_pv_ban_duration"    "30"
+    "soccer_mod_pv_mute_duration"   "30"
+    "soccer_mod_pv_cooldown"        "60"
+    "soccer_mod_pv_minplayers"      "4"
+}
+```
+
+| Setting | Values | Description |
+|---------|--------|-------------|
+| `soccer_mod_pv_votekick` | 0, 1 | Enable votekick |
+| `soccer_mod_pv_voteban` | 0, 1 | Enable voteban |
+| `soccer_mod_pv_votemute` | 0, 1 | Enable votemute |
+| `soccer_mod_pv_votemap` | 0, 1 | Enable votemap |
+| `soccer_mod_pv_*_threshold` | 1-100 | Percentage of votes needed to pass |
+| `soccer_mod_pv_ban_duration` | Minutes | Ban duration when vote passes |
+| `soccer_mod_pv_mute_duration` | Minutes | Mute duration when vote passes |
+| `soccer_mod_pv_cooldown` | Seconds | Per-initiator cooldown between votes |
+| `soccer_mod_pv_minplayers` | Number | Minimum players required to start a vote |
+
+---
+
+## Updater Settings
+
+```
+"Updater Settings"
+{
+    "soccer_mod_su_autocheck"       "0"
+    "soccer_mod_su_check_interval"  "3600"
+}
+```
+
+| Setting | Values | Description |
+|---------|--------|-------------|
+| `soccer_mod_su_autocheck` | 0, 1 | Auto-check for updates on map start |
+| `soccer_mod_su_check_interval` | 600-86400 | Seconds between auto-checks |
+
+{: .note }
+The updater requires the optional [sm-ripext]({% link self-updater.md %}) extension. Without it, these settings have no effect.
+
+---
+
+## Join/Leave Settings
+
+```
+"Join/Leave Settings"
+{
+    "soccer_mod_joinleave"          "0"
+    "soccer_mod_joinleave_volume"   "0.5"
+}
+```
+
+| Setting | Values | Description |
+|---------|--------|-------------|
+| `soccer_mod_joinleave` | 0, 1 | Enable join/leave notifications |
+| `soccer_mod_joinleave_volume` | 0.0-1.0 | Volume for notification sounds |
+
+---
+
 ## Debug Settings
 
 ```

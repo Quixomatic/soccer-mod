@@ -43,12 +43,11 @@ Open the menu with `!menu` or `!soccer` in chat.
 │  ├─ Cap (*)
 │  │  ├─ Put all players to spectator
 │  │  ├─ Add random player
+│  │  ├─ Auto Cap
 │  │  ├─ Start cap fight (weapon)
 │  │  ├─ Stop cap fight
-│  │  ├─ Start picking
 │  │  ├─ Reset cap
-│  │  ├─ Snake draft toggle
-│  │  └─ Cap weapon choice
+│  │  └─ Debug Cap Mode
 │  │
 │  ├─ Referee (*)
 │  │  ├─ Yellow Card
@@ -80,28 +79,71 @@ Open the menu with `!menu` or `!soccer` in chat.
 │     ├─ Manage Admins (°)
 │     ├─ Allowed Maps (^)
 │     ├─ Public Mode (^)
-│     ├─ Misc Settings (^)
-│     │  ├─ Class Choice Toggle
-│     │  ├─ Load Map Defaults Toggle
-│     │  ├─ Remove Ragdoll Toggle
-│     │  ├─ Duckjump Block Toggle
+│     ├─ Match Settings (^)
+│     │  ├─ Team Size (2v2 to 6v6)
+│     │  ├─ Ready Check (OFF / Auto / Manual)
+│     │  ├─ First 12 Rule (OFF / ON / Pre-Cap Join)
+│     │  ├─ Cap Fight Health
+│     │  ├─ Snake Draft toggle
+│     │  ├─ Pick Pool Mode (Pool / Legacy)
+│     │  ├─ Disallow Late Joiners
+│     │  ├─ Cap Vote Duration
+│     │  └─ Prematch Countdown
+│     ├─ Gameplay Settings (^)
+│     │  ├─ DuckJumpBlock (OFF / v1 / v2 / v3)
 │     │  ├─ Kickoff Wall Toggle
-│     │  ├─ Hostname Updater Toggle
-│     │  ├─ First12 Rule Toggle
-│     │  ├─ Team Size
-│     │  ├─ Rank Cooldown Setting
-│     │  ├─ Readycheck Toggle
+│     │  ├─ Kickoff Walls Setup
 │     │  ├─ Damage Sound Toggle
-│     │  ├─ Killfeed Toggle
 │     │  ├─ GK Saves Only Toggle
-│     │  ├─ Rankmode Toggle
-│     │  ├─ Celebration Toggle
-│     │  └─ Join/Leave Notifications
+│     │  └─ Celebration Toggle
+│     ├─ Visual Settings (^)
+│     │  ├─ Remove Ragdoll (OFF / Remove / Dissolve)
+│     │  ├─ Killfeed Toggle
+│     │  ├─ Hostname Info Toggle
+│     │  └─ Class Choice Toggle
+│     ├─ Stats & Ranking (^)
+│     │  ├─ Ranking Mode (pts/matches, pts/rounds, pts)
+│     │  ├─ !rank Cooldown
+│     │  └─ Load Map Defaults Toggle
+│     ├─ Notifications (^)
+│     │  ├─ Join/Leave Notify Toggle
+│     │  └─ Join/Leave Volume
 │     ├─ Skin Settings (^)
 │     ├─ Chat Settings (^)
+│     │  ├─ Chat Style (Prefix, Prefix Color, Text Color)
+│     │  ├─ MVP Messages Toggle
+│     │  └─ Deadchat Settings
 │     ├─ Sound Control (^)
+│     │  ├─ Disable / Enable Sounds
+│     │  ├─ OT Warning (OFF / ON / Sound / Text)
+│     │  └─ OT Sound Toggle
+│     ├─ Training Settings (^)
+│     │  ├─ Password Required Toggle
+│     │  ├─ Set Password
+│     │  └─ Reset Time
 │     ├─ Lock Settings (^)
+│     │  ├─ Enable / Disable
+│     │  ├─ Player Threshold
+│     │  ├─ Captcha Timer
+│     │  └─ Menu Timer
 │     ├─ Shout Settings (^)
+│     │  ├─ Shout Manager (Add / Edit / Rename / Remove)
+│     │  ├─ Radius / Cooldown / Volume / Pitch
+│     │  └─ Shout Path List / Help
+│     ├─ Player Votes (^)
+│     │  ├─ Votekick / Voteban / Votemute / Votemap Toggles
+│     │  ├─ Per-type Thresholds
+│     │  ├─ Ban / Mute Duration
+│     │  ├─ Vote Cooldown
+│     │  └─ Min Players
+│     ├─ Updater (^)
+│     │  ├─ Check for Updates
+│     │  ├─ Download Patch Update (.smx only)
+│     │  ├─ Download Full Update (all files)
+│     │  ├─ Auto-Check Toggle
+│     │  ├─ Check Interval
+│     │  ├─ Check Remote .smx Size
+│     │  └─ Warm Cache (full)
 │     └─ Debugging (°)
 │
 ├─ Ranking
@@ -125,7 +167,8 @@ Open the menu with `!menu` or `!soccer` in chat.
 │  ├─ Chat Commands
 │  │  ├─ Admin Commands
 │  │  └─ Public Commands
-│  └─ Guide
+│  ├─ Open Documentation
+│  └─ Print URLs
 │
 ├─ Settings (Player)
 │  ├─ Grass Replacer Toggle
@@ -158,3 +201,6 @@ Instead of navigating the menu, use these shortcuts:
 | `!pos` | Positions menu |
 | `!help` | Help menu |
 | `!soccerset` | Settings menu |
+| `!rank` | Personal match ranking |
+| `!prank` | Personal public ranking |
+| `!autocap` / `!pug` | Start auto captain selection |
