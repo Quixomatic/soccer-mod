@@ -1,5 +1,13 @@
 # Soccer Mod Changelog
 
+## 1.5.5
+
+### Changes
+- Clean up self-updater debug logging and test code
+- Download progress messages now only visible to the admin who initiated the update
+
+---
+
 ## 1.5.4
 
 ### Changes
