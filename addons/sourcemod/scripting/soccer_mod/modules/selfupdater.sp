@@ -2,8 +2,8 @@
 // ************************************************** SELF-UPDATER *************************************************
 // *******************************************************************************************************************
 
-#define SU_MANIFEST_URL "https://sm-3ds.pages.dev/manifest.json"
-#define SU_RAW_BASE_URL "https://sm-3ds.pages.dev/"
+#define SU_MANIFEST_URL "https://soccer-mod.jfreund18.workers.dev/manifest.json"
+#define SU_RAW_BASE_URL "https://soccer-mod.jfreund18.workers.dev/"
 
 // ************************************************** LIFECYCLE ****************************************************
 
