@@ -1,5 +1,12 @@
 # Soccer Mod Changelog
 
+## 1.5.7
+
+### Changes
+- Version sync release
+
+---
+
 ## 1.5.6
 
 ### New
