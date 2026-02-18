@@ -1,5 +1,12 @@
 # Soccer Mod Changelog
 
+## 1.5.9
+
+### Fixes
+- **Cache-busting on all download URLs**: Add `?t=<timestamp>` to all HTTP requests to prevent CF Workers CDN serving stale/corrupt files
+
+---
+
 ## 1.5.8
 
 ### New

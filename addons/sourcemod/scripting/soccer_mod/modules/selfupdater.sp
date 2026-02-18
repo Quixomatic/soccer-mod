@@ -42,7 +42,9 @@ public void SU_CheckForUpdate(int client)
 		return;
 	}
 
-	HTTPRequest request = new HTTPRequest(SU_MANIFEST_URL);
+	char manifestUrl[512];
+	Format(manifestUrl, sizeof(manifestUrl), "%s?t=%d", SU_MANIFEST_URL, GetTime());
+	HTTPRequest request = new HTTPRequest(manifestUrl);
 	request.SetHeader("User-Agent", "SoccerMod");
 
 	int userid = 0;
@@ -134,7 +136,9 @@ public void SU_StartUpdate(int client, bool fullUpdate)
 	suRequestingUser = (client > 0) ? GetClientUserId(client) : 0;
 
 	// Fetch manifest again to get file list
-	HTTPRequest request = new HTTPRequest(SU_MANIFEST_URL);
+	char manifestUrl[512];
+	Format(manifestUrl, sizeof(manifestUrl), "%s?t=%d", SU_MANIFEST_URL, GetTime());
+	HTTPRequest request = new HTTPRequest(manifestUrl);
 	request.SetHeader("User-Agent", "SoccerMod");
 
 	int userid = 0;
@@ -207,9 +211,9 @@ public void SU_OnDownloadManifestResponse(HTTPResponse response, any userid, con
 		int expectedSize = fileObj.HasKey("size") ? fileObj.GetInt("size") : 0;
 		delete fileObj;
 
-		// Construct download URL and temp path
+		// Construct download URL with cache-busting timestamp
 		char url[512];
-		Format(url, sizeof(url), "%s%s", SU_RAW_BASE_URL, repoPath);
+		Format(url, sizeof(url), "%s%s?t=%d", SU_RAW_BASE_URL, repoPath, GetTime());
 
 		char tmpPath[PLATFORM_MAX_PATH];
 		Format(tmpPath, sizeof(tmpPath), "%s.update", destPath);
@@ -403,7 +407,7 @@ public void SU_CheckRemoteSize(int client)
 		return;
 
 	char url[512];
-	Format(url, sizeof(url), "%saddons/sourcemod/plugins/soccer_mod.smx", SU_RAW_BASE_URL);
+	Format(url, sizeof(url), "%saddons/sourcemod/plugins/soccer_mod.smx?t=%d", SU_RAW_BASE_URL, GetTime());
 
 	char tmpPath[PLATFORM_MAX_PATH];
 	Format(tmpPath, sizeof(tmpPath), "addons/sourcemod/plugins/soccer_mod.smx.sizecheck");
