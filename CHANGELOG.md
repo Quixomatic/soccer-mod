@@ -1,5 +1,12 @@
 # Soccer Mod Changelog
 
+## 1.5.8
+
+### New
+- **Remote .smx size check**: Admin menu option to verify the remote .smx file size before updating
+
+---
+
 ## 1.5.7
 
 ### Changes

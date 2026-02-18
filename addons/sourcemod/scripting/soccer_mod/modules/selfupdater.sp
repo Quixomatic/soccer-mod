@@ -395,6 +395,50 @@ public void SU_ParseVersion(const char[] version, int &major, int &minor, int &p
 	patch = StringToInt(parts[2]);
 }
 
+// ************************************************** REMOTE SIZE CHECK *********************************************
+
+public void SU_CheckRemoteSize(int client)
+{
+	if (!suRipextAvailable)
+		return;
+
+	char url[512];
+	Format(url, sizeof(url), "%saddons/sourcemod/plugins/soccer_mod.smx", SU_RAW_BASE_URL);
+
+	char tmpPath[PLATFORM_MAX_PATH];
+	Format(tmpPath, sizeof(tmpPath), "addons/sourcemod/plugins/soccer_mod.smx.sizecheck");
+
+	CPrintToChat(client, "{%s}[%s] {%s}Downloading .smx to check size...", prefixcolor, prefix, textcolor);
+
+	HTTPRequest request = new HTTPRequest(url);
+	request.SetHeader("User-Agent", "SoccerMod");
+	request.DownloadFile(tmpPath, SU_OnSizeCheckDownloaded, GetClientUserId(client));
+}
+
+public void SU_OnSizeCheckDownloaded(HTTPStatus status, any userid, const char[] error)
+{
+	int client = (userid > 0) ? GetClientOfUserId(userid) : 0;
+	char tmpPath[PLATFORM_MAX_PATH] = "addons/sourcemod/plugins/soccer_mod.smx.sizecheck";
+
+	if (status != HTTPStatus_OK)
+	{
+		if (client > 0 && IsClientInGame(client))
+			CPrintToChat(client, "{%s}[%s] {red}Size check failed (HTTP %d): %s", prefixcolor, prefix, view_as<int>(status), error);
+		DeleteFile(tmpPath);
+		return;
+	}
+
+	int size = FileSize(tmpPath);
+	DeleteFile(tmpPath);
+
+	if (client > 0 && IsClientInGame(client))
+	{
+		CPrintToChat(client, "{%s}[%s] {%s}Remote .smx size: %d bytes (%d KB)", prefixcolor, prefix, textcolor, size, size / 1024);
+		if (size < 10000)
+			CPrintToChat(client, "{%s}[%s] {red}WARNING: File is suspiciously small — CF Workers may not have propagated yet.", prefixcolor, prefix);
+	}
+}
+
 // ************************************************** ADMIN MENU ***************************************************
 
 public void OpenMenuUpdater(int client)
@@ -431,6 +475,8 @@ public void OpenMenuUpdater(int client)
 	Format(intervalString, sizeof(intervalString), "Check Interval: %ds", suCheckInterval);
 	menu.AddItem("interval", intervalString);
 
+	menu.AddItem("checksize", "Check Remote .smx Size");
+
 	if (!suRipextAvailable)
 	{
 		menu.AddItem("noripext", "ripext extension not loaded!", ITEMDRAW_DISABLED);
@@ -460,6 +506,11 @@ public int MenuHandlerUpdater(Menu menu, MenuAction action, int client, int choi
 		else if (StrEqual(menuItem, "full"))
 		{
 			SU_StartUpdate(client, true);
+		}
+		else if (StrEqual(menuItem, "checksize"))
+		{
+			SU_CheckRemoteSize(client);
+			CreateTimer(3.0, SU_TimerReopenMenu, GetClientUserId(client));
 		}
 		else if (StrEqual(menuItem, "autocheck"))
 		{
