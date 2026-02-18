@@ -1,5 +1,22 @@
 # Soccer Mod Changelog
 
+## 1.4.24
+
+### New
+- **Configurable Cap Vote Duration**: Vote timer for captain approval is now configurable (default 20s, was hardcoded 30s)
+  - Admin > Match Settings > Cap Vote Duration (10/15/20/25/30 seconds)
+  - Saved to config as `soccer_mod_cap_vote_duration`
+- **Configurable Prematch Countdown**: Ready check countdown before match start is now in admin menu (default changed from 60s to 30s)
+  - Admin > Match Settings > Prematch Countdown (off/15/20/30/45/60 seconds)
+  - "No Countdown" option waits indefinitely for all players to ready up
+
+### Fixes
+- **Fix hostname status stacking**: Hostname tags like `[PICKING]` no longer stack on repeated state changes
+  - Always restores original hostname before applying new prefix
+  - Removed `g_hostname.Close()` calls that invalidated the ConVar handle
+  - Added missing status handlers: Voting, Ready-Up, Ready Check, Pre-Golden Goal, Public
+  - Match timer is now properly killed on all status transitions
+
 ## 1.4.23
 
 ### New

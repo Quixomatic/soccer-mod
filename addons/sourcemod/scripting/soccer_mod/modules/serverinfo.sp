@@ -6,57 +6,50 @@ public void ChangeGameDesc()
 
 public void HostName_Change_Status(char type[16])
 {
-	if (hostnameToggle == 1)
+	// Always kill the match timer when changing status
+	KillHostnameTimer();
+
+	// Ensure we have a valid handle
+	if (g_hostname == null)
 	{
-		if (StrEqual(type, "Specced"))
-		{
-			Format(new_hostname, sizeof(new_hostname), "[PRE-CAP] %s", old_hostname)
-			g_hostname.SetString(new_hostname);
-		}
-		else if (StrEqual(type, "Capfight"))
-		{
-			Format(new_hostname, sizeof(new_hostname), "[CAPFIGHT] %s", old_hostname)
-			g_hostname.SetString(new_hostname);
-		}
-		else if (StrEqual(type, "Picking"))
-		{
-			Format(new_hostname, sizeof(new_hostname), "[PICKING] %s", old_hostname)
-			g_hostname.SetString(new_hostname);
-		}
-		else if (StrEqual(type, "Match"))
-		{
-			hostnameTimer = CreateTimer(0.0, HostName_Change_Timer);
-		}
-		else if (StrEqual(type, "Periodbreak"))
-		{
-			KillHostnameTimer();
-			Format(new_hostname, sizeof(new_hostname), "[PERIOD BREAK] %s", old_hostname)
-			g_hostname.SetString(new_hostname);
-		}
-		else if (StrEqual(type, "Halftime"))
-		{
-			KillHostnameTimer();
-			Format(new_hostname, sizeof(new_hostname), "[HALFTIME] %s", old_hostname)
-			g_hostname.SetString(new_hostname);
-		}
-		else if (StrEqual(type, "Golden"))
-		{
-			KillHostnameTimer();
-			Format(new_hostname, sizeof(new_hostname), "[GOLDEN GOAL] %s", old_hostname)
-			g_hostname.SetString(new_hostname);
-		}
-		else if (StrEqual(type, "Reset"))
-		{
-			KillHostnameTimer();
-			g_hostname.SetString(old_hostname);
-			g_hostname.Close();
-		}
+		g_hostname = FindConVar("hostname");
+		if (g_hostname == null) return;
+	}
+
+	if (hostnameToggle != 1)
+	{
+		g_hostname.SetString(old_hostname);
+		return;
+	}
+
+	// Reset to original hostname first, then apply new prefix
+	if (StrEqual(type, "Public") || StrEqual(type, "Reset"))
+	{
+		g_hostname.SetString(old_hostname);
+	}
+	else if (StrEqual(type, "Match"))
+	{
+		// Match uses a repeating timer for live clock display
+		hostnameTimer = CreateTimer(0.0, HostName_Change_Timer);
 	}
 	else
 	{
-		KillHostnameTimer();
-		g_hostname.SetString(old_hostname);
-		g_hostname.Close();
+		// Map type to display tag
+		char tag[32];
+		if (StrEqual(type, "Specced"))				tag = "PRE-CAP";
+		else if (StrEqual(type, "Capfight"))		tag = "CAPFIGHT";
+		else if (StrEqual(type, "Voting"))			tag = "VOTING";
+		else if (StrEqual(type, "Picking"))			tag = "PICKING";
+		else if (StrEqual(type, "Ready-Up"))		tag = "READY UP";
+		else if (StrEqual(type, "Ready Check"))		tag = "READY CHECK";
+		else if (StrEqual(type, "Periodbreak"))		tag = "PERIOD BREAK";
+		else if (StrEqual(type, "Pre-Golden Goal"))	tag = "PRE-GOLDEN GOAL";
+		else if (StrEqual(type, "Halftime"))		tag = "HALFTIME";
+		else if (StrEqual(type, "Golden"))			tag = "GOLDEN GOAL";
+		else										tag = "SOCCER MOD";
+
+		Format(new_hostname, sizeof(new_hostname), "[%s] %s", tag, old_hostname);
+		g_hostname.SetString(new_hostname);
 	}
 }
 

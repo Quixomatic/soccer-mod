@@ -187,6 +187,14 @@ public void OpenSettingsMatch(int client)
 	Format(lateString, sizeof(lateString), "Disallow Late Joiners: %s", capDisallowLateJoiners ? "ON" : "OFF");
 	menu.AddItem("disallowlate", lateString);
 
+	char voteTimeString[48];
+	Format(voteTimeString, sizeof(voteTimeString), "Cap Vote Duration: %ds", capVoteDuration);
+	menu.AddItem("capvoteduration", voteTimeString);
+
+	char prematchString[48];
+	Format(prematchString, sizeof(prematchString), "Prematch Countdown: %ds", readyCheckPrematchCountdown);
+	menu.AddItem("prematchcountdown", prematchString);
+
 	menu.ExitBackButton = true;
 	menu.Display(client, MENU_TIME_FOREVER);
 }
@@ -259,6 +267,14 @@ public int SettingsMatchHandler(Menu menu, MenuAction action, int client, int ch
 			UpdateConfigInt("Cap Settings", "soccer_mod_cap_disallow_late_joiners", capDisallowLateJoiners);
 			CPrintToChat(client, "{%s}[%s] {%s}Disallow late joiners: %s", prefixcolor, prefix, textcolor, capDisallowLateJoiners ? "ON (only if needed)" : "OFF");
 			OpenSettingsMatch(client);
+		}
+		else if (StrEqual(menuItem, "capvoteduration"))
+		{
+			OpenCapVoteDurationMenu(client);
+		}
+		else if (StrEqual(menuItem, "prematchcountdown"))
+		{
+			OpenPrematchCountdownMenu(client);
 		}
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSettings(client);

@@ -135,6 +135,7 @@ public void CreateSoccerModConfig()
 	kvConfig.SetNum("soccer_mod_cap_snake_draft",				capSnakeDraft);
 	kvConfig.SetNum("soccer_mod_cap_pick_pool_mode",			capPickPoolMode);
 	kvConfig.SetNum("soccer_mod_cap_disallow_late_joiners",		capDisallowLateJoiners);
+	kvConfig.SetNum("soccer_mod_cap_vote_duration",				capVoteDuration);
 	kvConfig.GoBack();
 
 	kvConfig.JumpToKey("Ready Check Settings", true);
@@ -504,10 +505,11 @@ public void ReadFromConfig()
 	capSnakeDraft			= kvConfig.GetNum("soccer_mod_cap_snake_draft", 1);
 	capPickPoolMode			= kvConfig.GetNum("soccer_mod_cap_pick_pool_mode", 0);
 	capDisallowLateJoiners	= kvConfig.GetNum("soccer_mod_cap_disallow_late_joiners", 0);
+	capVoteDuration			= kvConfig.GetNum("soccer_mod_cap_vote_duration", 20);
 	kvConfig.GoBack();
 
 	kvConfig.JumpToKey("Ready Check Settings", true);
-	readyCheckPrematchCountdown	= kvConfig.GetNum("soccer_mod_readycheck_prematch_countdown", 60);
+	readyCheckPrematchCountdown	= kvConfig.GetNum("soccer_mod_readycheck_prematch_countdown", 30);
 	readyCheckTimeoutCountdown	= kvConfig.GetNum("soccer_mod_readycheck_timeout_countdown", 0);
 	kvConfig.GoBack();
 

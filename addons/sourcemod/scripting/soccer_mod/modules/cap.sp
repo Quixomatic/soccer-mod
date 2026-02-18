@@ -1018,7 +1018,7 @@ public void CapVoteStart()
 	capVotesYes = 0;
 	capVotesNo = 0;
 	capVoteTotal = 0;
-	capVoteCountdown = 30;
+	capVoteCountdown = capVoteDuration;
 
 	// Reset vote tracking for all players
 	for (int i = 0; i <= MAXPLAYERS; i++)
@@ -1047,8 +1047,8 @@ public void CapVoteStart()
 		}
 	}
 
-	// Start 30 second timer for vote end
-	capVoteTimer = CreateTimer(30.0, CapVoteEndTimer);
+	// Start vote timer
+	capVoteTimer = CreateTimer(float(capVoteDuration), CapVoteEndTimer);
 
 	// Start HUD refresh timer (every 1 second)
 	capVoteHudTimer = CreateTimer(1.0, CapVoteHudTimer, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
@@ -1829,6 +1829,74 @@ public int CapHealthMenuHandler(Menu menu, MenuAction action, int client, int ch
 			}
 		}
 		else CPrintToChat(client, "{%s}[%s]{%s}You can not use this option during a match", prefixcolor, prefix, textcolor);
+	}
+	else if (action == MenuAction_Cancel && choice == -6)   OpenSettingsMatch(client);
+	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
+}
+
+public void OpenCapVoteDurationMenu(int client)
+{
+	Menu menu = new Menu(CapVoteDurationMenuHandler);
+	menu.SetTitle("Soccer Mod - Cap - Vote Duration");
+
+	menu.AddItem("10", "10 seconds");
+	menu.AddItem("15", "15 seconds");
+	menu.AddItem("20", "20 seconds (Default)");
+	menu.AddItem("25", "25 seconds");
+	menu.AddItem("30", "30 seconds");
+
+	menu.ExitBackButton = true;
+	menu.Display(client, MENU_TIME_FOREVER);
+}
+
+public int CapVoteDurationMenuHandler(Menu menu, MenuAction action, int client, int choice)
+{
+	if (action == MenuAction_Select)
+	{
+		char menuItem[32];
+		menu.GetItem(choice, menuItem, sizeof(menuItem));
+
+		capVoteDuration = StringToInt(menuItem);
+		UpdateConfigInt("Cap Settings", "soccer_mod_cap_vote_duration", capVoteDuration);
+		CPrintToChatAll("{%s}[%s] {%s}Cap vote duration set to: %ds", prefixcolor, prefix, textcolor, capVoteDuration);
+		OpenSettingsMatch(client);
+	}
+	else if (action == MenuAction_Cancel && choice == -6)   OpenSettingsMatch(client);
+	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
+}
+
+public void OpenPrematchCountdownMenu(int client)
+{
+	Menu menu = new Menu(PrematchCountdownMenuHandler);
+	menu.SetTitle("Soccer Mod - Prematch Countdown");
+
+	menu.AddItem("0", "No Countdown (wait for all ready)");
+	menu.AddItem("15", "15 seconds");
+	menu.AddItem("20", "20 seconds");
+	menu.AddItem("30", "30 seconds (Default)");
+	menu.AddItem("45", "45 seconds");
+	menu.AddItem("60", "60 seconds");
+
+	menu.ExitBackButton = true;
+	menu.Display(client, MENU_TIME_FOREVER);
+}
+
+public int PrematchCountdownMenuHandler(Menu menu, MenuAction action, int client, int choice)
+{
+	if (action == MenuAction_Select)
+	{
+		char menuItem[32];
+		menu.GetItem(choice, menuItem, sizeof(menuItem));
+
+		readyCheckPrematchCountdown = StringToInt(menuItem);
+		UpdateConfigInt("Ready Check Settings", "soccer_mod_readycheck_prematch_countdown", readyCheckPrematchCountdown);
+		if (readyCheckPrematchCountdown > 0)
+			CPrintToChatAll("{%s}[%s] {%s}Prematch countdown set to: %ds", prefixcolor, prefix, textcolor, readyCheckPrematchCountdown);
+		else
+			CPrintToChatAll("{%s}[%s] {%s}Prematch countdown disabled (wait for all ready)", prefixcolor, prefix, textcolor);
+		OpenSettingsMatch(client);
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenSettingsMatch(client);
 	else if (action == MenuAction_End)					  menu.Close();

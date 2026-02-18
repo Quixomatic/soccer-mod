@@ -191,7 +191,8 @@ int capPairIndex		= 0;		// Current position in captain pairs list
 int capVotesYes			= 0;	// Auto cap yes votes
 int capVotesNo			= 0;	// Auto cap no votes
 int capVoteTotal		= 0;	// Total voters
-int capVoteCountdown	= 30;	// Vote countdown seconds
+int capVoteDuration		= 20;	// Configurable vote duration (seconds)
+int capVoteCountdown	= 20;	// Vote countdown seconds (runtime)
 int capPlayerVote[MAXPLAYERS+1];	// 0=not voted, 1=yes, 2=no
 
 // Pick Pool System
@@ -449,7 +450,7 @@ int pauseplayernum				= 0;
 ReadyCheckContext readyCheckContext = READY_CONTEXT_NONE;	// Current ready check context
 int readyCheckCountdown			= 0;						// Current countdown value
 int readyCheckTimeoutCaller		= 0;						// Client who called timeout (0 = none)
-int readyCheckPrematchCountdown	= 60;						// Config: pre-match countdown seconds
+int readyCheckPrematchCountdown	= 30;						// Config: pre-match countdown seconds
 int readyCheckTimeoutCountdown	= 0;						// Config: timeout countdown (0 = no limit)
 
 // STRINGS
