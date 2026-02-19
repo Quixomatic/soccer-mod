@@ -46,9 +46,9 @@ public void JoinLeaveNotifyJoin(int client)
 		{
 			if (IsClientInGame(i) && !IsFakeClient(i) && pcJoinLeaveSound[i])
 			{
-				if (isFull && strlen(joinLeaveReadySound) > 0)
+				if (isFull && joinLeaveReadyEnabled && strlen(joinLeaveReadySound) > 0)
 					EmitSoundToClient(i, joinLeaveReadySound, _, _, _, _, joinLeaveVolume);
-				else if (strlen(joinLeaveJoinSound) > 0)
+				else if (joinLeaveJoinEnabled && strlen(joinLeaveJoinSound) > 0)
 					EmitSoundToClient(i, joinLeaveJoinSound, _, _, _, _, joinLeaveVolume);
 			}
 		}
@@ -77,7 +77,7 @@ public void JoinLeaveNotifyLeave(int client)
 	}
 
 	// Sound notification (only if sounds exist and player has it enabled)
-	if (joinLeaveSoundsExist && strlen(joinLeaveLeaveSound) > 0)
+	if (joinLeaveSoundsExist && joinLeaveLeaveEnabled && strlen(joinLeaveLeaveSound) > 0)
 	{
 		for (int i = 1; i <= MaxClients; i++)
 		{

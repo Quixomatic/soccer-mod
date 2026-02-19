@@ -627,6 +627,14 @@ public void OpenSettingsNotifications(int client)
 	menu.AddItem("joinleave", JoinLeaveString);
 	menu.AddItem("joinleavevol", JoinLeaveVolString);
 
+	char joinSndStr[48], leaveSndStr[48], readySndStr[48];
+	Format(joinSndStr, sizeof(joinSndStr), "Join Sound: %s", joinLeaveJoinEnabled ? "ON" : "OFF");
+	Format(leaveSndStr, sizeof(leaveSndStr), "Leave Sound: %s", joinLeaveLeaveEnabled ? "ON" : "OFF");
+	Format(readySndStr, sizeof(readySndStr), "Ready Sound: %s", joinLeaveReadyEnabled ? "ON" : "OFF");
+	menu.AddItem("togglejoin", joinSndStr);
+	menu.AddItem("toggleleave", leaveSndStr);
+	menu.AddItem("toggleready", readySndStr);
+
 	if (joinLeaveSoundsExist)
 	{
 		menu.AddItem("testjoin", "Test: Join Sound");
@@ -658,6 +666,24 @@ public int SettingsNotificationsHandler(Menu menu, MenuAction action, int client
 		else if(StrEqual(menuItem, "joinleavevol"))
 		{
 			OpenMenuJoinLeaveVolume(client);
+		}
+		else if(StrEqual(menuItem, "togglejoin"))
+		{
+			joinLeaveJoinEnabled = !joinLeaveJoinEnabled;
+			UpdateJoinLeaveConfigInt("Settings", "join_enabled", joinLeaveJoinEnabled);
+			OpenSettingsNotifications(client);
+		}
+		else if(StrEqual(menuItem, "toggleleave"))
+		{
+			joinLeaveLeaveEnabled = !joinLeaveLeaveEnabled;
+			UpdateJoinLeaveConfigInt("Settings", "leave_enabled", joinLeaveLeaveEnabled);
+			OpenSettingsNotifications(client);
+		}
+		else if(StrEqual(menuItem, "toggleready"))
+		{
+			joinLeaveReadyEnabled = !joinLeaveReadyEnabled;
+			UpdateJoinLeaveConfigInt("Settings", "ready_enabled", joinLeaveReadyEnabled);
+			OpenSettingsNotifications(client);
 		}
 		else if(StrEqual(menuItem, "testjoin"))
 		{

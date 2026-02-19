@@ -1,5 +1,5 @@
 {
-  "version": "1.5.13",
+  "version": "1.5.14",
   "patch": [
     { "repo": "addons/sourcemod/plugins/soccer_mod.smx", "dest": "addons/sourcemod/plugins/soccer_mod.smx" }
   ],
@@ -12,6 +12,8 @@
     { "repo": "sound/soccermod/whistle.wav", "dest": "sound/soccermod/whistle.wav" },
 
     { "repo": "sound/soccermod/joinleave/join.wav", "dest": "sound/soccermod/joinleave/join.wav" },
+    { "repo": "sound/soccermod/joinleave/leave.wav", "dest": "sound/soccermod/joinleave/leave.wav" },
+    { "repo": "sound/soccermod/joinleave/ready.wav", "dest": "sound/soccermod/joinleave/ready.wav" },
 
     { "repo": "materials/decals/soccer_mod/grassreplacer.vmt", "dest": "materials/decals/soccer_mod/grassreplacer.vmt" },
     { "repo": "materials/decals/soccer_mod/grassreplacer.vtf", "dest": "materials/decals/soccer_mod/grassreplacer.vtf" },

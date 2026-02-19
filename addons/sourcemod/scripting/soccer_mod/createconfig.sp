@@ -663,6 +663,9 @@ public void CreateJoinLeaveConfig()
 
 	kv.JumpToKey("Settings", true);
 	kv.SetNum("enabled", 1);
+	kv.SetNum("join_enabled", 1);
+	kv.SetNum("leave_enabled", 1);
+	kv.SetNum("ready_enabled", 1);
 	kv.GoBack();
 
 	kv.Rewind();
@@ -686,6 +689,9 @@ public void LoadJoinLeaveConfig()
 
 	kv.JumpToKey("Settings", false);
 	joinLeaveEnabled = kv.GetNum("enabled", 1);
+	joinLeaveJoinEnabled = kv.GetNum("join_enabled", 1);
+	joinLeaveLeaveEnabled = kv.GetNum("leave_enabled", 1);
+	joinLeaveReadyEnabled = kv.GetNum("ready_enabled", 1);
 	kv.GoBack();
 
 	kv.Rewind();

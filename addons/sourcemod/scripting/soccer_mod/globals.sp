@@ -782,6 +782,9 @@ Handle h_JOINLEAVE_CHAT_COOKIE = INVALID_HANDLE;
 
 // INTEGER
 int joinLeaveEnabled = 1;
+int joinLeaveJoinEnabled = 1;
+int joinLeaveLeaveEnabled = 1;
+int joinLeaveReadyEnabled = 1;
 int pcJoinLeaveSound[MAXPLAYERS+1] = {0, ...};   // Default OFF
 int pcJoinLeaveChat[MAXPLAYERS+1] = {1, ...};    // Default ON
 

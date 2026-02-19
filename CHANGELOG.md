@@ -1,5 +1,13 @@
 # Soccer Mod Changelog
 
+## 1.5.14
+
+### New
+- **Per-sound admin toggles**: Join, Leave, and Ready sounds can be individually enabled/disabled from Admin > Settings > Notifications
+- **Join/leave sound files**: Added join.wav, leave.wav, ready.wav to the release package
+
+---
+
 ## 1.5.13
 
 ### Changes
