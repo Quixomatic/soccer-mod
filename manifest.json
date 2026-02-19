@@ -11,6 +11,8 @@
     { "repo": "sound/soccermod/kickoff.wav", "dest": "sound/soccermod/kickoff.wav" },
     { "repo": "sound/soccermod/whistle.wav", "dest": "sound/soccermod/whistle.wav" },
 
+    { "repo": "sound/soccermod/joinleave/join.wav", "dest": "sound/soccermod/joinleave/join.wav" },
+
     { "repo": "materials/decals/soccer_mod/grassreplacer.vmt", "dest": "materials/decals/soccer_mod/grassreplacer.vmt" },
     { "repo": "materials/decals/soccer_mod/grassreplacer.vtf", "dest": "materials/decals/soccer_mod/grassreplacer.vtf" },
     { "repo": "materials/decals/soccer_mod/grassreplacer_light.vmt", "dest": "materials/decals/soccer_mod/grassreplacer_light.vmt" },
