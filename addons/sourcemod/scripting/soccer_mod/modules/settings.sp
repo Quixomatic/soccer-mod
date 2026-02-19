@@ -627,6 +627,17 @@ public void OpenSettingsNotifications(int client)
 	menu.AddItem("joinleave", JoinLeaveString);
 	menu.AddItem("joinleavevol", JoinLeaveVolString);
 
+	if (joinLeaveSoundsExist)
+	{
+		menu.AddItem("testjoin", "Test: Join Sound");
+		menu.AddItem("testleave", "Test: Leave Sound");
+		menu.AddItem("testready", "Test: Ready Sound");
+	}
+	else
+	{
+		menu.AddItem("nosounds", "No sound files found", ITEMDRAW_DISABLED);
+	}
+
 	menu.ExitBackButton = true;
 	menu.Display(client, MENU_TIME_FOREVER);
 }
@@ -647,6 +658,30 @@ public int SettingsNotificationsHandler(Menu menu, MenuAction action, int client
 		else if(StrEqual(menuItem, "joinleavevol"))
 		{
 			OpenMenuJoinLeaveVolume(client);
+		}
+		else if(StrEqual(menuItem, "testjoin"))
+		{
+			if (strlen(joinLeaveJoinSound) > 0)
+				EmitSoundToClient(client, joinLeaveJoinSound, _, _, _, _, joinLeaveVolume);
+			else
+				CPrintToChat(client, "{%s}[%s] {red}No join sound configured.", prefixcolor, prefix);
+			OpenSettingsNotifications(client);
+		}
+		else if(StrEqual(menuItem, "testleave"))
+		{
+			if (strlen(joinLeaveLeaveSound) > 0)
+				EmitSoundToClient(client, joinLeaveLeaveSound, _, _, _, _, joinLeaveVolume);
+			else
+				CPrintToChat(client, "{%s}[%s] {red}No leave sound configured.", prefixcolor, prefix);
+			OpenSettingsNotifications(client);
+		}
+		else if(StrEqual(menuItem, "testready"))
+		{
+			if (strlen(joinLeaveReadySound) > 0)
+				EmitSoundToClient(client, joinLeaveReadySound, _, _, _, _, joinLeaveVolume);
+			else
+				CPrintToChat(client, "{%s}[%s] {red}No ready sound configured.", prefixcolor, prefix);
+			OpenSettingsNotifications(client);
 		}
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSettings(client);

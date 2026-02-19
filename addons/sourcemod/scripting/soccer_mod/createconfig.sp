@@ -691,22 +691,31 @@ public void LoadJoinLeaveConfig()
 	kv.Rewind();
 	kv.Close();
 
-	// Precache sounds only if files exist
+	// Precache sounds and add to downloads table (if files exist)
 	char soundPath[PLATFORM_MAX_PATH];
 	joinLeaveSoundsExist = false;
 
 	Format(soundPath, sizeof(soundPath), "sound/%s", joinLeaveJoinSound);
 	if (FileExists(soundPath))
 	{
+		AddFileToDownloadsTable(soundPath);
 		PrecacheSound(joinLeaveJoinSound);
 		joinLeaveSoundsExist = true;
 	}
 
 	Format(soundPath, sizeof(soundPath), "sound/%s", joinLeaveLeaveSound);
-	if (FileExists(soundPath)) PrecacheSound(joinLeaveLeaveSound);
+	if (FileExists(soundPath))
+	{
+		AddFileToDownloadsTable(soundPath);
+		PrecacheSound(joinLeaveLeaveSound);
+	}
 
 	Format(soundPath, sizeof(soundPath), "sound/%s", joinLeaveReadySound);
-	if (FileExists(soundPath)) PrecacheSound(joinLeaveReadySound);
+	if (FileExists(soundPath))
+	{
+		AddFileToDownloadsTable(soundPath);
+		PrecacheSound(joinLeaveReadySound);
+	}
 }
 
 public void UpdateJoinLeaveConfig(char[] section, char[] type, char[] value)
