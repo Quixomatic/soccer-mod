@@ -1,5 +1,15 @@
 # Soccer Mod Changelog
 
+## 1.5.12
+
+### Fixes
+- **Fix join/leave sounds not playing**: Add sounds to engine downloads table (matching shout sound pattern)
+
+### New
+- **Sound test buttons**: Test Join/Leave/Ready sounds from Admin > Settings > Notifications menu
+
+---
+
 ## 1.5.11
 
 ### New
