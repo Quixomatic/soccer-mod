@@ -7,7 +7,7 @@ public void JoinLeaveOnClientCookiesCached(int client)
 	char buffer[8];
 
 	GetClientCookie(client, h_JOINLEAVE_SOUND_COOKIE, buffer, sizeof(buffer));
-	pcJoinLeaveSound[client] = (buffer[0] == '\0') ? 0 : StringToInt(buffer);  // Default OFF
+	pcJoinLeaveSound[client] = (buffer[0] == '\0') ? 1 : StringToInt(buffer);  // Default ON
 
 	GetClientCookie(client, h_JOINLEAVE_CHAT_COOKIE, buffer, sizeof(buffer));
 	pcJoinLeaveChat[client] = (buffer[0] == '\0') ? 1 : StringToInt(buffer);   // Default ON

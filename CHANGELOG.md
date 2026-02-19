@@ -1,5 +1,12 @@
 # Soccer Mod Changelog
 
+## 1.5.13
+
+### Changes
+- Join/leave sound notifications now default to ON for new players
+
+---
+
 ## 1.5.12
 
 ### Fixes
