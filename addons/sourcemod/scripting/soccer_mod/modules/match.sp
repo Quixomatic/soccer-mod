@@ -105,6 +105,8 @@ public void MatchEventRoundEnd(Event event)
 				matchScoreCT++;
 				matchLastScored = CS_TEAM_CT;
 			}
+
+			if (matchStarted) Discord_NotifyGoal(matchLastScored);
 		}
 	}
 
@@ -1902,6 +1904,7 @@ public Action DelayMatchEnd(Handle timer)
 
 	LogMessage("Final score: %s %i - %i %s", custom_name_ct, matchScoreCT, matchScoreT, custom_name_t);
 
+	Discord_NotifyMatchEnd();
 	AddMatchStat("add");
 	//ShowManOfTheMatch();
 	ShowTop3(true);
@@ -2006,14 +2009,16 @@ public void MatchStart(int client)
 			}			
 		}
 
+		Discord_NotifyMatchStart();
+
 		if(passwordlock == 1 && pwchange == true)
 		{
-			pwchange = false;		
+			pwchange = false;
 			AFKKickStop();
 			ResetPass();
 			CPrintToChatAll("{%s}[%s] {%s}Server password reset to default value.", prefixcolor, prefix, textcolor);
 		}
-		
+
 		RenameMatchLog();		
 		if(matchlog == 1) 
 		{
@@ -2205,7 +2210,8 @@ public void EndStoppageTime()
 			PlaySound("soccermod/halftime.wav"); 
 			
 			PrintCenterTextAll("Halftime break");
-			
+			Discord_NotifyHalftime();
+
 			//print current match top3
 			ShowTop3(false);
 			
@@ -2252,6 +2258,7 @@ public void EndStoppageTime()
 
 				LogMessage("Final score: %s %i - %i %s", custom_name_ct, matchScoreCT, matchScoreT, custom_name_t);
 
+				Discord_NotifyMatchEnd();
 				AddMatchStat("add");
 				//ShowManOfTheMatch();
 				ShowTop3(true);

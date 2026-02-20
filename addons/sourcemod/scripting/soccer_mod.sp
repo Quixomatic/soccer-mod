@@ -1,7 +1,7 @@
 // **************************************************************************************************************
 // ************************************************** DEFINES ***************************************************
 // ************************************************************************************************************** 
-#define PLUGIN_VERSION "1.5.14"
+#define PLUGIN_VERSION "1.5.15"
 #define MAX_NAMES 10
 #define MAXCONES_DYN 15
 #define MAXCONES_STA 15
@@ -70,6 +70,7 @@
 #include "soccer_mod/modules/joinleave.sp"
 #include "soccer_mod/modules/playervotes.sp"
 #include "soccer_mod/modules/selfupdater.sp"
+#include "soccer_mod/modules/discord.sp"
 
 #include "soccer_mod/fixes/join_team.sp"
 #include "soccer_mod/fixes/radio_commands.sp"
@@ -461,6 +462,36 @@ public Action SayCommandListener(int client, char[] command, int argc)
 		else if (StrEqual(changeSetting[client], "SU_Interval"))
 		{
 			SelfUpdaterSet(client, "SU_Interval", intnumber, 600, 86400);
+			return Plugin_Handled;
+		}
+		else if (StrEqual(changeSetting[client], "DiscordWebhook"))
+		{
+			char fullMsg[512];
+			GetCmdArg(1, fullMsg, sizeof(fullMsg));
+			StripQuotes(fullMsg);
+
+			if (StrContains(fullMsg, "discord.com/api/webhooks") != -1 || StrContains(fullMsg, "discordapp.com/api/webhooks") != -1)
+			{
+				strcopy(discordWebhookUrl, sizeof(discordWebhookUrl), fullMsg);
+				UpdateConfigString("Discord Settings", "soccer_mod_discord_webhook", discordWebhookUrl);
+				CPrintToChat(client, "{%s}[%s] {green}Webhook URL set.", prefixcolor, prefix);
+			}
+			else
+			{
+				CPrintToChat(client, "{%s}[%s] {red}Invalid webhook URL. Must contain discord.com/api/webhooks.", prefixcolor, prefix);
+			}
+			changeSetting[client] = "";
+			OpenMenuDiscord(client);
+			return Plugin_Handled;
+		}
+		else if (StrEqual(changeSetting[client], "DiscordMessage"))
+		{
+			char fullMsg[512];
+			GetCmdArg(1, fullMsg, sizeof(fullMsg));
+			StripQuotes(fullMsg);
+			Discord_SendCustomMessage(client, fullMsg);
+			changeSetting[client] = "";
+			OpenMenuDiscord(client);
 			return Plugin_Handled;
 		}
 	}

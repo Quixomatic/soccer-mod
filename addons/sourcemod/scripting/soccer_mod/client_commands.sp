@@ -46,7 +46,8 @@ public void RegisterClientCommands()
 	RegConsoleCmd("sm_voteban", Command_VoteBan, "Start a vote to ban a player");
 	RegConsoleCmd("sm_votemute", Command_VoteMute, "Start a vote to mute a player");
 	RegConsoleCmd("sm_votemap", Command_VoteMap, "Start a vote to change the map");
-	RegConsoleCmd("sm_gk", GkCommand, "Toggle the GK skin");	
+	RegConsoleCmd("sm_discord", Command_Discord, "Send a message to Discord");
+	RegConsoleCmd("sm_gk", GkCommand, "Toggle the GK skin");
 	RegConsoleCmd("sm_help", HelpCommand, "Opens the Soccer Mod help menu");
 	RegConsoleCmd("sm_info", CreditsCommand, "Opens the Soccer Mod credits menu");
 	RegConsoleCmd("sm_lc", JoinlistCommand, "Opens the Soccer Mod joinlist");
@@ -638,6 +639,31 @@ public Action UnpauseCommand(int client, int args)
 		else CPrintToChat(client, "{%s}[%s] {%s}No match started!", prefixcolor, prefix, textcolor); 
 	}
 	else CPrintToChat(client, "{%s}[%s] {%s}Soccer Mod is not allowed on this map", prefixcolor, prefix, textcolor); 
+	return Plugin_Handled;
+}
+
+public Action Command_Discord(int client, int args)
+{
+	if (!CheckCommandAccess(client, "generic_admin", ADMFLAG_GENERIC) && !IsSoccerAdmin(client, "menu"))
+	{
+		CPrintToChat(client, "{%s}[%s] {red}Admin only.", prefixcolor, prefix);
+		return Plugin_Handled;
+	}
+	if (strlen(discordWebhookUrl) == 0 || !suRipextAvailable)
+	{
+		CPrintToChat(client, "{%s}[%s] {red}Discord webhook not configured.", prefixcolor, prefix);
+		return Plugin_Handled;
+	}
+	if (args < 1)
+	{
+		CPrintToChat(client, "{%s}[%s] {%s}Usage: !discord <message>", prefixcolor, prefix, textcolor);
+		return Plugin_Handled;
+	}
+
+	char message[512];
+	GetCmdArgString(message, sizeof(message));
+	StripQuotes(message);
+	Discord_SendCustomMessage(client, message);
 	return Plugin_Handled;
 }
 

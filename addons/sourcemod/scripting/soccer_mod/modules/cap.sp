@@ -1570,12 +1570,14 @@ public void CapEventRoundEnd(Event event)
 		{
 			capFirstPicker = capT;
 			capPicker = capT;
+			Discord_NotifyCapResult(CS_TEAM_T);
 			OpenCapPickMenu(capT);
 		}
 		else if (winner == 3)
 		{
 			capFirstPicker = capCT;
 			capPicker = capCT;
+			Discord_NotifyCapResult(CS_TEAM_CT);
 			OpenCapPickMenu(capCT);
 		}
 

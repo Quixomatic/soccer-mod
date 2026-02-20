@@ -1,5 +1,18 @@
 # Soccer Mod Changelog
 
+## 1.5.15
+
+### New
+- **Discord webhook integration**: Auto-post match events to a Discord channel via webhook
+- **5 event types**: Match Start, Match End, Goal Scored, Halftime, Cap Result — each individually toggleable
+- **Rich embeds**: Team-colored goal notifications, bold scorer/italic assister, top 3 leaderboard with medal emoji at match end
+- **Custom admin messages**: Send a message to Discord from in-game via the admin menu
+- **Test notifications**: Send fake data for each event type to verify webhook setup
+- **Admin menu**: Settings > Discord Webhooks — set/clear URL, toggle events, test, send messages
+- **`!discord <message>` command**: Admins can quickly send a message to Discord without opening the menu
+
+---
+
 ## 1.5.14
 
 ### New

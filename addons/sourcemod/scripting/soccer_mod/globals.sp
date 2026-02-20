@@ -849,6 +849,14 @@ int suWarmCount				= 0;			// files remaining to warm
 int suWarmErrors			= 0;			// files that failed size verification during warming
 int suWarmTotal				= 0;			// total files being warmed
 
+// ************************************************* DISCORD WEBHOOKS ***********************************************
+char discordWebhookUrl[512];
+int discordMatchStart		= 0;
+int discordMatchEnd			= 0;
+int discordGoal				= 0;
+int discordHalftime			= 0;
+int discordCap				= 0;
+
 int pvActiveVoteType		= 0;			// 0=none, 1=kick, 2=ban, 3=mute, 4=map
 int pvActiveVoteTarget		= 0;			// Target client userid
 char pvActiveVoteMap[128];					// Target map name (for votemap)

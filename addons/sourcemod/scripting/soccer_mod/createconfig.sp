@@ -231,6 +231,15 @@ public void CreateSoccerModConfig()
 	kvConfig.SetNum("soccer_mod_su_check_interval",					suCheckInterval);
 	kvConfig.GoBack();
 
+	kvConfig.JumpToKey("Discord Settings", true);
+	kvConfig.SetString("soccer_mod_discord_webhook",				discordWebhookUrl);
+	kvConfig.SetNum("soccer_mod_discord_match_start",				discordMatchStart);
+	kvConfig.SetNum("soccer_mod_discord_match_end",					discordMatchEnd);
+	kvConfig.SetNum("soccer_mod_discord_goal",						discordGoal);
+	kvConfig.SetNum("soccer_mod_discord_halftime",					discordHalftime);
+	kvConfig.SetNum("soccer_mod_discord_cap",						discordCap);
+	kvConfig.GoBack();
+
 	kvConfig.JumpToKey("Player Vote Settings", true);
 	kvConfig.SetNum("soccer_mod_pv_votekick",						pvVotekickEnabled);
 	kvConfig.SetNum("soccer_mod_pv_voteban",						pvVotebanEnabled);
@@ -285,6 +294,19 @@ public void UpdateConfigFloat(char section[32], char type[50], float value)
 	kvConfig.JumpToKey(section, true);
 	kvConfig.SetFloat(type, value);
 	
+	kvConfig.Rewind();
+	kvConfig.ExportToFile(configFileKV);
+	kvConfig.Close();
+}
+
+public void UpdateConfigString(const char[] section, const char[] type, const char[] value)
+{
+	if(!FileExists(configFileKV)) CreateSoccerModConfig();
+	kvConfig = new KeyValues("Soccer Mod Config");
+	kvConfig.ImportFromFile(configFileKV);
+	kvConfig.JumpToKey(section, true);
+	kvConfig.SetString(type, value);
+
 	kvConfig.Rewind();
 	kvConfig.ExportToFile(configFileKV);
 	kvConfig.Close();
@@ -623,6 +645,15 @@ public void ReadFromConfig()
 	kvConfig.JumpToKey("Updater Settings", true);
 	suAutoCheck				= kvConfig.GetNum("soccer_mod_su_autocheck", 0);
 	suCheckInterval			= kvConfig.GetNum("soccer_mod_su_check_interval", 3600);
+	kvConfig.GoBack();
+
+	kvConfig.JumpToKey("Discord Settings", true);
+	kvConfig.GetString("soccer_mod_discord_webhook", discordWebhookUrl, sizeof(discordWebhookUrl), "");
+	discordMatchStart		= kvConfig.GetNum("soccer_mod_discord_match_start", 0);
+	discordMatchEnd			= kvConfig.GetNum("soccer_mod_discord_match_end", 0);
+	discordGoal				= kvConfig.GetNum("soccer_mod_discord_goal", 0);
+	discordHalftime			= kvConfig.GetNum("soccer_mod_discord_halftime", 0);
+	discordCap				= kvConfig.GetNum("soccer_mod_discord_cap", 0);
 	kvConfig.GoBack();
 
 	kvConfig.JumpToKey("Player Vote Settings", true);
