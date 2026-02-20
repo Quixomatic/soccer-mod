@@ -1,5 +1,12 @@
 # Soccer Mod Changelog
 
+## 1.5.17
+
+### New
+- **Team rosters in Match Start embed**: Discord notification now shows both team lineups side by side
+
+---
+
 ## 1.5.16
 
 ### New

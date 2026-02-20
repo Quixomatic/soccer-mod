@@ -85,22 +85,49 @@ void Discord_NotifyMatchStart()
 
 	JSONArray fields = new JSONArray();
 
+	// Build team rosters as two inline fields
+	char ctRoster[512], tRoster[512];
+	ctRoster[0] = '\0';
+	tRoster[0] = '\0';
+
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (!IsClientInGame(i) || IsFakeClient(i)) continue;
+		int team = GetClientTeam(i);
+		if (team != CS_TEAM_CT && team != CS_TEAM_T) continue;
+
+		char playerName[MAX_NAME_LENGTH];
+		GetClientName(i, playerName, sizeof(playerName));
+
+		char line[72];
+		Format(line, sizeof(line), "%s\n", playerName);
+
+		if (team == CS_TEAM_CT)
+			StrCat(ctRoster, sizeof(ctRoster), line);
+		else
+			StrCat(tRoster, sizeof(tRoster), line);
+	}
+
+	// Trim trailing newline
+	if (strlen(ctRoster) > 0) ctRoster[strlen(ctRoster) - 1] = '\0';
+	if (strlen(tRoster) > 0) tRoster[strlen(tRoster) - 1] = '\0';
+
+	char ctHeader[48], tHeader[48];
+	Format(ctHeader, sizeof(ctHeader), "%s", custom_name_ct);
+	Format(tHeader, sizeof(tHeader), "%s", custom_name_t);
+
+	if (strlen(ctRoster) > 0)
+		Discord_AddField(fields, ctHeader, ctRoster, true);
+	if (strlen(tRoster) > 0)
+		Discord_AddField(fields, tHeader, tRoster, true);
+
+	// Match info as a full-width field
 	char mapName[64];
 	GetCurrentMap(mapName, sizeof(mapName));
-	Discord_AddField(fields, "Map", mapName, true);
-
-	char teams[128];
-	Format(teams, sizeof(teams), "**%s** vs **%s**", custom_name_ct, custom_name_t);
-	Discord_AddField(fields, "Teams", teams, true);
-
-	char size[16];
-	Format(size, sizeof(size), "%dv%d", matchMaxPlayers, matchMaxPlayers);
-	Discord_AddField(fields, "Team Size", size, true);
-
-	char periods[32];
 	int periodMins = matchPeriodLength / 60;
-	Format(periods, sizeof(periods), "%d x %dmin", matchPeriods, periodMins);
-	Discord_AddField(fields, "Periods", periods, true);
+	char info[128];
+	Format(info, sizeof(info), "%s \xe2\x80\xa2 %dv%d \xe2\x80\xa2 %d x %dmin", mapName, matchMaxPlayers, matchMaxPlayers, matchPeriods, periodMins);
+	Discord_AddField(fields, "Match Info", info, false);
 
 	embed.Set("fields", fields);
 	delete fields;
@@ -356,12 +383,14 @@ void Discord_TestMatchStart(int client)
 	JSONObject embed = Discord_CreateEmbed("Match Started", "", DISCORD_COLOR_BLUE);
 	JSONArray fields = new JSONArray();
 
+	Discord_AddField(fields, "CT", "Player1\nPlayer2\nPlayer3", true);
+	Discord_AddField(fields, "T", "Player4\nPlayer5\nPlayer6", true);
+
 	char mapName[64];
 	GetCurrentMap(mapName, sizeof(mapName));
-	Discord_AddField(fields, "Map", mapName, true);
-	Discord_AddField(fields, "Teams", "**CT** vs **T**", true);
-	Discord_AddField(fields, "Team Size", "6v6", true);
-	Discord_AddField(fields, "Periods", "2 x 15min", true);
+	char info[128];
+	Format(info, sizeof(info), "%s \xe2\x80\xa2 6v6 \xe2\x80\xa2 2 x 15min", mapName);
+	Discord_AddField(fields, "Match Info", info, false);
 
 	embed.Set("fields", fields);
 	delete fields;
