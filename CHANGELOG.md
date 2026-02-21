@@ -1,12 +1,13 @@
 # Soccer Mod Changelog
 
-## 1.5.18
-
-### Fixes
-- **Fix sprint re-enabling itself**: Sprint was force-enabled after cap abort/reset even when disabled in config (`tempSprint` defaulted to `true`)
+## 1.5.19
 
 ### New
+- **Match Time submenu in Referee menu**: Set match clock to any time or jump to any period mid-match
 - **Sprint toggle in Gameplay Settings**: Admins can now enable/disable sprint from the admin menu
+
+### Fixes
+- **Fix sprint re-enabling itself**: Sprint was force-enabled after cap abort/reset even when disabled in config
 
 ---
 

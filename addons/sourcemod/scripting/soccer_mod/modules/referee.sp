@@ -41,8 +41,9 @@ public void OpenRefereeMenu(int client)
 	menu.AddItem("remove_all", "Remove all cards");
 
 	if (CheckCommandAccess(client, "generic_admin", ADMFLAG_GENERIC) || IsSoccerAdmin(client, "referee"))
-	{	
+	{
 		menu.AddItem("score", "Score");
+		menu.AddItem("matchtime", "Match Time");
 	}
 
 	menu.ExitBackButton = true;
@@ -62,8 +63,12 @@ public int RefereeMenuHandler(Menu menu, MenuAction action, int client, int choi
 		else if (StrEqual(menuItem, "remove_red"))		  OpenRemoveRedCardMenu(client);
 		else if (StrEqual(menuItem, "remove_all"))		  RemoveAllCards(client);
 		else if (StrEqual(menuItem, "score"))
-		{	 
-			if (CheckCommandAccess(client, "generic_admin", ADMFLAG_GENERIC) || IsSoccerAdmin(client, "referee")) OpenMatchScoreMenu(client); 
+		{
+			if (CheckCommandAccess(client, "generic_admin", ADMFLAG_GENERIC) || IsSoccerAdmin(client, "referee")) OpenMatchScoreMenu(client);
+		}
+		else if (StrEqual(menuItem, "matchtime"))
+		{
+			if (CheckCommandAccess(client, "generic_admin", ADMFLAG_GENERIC) || IsSoccerAdmin(client, "referee")) OpenMatchTimeMenu(client);
 		}
 	}
 	else if (action == MenuAction_Cancel && choice == -6)
@@ -659,6 +664,175 @@ public int RemoveRedCardMenuHandler(Menu menu, MenuAction action, int client, in
 	return 0;
 }
 
+
+// ***********************************************************************************************************************
+// ************************************************** MATCH TIME MENU  **********************************************
+// ***********************************************************************************************************************
+public void OpenMatchTimeMenu(int client)
+{
+	if (!matchStarted)
+	{
+		CPrintToChat(client, "{%s}[%s] {red}No match in progress.", prefixcolor, prefix);
+		OpenRefereeMenu(client);
+		return;
+	}
+
+	Menu menu = new Menu(MatchTimeMenuHandler);
+
+	// Time within current period
+	int periodStart = (matchPeriod - 1) * matchPeriodLength;
+	int periodElapsed = matchTime - periodStart;
+	int periodMins = periodElapsed / 60;
+	int periodSecs = periodElapsed % 60;
+	int maxMins = (matchPeriodLength - 1) / 60;
+
+	char title[128];
+	Format(title, sizeof(title), "Match Time\nPeriod %i/%i — %02i:%02i (max %i:%02i)", matchPeriod, matchPeriods, periodMins, periodSecs, maxMins, (matchPeriodLength - 1) % 60);
+	menu.SetTitle(title);
+
+	menu.AddItem("setminutes", "Set Minutes");
+	menu.AddItem("setseconds", "Set Seconds");
+
+	for (int p = 1; p <= matchPeriods; p++)
+	{
+		if (p != matchPeriod)
+		{
+			char pStr[8], pLabel[32];
+			IntToString(p, pStr, sizeof(pStr));
+			Format(pLabel, sizeof(pLabel), "Jump to Period %i", p);
+			menu.AddItem(pStr, pLabel);
+		}
+	}
+
+	menu.ExitBackButton = true;
+	menu.Display(client, MENU_TIME_FOREVER);
+}
+
+public int MatchTimeMenuHandler(Menu menu, MenuAction action, int client, int choice)
+{
+	if (action == MenuAction_Select)
+	{
+		char menuItem[32];
+		menu.GetItem(choice, menuItem, sizeof(menuItem));
+
+		if (StrEqual(menuItem, "setminutes"))
+		{
+			int maxMins = (matchPeriodLength - 1) / 60;
+			CPrintToChat(client, "{%s}[%s] {%s}Type minutes for this period (0-%i).", prefixcolor, prefix, textcolor, maxMins);
+			changeSetting[client] = "RefSetMinutes";
+		}
+		else if (StrEqual(menuItem, "setseconds"))
+		{
+			CPrintToChat(client, "{%s}[%s] {%s}Type seconds (0-59).", prefixcolor, prefix, textcolor);
+			changeSetting[client] = "RefSetSeconds";
+		}
+		else
+		{
+			int targetPeriod = StringToInt(menuItem);
+			if (targetPeriod >= 1 && targetPeriod <= matchPeriods)
+			{
+				matchPeriod = targetPeriod;
+				matchTime = (targetPeriod - 1) * matchPeriodLength;
+
+				KillMatchTimer();
+				matchStoppageTimeStarted = false;
+				matchStoppageTime = 0;
+				matchPeriodBreak = false;
+				matchGoldenGoalActive = false;
+
+				if (matchKickOffTaken)
+					matchTimer = CreateTimer(0.0, MatchPeriodTimer, matchTime);
+
+				char timeString[16];
+				getTimeString(timeString, matchTime);
+
+				for (int player = 1; player <= MaxClients; player++)
+				{
+					if (IsClientInGame(player)) CPrintToChat(player, "{%s}[%s] {%s}%N jumped to Period %i (%s)", prefixcolor, prefix, textcolor, client, targetPeriod, timeString);
+				}
+
+				LogMessage("%N jumped match to Period %i", client, targetPeriod);
+				OpenMatchTimeMenu(client);
+			}
+		}
+	}
+	else if (action == MenuAction_Cancel && choice == -6)   OpenRefereeMenu(client);
+	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
+}
+
+public void RefSetMinutes(int client, int minutes)
+{
+	if (!matchStarted)
+	{
+		CPrintToChat(client, "{%s}[%s] {red}No match in progress.", prefixcolor, prefix);
+		return;
+	}
+
+	int periodStart = (matchPeriod - 1) * matchPeriodLength;
+	int periodElapsed = matchTime - periodStart;
+	int currentSecs = periodElapsed % 60;
+	int maxMins = (matchPeriodLength - 1) / 60;
+
+	if (minutes < 0) minutes = 0;
+	if (minutes > maxMins) minutes = maxMins;
+
+	int newElapsed = (minutes * 60) + currentSecs;
+	// Clamp to period bounds
+	if (newElapsed >= matchPeriodLength) newElapsed = matchPeriodLength - 1;
+
+	matchTime = periodStart + newElapsed;
+
+	RefApplyTimeChange(client);
+}
+
+public void RefSetSeconds(int client, int seconds)
+{
+	if (!matchStarted)
+	{
+		CPrintToChat(client, "{%s}[%s] {red}No match in progress.", prefixcolor, prefix);
+		return;
+	}
+
+	int periodStart = (matchPeriod - 1) * matchPeriodLength;
+	int periodElapsed = matchTime - periodStart;
+	int currentMins = periodElapsed / 60;
+
+	if (seconds < 0) seconds = 0;
+	if (seconds > 59) seconds = 59;
+
+	int newElapsed = (currentMins * 60) + seconds;
+	// Clamp to period bounds
+	if (newElapsed >= matchPeriodLength) newElapsed = matchPeriodLength - 1;
+
+	matchTime = periodStart + newElapsed;
+
+	RefApplyTimeChange(client);
+}
+
+public void RefApplyTimeChange(int client)
+{
+	KillMatchTimer();
+	matchStoppageTimeStarted = false;
+	matchStoppageTime = 0;
+	matchPeriodBreak = false;
+	matchGoldenGoalActive = false;
+
+	if (matchKickOffTaken)
+		matchTimer = CreateTimer(0.0, MatchPeriodTimer, matchTime);
+
+	int periodStart = (matchPeriod - 1) * matchPeriodLength;
+	int periodElapsed = matchTime - periodStart;
+	int mins = periodElapsed / 60;
+	int secs = periodElapsed % 60;
+
+	for (int player = 1; player <= MaxClients; player++)
+	{
+		if (IsClientInGame(player)) CPrintToChat(player, "{%s}[%s] {%s}%N set period %i time to %02i:%02i", prefixcolor, prefix, textcolor, client, matchPeriod, mins, secs);
+	}
+
+	LogMessage("%N set match time to %i (Period %i, %02i:%02i)", client, matchTime, matchPeriod, mins, secs);
+}
 
 // ***************************************************************************************************************
 // ************************************************** FUNCTIONS **************************************************

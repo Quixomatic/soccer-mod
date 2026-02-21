@@ -1,7 +1,7 @@
 // **************************************************************************************************************
 // ************************************************** DEFINES ***************************************************
 // ************************************************************************************************************** 
-#define PLUGIN_VERSION "1.5.18"
+#define PLUGIN_VERSION "1.5.19"
 #define MAX_NAMES 10
 #define MAXCONES_DYN 15
 #define MAXCONES_STA 15
@@ -492,6 +492,20 @@ public Action SayCommandListener(int client, char[] command, int argc)
 			Discord_SendCustomMessage(client, fullMsg);
 			changeSetting[client] = "";
 			OpenMenuDiscord(client);
+			return Plugin_Handled;
+		}
+		else if (StrEqual(changeSetting[client], "RefSetMinutes"))
+		{
+			RefSetMinutes(client, intnumber);
+			changeSetting[client] = "";
+			OpenMatchTimeMenu(client);
+			return Plugin_Handled;
+		}
+		else if (StrEqual(changeSetting[client], "RefSetSeconds"))
+		{
+			RefSetSeconds(client, intnumber);
+			changeSetting[client] = "";
+			OpenMatchTimeMenu(client);
 			return Plugin_Handled;
 		}
 	}
