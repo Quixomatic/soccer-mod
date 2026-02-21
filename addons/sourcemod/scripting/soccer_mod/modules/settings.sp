@@ -297,7 +297,10 @@ public void OpenSettingsGameplay(int client)
 
 	menu.SetTitle("Soccer Mod - Admin - Settings - Gameplay");
 
-	char DJString[32], WallString[32], DamageString[32], GKString[32], CelebrateString[32];
+	char SprintString[32], DJString[32], WallString[32], DamageString[32], GKString[32], CelebrateString[32];
+
+	if(bSPRINT_ENABLED == 0)			SprintString = "Sprint: OFF";
+	else 								SprintString = "Sprint: ON";
 
 	if(djbenabled == 0)					DJString = "DuckJumpBlock: OFF";
 	else if (djbenabled == 1)			DJString = "DuckJumpBlock: ON (v1)";
@@ -316,6 +319,7 @@ public void OpenSettingsGameplay(int client)
 	if(celebrateweaponSet == 0)			CelebrateString = "Celebration: OFF";
 	else if (celebrateweaponSet == 1)	CelebrateString = "Celebration: ON";
 
+	menu.AddItem("sprint", SprintString);
 	menu.AddItem("djblock", DJString);
 	menu.AddItem("kickoffwall", WallString);
 	menu.AddItem("kickoffwalls_setup", "-> Kickoff Walls Setup");
@@ -334,7 +338,21 @@ public int SettingsGameplayHandler(Menu menu, MenuAction action, int client, int
 		char menuItem[32];
 		menu.GetItem(choice, menuItem, sizeof(menuItem));
 
-		if(StrEqual(menuItem, "djblock"))
+		if(StrEqual(menuItem, "sprint"))
+		{
+			if(bSPRINT_ENABLED == 0)
+			{
+				bSPRINT_ENABLED = 1;
+				UpdateConfigInt("Sprint Settings", "soccer_mod_sprint_enable", bSPRINT_ENABLED);
+			}
+			else
+			{
+				bSPRINT_ENABLED = 0;
+				UpdateConfigInt("Sprint Settings", "soccer_mod_sprint_enable", bSPRINT_ENABLED);
+			}
+			OpenSettingsGameplay(client);
+		}
+		else if(StrEqual(menuItem, "djblock"))
 		{
 			if(djbenabled == 0)
 			{

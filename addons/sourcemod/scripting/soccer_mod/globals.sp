@@ -147,7 +147,7 @@ char szTarget2[64];
 
 // BOOL
 bool capFightStarted	= false;
-bool tempSprint			= true;
+bool tempSprint			= false;
 bool tempRule			= false;
 bool capAutoActive		= false;	// Auto cap process is running
 bool capVoteActive		= false;	// Vote is in progress

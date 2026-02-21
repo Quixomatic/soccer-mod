@@ -1,5 +1,15 @@
 # Soccer Mod Changelog
 
+## 1.5.18
+
+### Fixes
+- **Fix sprint re-enabling itself**: Sprint was force-enabled after cap abort/reset even when disabled in config (`tempSprint` defaulted to `true`)
+
+### New
+- **Sprint toggle in Gameplay Settings**: Admins can now enable/disable sprint from the admin menu
+
+---
+
 ## 1.5.17
 
 ### New
