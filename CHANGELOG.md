@@ -1,5 +1,12 @@
 # Soccer Mod Changelog
 
+## 1.5.21
+
+### Fixes
+- **Fix forfeit threshold menu item**: Buffer too small for menu item ID, causing vote threshold option to silently close
+
+---
+
 ## 1.5.20
 
 ### New

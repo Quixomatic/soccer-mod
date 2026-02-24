@@ -828,10 +828,10 @@ public int MenuHandlerForfeitSettings(Menu menu, MenuAction action, int client, 
 	{
 		if (action == MenuAction_Select)
 		{
-			char menuItem[16];
+			char menuItem[32];
 			menu.GetItem(choice, menuItem, sizeof(menuItem));
-			
-			if(StrEqual(menuItem, "forfeittoggle"))	
+
+			if(StrEqual(menuItem, "forfeittoggle"))
 			{
 				if(ForfeitEnabled == 0)		
 				{
