@@ -158,6 +158,9 @@ public void CreateSoccerModConfig()
 	kvConfig.SetNum("soccer_mod_forfeitpublic",					ForfeitPublic);
 	kvConfig.SetNum("soccer_mod_forfeitautospec",				ForfeitAutoSpec);
 	kvConfig.SetNum("soccer_mod_forfeitcapmode",				ForfeitCapMode);
+	kvConfig.SetNum("soccer_mod_forfeitteamonly",				ForfeitTeamOnly);
+	kvConfig.SetNum("soccer_mod_forfeitthreshold",				ForfeitThreshold);
+	kvConfig.SetNum("soccer_mod_forfeitcooldown",				ForfeitCooldown);
 	kvConfig.GoBack();
 	
 	kvConfig.JumpToKey("Misc Settings", true);
@@ -570,6 +573,9 @@ public void ReadFromConfig()
 	ForfeitPublic			= kvConfig.GetNum("soccer_mod_forfeitpublic", 0);
 	ForfeitAutoSpec			= kvConfig.GetNum("soccer_mod_forfeitautospec", 0);
 	ForfeitCapMode			= kvConfig.GetNum("soccer_mod_forfeitcapmode", 0);
+	ForfeitTeamOnly			= kvConfig.GetNum("soccer_mod_forfeitteamonly", 1);
+	ForfeitThreshold		= kvConfig.GetNum("soccer_mod_forfeitthreshold", 50);
+	ForfeitCooldown			= kvConfig.GetNum("soccer_mod_forfeitcooldown", 450);
 	kvConfig.GoBack();
 	
 	kvConfig.JumpToKey("Misc Settings", true);

@@ -1,7 +1,7 @@
 // **************************************************************************************************************
 // ************************************************** DEFINES ***************************************************
 // ************************************************************************************************************** 
-#define PLUGIN_VERSION "1.5.19"
+#define PLUGIN_VERSION "1.5.20"
 #define MAX_NAMES 10
 #define MAXCONES_DYN 15
 #define MAXCONES_STA 15
@@ -337,7 +337,33 @@ public Action SayCommandListener(int client, char[] command, int argc)
 		else if (StrEqual(changeSetting[client], "ForfeitScoreSet"))
 		{
 			ForfeitSet(client, "ForfeitScoreSet", intnumber, 4, 16);
-			return Plugin_Handled;			
+			return Plugin_Handled;
+		}
+		else if (StrEqual(changeSetting[client], "ForfeitThresholdSet"))
+		{
+			if (intnumber >= 1 && intnumber <= 100)
+			{
+				ForfeitThreshold = intnumber;
+				UpdateConfigInt("Forfeit Settings", "soccer_mod_forfeitthreshold", ForfeitThreshold);
+				CPrintToChat(client, "{%s}[%s] {%s}Vote threshold set to %i%%.", prefixcolor, prefix, textcolor, ForfeitThreshold);
+			}
+			else CPrintToChat(client, "{%s}[%s] {red}Value must be between 1 and 100.", prefixcolor, prefix);
+			changeSetting[client] = "";
+			OpenMenuForfeitSettings(client);
+			return Plugin_Handled;
+		}
+		else if (StrEqual(changeSetting[client], "ForfeitCooldownSet"))
+		{
+			if (intnumber >= 0 && intnumber <= 3600)
+			{
+				ForfeitCooldown = intnumber;
+				UpdateConfigInt("Forfeit Settings", "soccer_mod_forfeitcooldown", ForfeitCooldown);
+				CPrintToChat(client, "{%s}[%s] {%s}Forfeit cooldown set to %is.", prefixcolor, prefix, textcolor, ForfeitCooldown);
+			}
+			else CPrintToChat(client, "{%s}[%s] {red}Value must be between 0 and 3600.", prefixcolor, prefix);
+			changeSetting[client] = "";
+			OpenMenuForfeitSettings(client);
+			return Plugin_Handled;
 		}
 		else if (StrEqual(changeSetting[client], "CustomPrefix"))
 		{

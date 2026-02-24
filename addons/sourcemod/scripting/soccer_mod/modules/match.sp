@@ -799,11 +799,21 @@ public void OpenMenuForfeitSettings(int client)
 	if(ForfeitCapMode == 0)				FFVCstring = "Cap only mode: OFF"
 	else if(ForfeitCapMode == 1)		FFVCstring = "Cap only mode: ON"
 	
+	char FFVTstring[32], thresholdString[48], cooldownString[48];
+
+	if(ForfeitTeamOnly == 0)			FFVTstring = "Team Only Vote: OFF"
+	else 								FFVTstring = "Team Only Vote: ON"
+
 	Format(currentCondition, sizeof(currentCondition), "Vote Condition: %i goals", ForfeitScore);
-	
-	if(ForfeitCapMode == 0) menu.AddItem("forfeittoggle", FFVstring); 
-	else if(ForfeitCapMode == 1) menu.AddItem("forfeittoggle", FFVstring, ITEMDRAW_DISABLED); 
+	Format(thresholdString, sizeof(thresholdString), "Vote Threshold: %i%%", ForfeitThreshold);
+	Format(cooldownString, sizeof(cooldownString), "Cooldown: %is", ForfeitCooldown);
+
+	if(ForfeitCapMode == 0) menu.AddItem("forfeittoggle", FFVstring);
+	else if(ForfeitCapMode == 1) menu.AddItem("forfeittoggle", FFVstring, ITEMDRAW_DISABLED);
 	menu.AddItem("forfeitgoals", currentCondition);
+	menu.AddItem("forfeitteamonly", FFVTstring);
+	menu.AddItem("forfeitthreshold", thresholdString);
+	menu.AddItem("forfeitcooldown", cooldownString);
 	menu.AddItem("forfeitpublic", FFVPstring);
 	menu.AddItem("forfeitautospec", FFVSstring);
 	menu.AddItem("forfeitcapmode", FFVCstring);
@@ -843,6 +853,23 @@ public int MenuHandlerForfeitSettings(Menu menu, MenuAction action, int client, 
 			{
 				CPrintToChat(client, "{%s}[%s] {%s}Type in the required difference on the scoreboard to allow a forfeit vote, 0 to stop.", prefixcolor, prefix, textcolor);
 				changeSetting[client] = "ForfeitScoreSet"; //ERROR
+			}
+			else if(StrEqual(menuItem, "forfeitteamonly"))
+			{
+				ForfeitTeamOnly = ForfeitTeamOnly ? 0 : 1;
+				UpdateConfigInt("Forfeit Settings", "soccer_mod_forfeitteamonly", ForfeitTeamOnly);
+				CPrintToChat(client, "{%s}[%s] {%s}Team only vote: %s", prefixcolor, prefix, textcolor, ForfeitTeamOnly ? "ON" : "OFF");
+				OpenMenuForfeitSettings(client);
+			}
+			else if(StrEqual(menuItem, "forfeitthreshold"))
+			{
+				CPrintToChat(client, "{%s}[%s] {%s}Type the vote threshold percentage (1-100). Current: %i%%", prefixcolor, prefix, textcolor, ForfeitThreshold);
+				changeSetting[client] = "ForfeitThresholdSet";
+			}
+			else if(StrEqual(menuItem, "forfeitcooldown"))
+			{
+				CPrintToChat(client, "{%s}[%s] {%s}Type the cooldown in seconds (0-3600). Current: %i", prefixcolor, prefix, textcolor, ForfeitCooldown);
+				changeSetting[client] = "ForfeitCooldownSet";
 			}
 			else if(StrEqual(menuItem, "forfeitpublic"))
 			{

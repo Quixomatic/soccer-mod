@@ -351,21 +351,23 @@ public Action Command_Forfeit(int client, int args)
 								iHelp = 0;
 								
 								if (ForfeitPublic == 1)
-								{	
+								{
 									// Prevent multiple uses at once & +1 votecount
 									ffActive = true;
 									ffcounter++;
-									
+									forfeitCallerTeam = GetClientTeam(client);
+
 									for (int i = 1; i <= MaxClients; i++)
 									{
 										if (IsValidClient(i) && GetClientTeam(i) != 1)
 										{
-											iHelp++;
-										}	
+											if (!ForfeitTeamOnly || GetClientTeam(i) == forfeitCallerTeam)
+												iHelp++;
+										}
 									}
-									
+
 									ForfeitVoteMenu();
-										
+
 									// Start CD Timer
 									forfeitTimer = CreateTimer(1.0, ForfeitCDTimer, _, TIMER_REPEAT); //1 sec timer
 								}
@@ -376,17 +378,19 @@ public Action Command_Forfeit(int client, int args)
 										// Prevent multiple uses at once & +1 votecount
 										ffActive = true;
 										ffcounter++;
-										
+										forfeitCallerTeam = GetClientTeam(client);
+
 										for (int i = 1; i <= MaxClients; i++)
 										{
 											if (IsValidClient(i) && GetClientTeam(i) != 1)
 											{
-												iHelp++;
-											}	
+												if (!ForfeitTeamOnly || GetClientTeam(i) == forfeitCallerTeam)
+													iHelp++;
+											}
 										}
-										
+
 										ForfeitVoteMenu();
-					
+
 										// Start CD Timer
 										forfeitTimer = CreateTimer(1.0, ForfeitCDTimer, _, TIMER_REPEAT);
 									}
@@ -1343,7 +1347,7 @@ public Action ForfeitCDTimer(Handle timer)
 		//if ((ffTScore-ffCTScore >= ForfeitScore) || (ffCTScore-ffTScore>= ForfeitScore))  //CPrintToChatAll("{%s}[%s]A new Forfeit vote is possible now.", prefixcolor, prefix)
 		
 		KillTimer(forfeitTimer);
-		cdTime = float(matchPeriodLength/2);
+		cdTime = float(ForfeitCooldown);
 
 	}
 	
@@ -1373,12 +1377,19 @@ public Action DelayedffAbort(Handle timer)
 		PlaySound("soccermod/endmatch.wav");
 		for (int player = 1; player <= MaxClients; player++)
 		{
-			if (IsClientInGame(player) && IsClientConnected(player)) 
+			if (IsClientInGame(player) && IsClientConnected(player))
 			{
-				CPrintToChat(player, "{%s}[%s] {%s}The match was stopped by forfeit vote.", prefixcolor, prefix, textcolor);
+				CPrintToChat(player, "{%s}[%s] {%s}Match forfeited. Final score: %s %i - %i %s", prefixcolor, prefix, textcolor, custom_name_ct, matchScoreCT, matchScoreT, custom_name_t);
 			}
 		}
-		
+
+		LogMessage("Match forfeited. Final score: %s %i - %i %s", custom_name_ct, matchScoreCT, matchScoreT, custom_name_t);
+
+		// Record match stats before reset
+		Discord_NotifyMatchEnd();
+		AddMatchStat("add");
+		ShowTop3(true);
+
 		//Stop the Match
 		if(matchPaused) 	UnfreezeAll();
 		MatchReset();
@@ -1458,7 +1469,7 @@ public void Handle_VoteResults(Menu menu, int num_votes, int num_clients, const 
 	
 	result = (float(yesVotes)/float(num_votes))*100;
 	
-	if (result > 66.0)
+	if (result >= float(ForfeitThreshold))
 	{
 		if(!matchPaused || !matchPeriodBreak)		FreezeAll();
 		CPrintToChatAll("{%s}[%s] %.2f\% out of %i votes were Yes. Aborting the match in %.0f seconds.", prefixcolor, prefix, result, num_votes, abortTime);
@@ -1477,36 +1488,34 @@ void ForfeitVoteMenu()
 	{
 		return;
 	}
- 
+
 	Menu menu = new Menu(Handle_ForfeitVoteMenu);
 	menu.VoteResultCallback = Handle_VoteResults;
-	menu.SetTitle("Abort this match?");
+
+	if (ForfeitTeamOnly)
+		menu.SetTitle("Forfeit this match?");
+	else
+		menu.SetTitle("Abort this match?");
+
 	menu.AddItem("yes", "Yes");
 	menu.AddItem("no", "No");
 	menu.ExitButton = false;
-	DisplayVoteMenuToTeam(menu, 60, 1);
-}
 
-stock bool DisplayVoteMenuToTeam(Handle menu, int _iTime, int iTeam)
-{
-	#pragma unused _iTime
 	int iTotal;
 	int[] iPlayers = new int[MaxClients];
 
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		if (!IsValidClient(i) || GetClientTeam(i) == iTeam)
-		{
+		if (!IsValidClient(i) || GetClientTeam(i) == 1)
 			continue;
-		}
 
-		if(iTotal <= iHelp)
-		{
-			iPlayers[iTotal++] = i;
-		}
+		if (ForfeitTeamOnly && GetClientTeam(i) != forfeitCallerTeam)
+			continue;
+
+		iPlayers[iTotal++] = i;
 	}
 
-	return VoteMenu(menu, iPlayers, iTotal, 30, 0);
+	VoteMenu(menu, iPlayers, iTotal, 30, 0);
 }
 
 // *********************************************** PASSWORD FUNCTIONS ************************************************

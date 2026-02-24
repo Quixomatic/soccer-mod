@@ -1,5 +1,15 @@
 # Soccer Mod Changelog
 
+## 1.5.20
+
+### New
+- **Team-only forfeit vote**: New toggle sends the vote only to the forfeiting team instead of all players
+- **Configurable vote threshold**: Set the percentage needed to pass (default 50%, was hardcoded 66%)
+- **Configurable forfeit cooldown**: Set cooldown between votes in seconds (default 450s, was hardcoded to half period length)
+- **Forfeit records match result**: Forfeits now save stats, show top 3, and send Discord notification like a normal match end
+
+---
+
 ## 1.5.19
 
 ### New
