@@ -1,7 +1,7 @@
 // **************************************************************************************************************
 // ************************************************** DEFINES ***************************************************
 // ************************************************************************************************************** 
-#define PLUGIN_VERSION "1.5.22"
+#define PLUGIN_VERSION "1.5.23"
 #define MAX_NAMES 10
 #define MAXCONES_DYN 15
 #define MAXCONES_STA 15
@@ -363,6 +363,33 @@ public Action SayCommandListener(int client, char[] command, int argc)
 			else CPrintToChat(client, "{%s}[%s] {red}Value must be between 0 and 3600.", prefixcolor, prefix);
 			changeSetting[client] = "";
 			OpenMenuForfeitSettings(client);
+			return Plugin_Handled;
+		}
+		else if (StrContains(changeSetting[client], "PointValue_") != -1)
+		{
+			if (intnumber >= -100 && intnumber <= 100)
+			{
+				char action[32];
+				strcopy(action, sizeof(action), changeSetting[client][11]); // skip "PointValue_"
+
+				if (StrEqual(action, "goal"))				{ rankingPointsForGoal = intnumber; UpdateConfigInt("Stats Settings", "soccer_mod_ranking_points_goal", intnumber); }
+				else if (StrEqual(action, "assist"))			{ rankingPointsForAssist = intnumber; UpdateConfigInt("Stats Settings", "soccer_mod_ranking_points_assist", intnumber); }
+				else if (StrEqual(action, "owngoal"))		{ rankingPointsForOwnGoal = intnumber; UpdateConfigInt("Stats Settings", "soccer_mod_ranking_points_own_goal", intnumber); }
+				else if (StrEqual(action, "hit"))			{ rankingPointsForHit = intnumber; UpdateConfigInt("Stats Settings", "soccer_mod_ranking_points_hit", intnumber); }
+				else if (StrEqual(action, "pass"))			{ rankingPointsForPass = intnumber; UpdateConfigInt("Stats Settings", "soccer_mod_ranking_points_pass", intnumber); }
+				else if (StrEqual(action, "interception"))	{ rankingPointsForInterception = intnumber; UpdateConfigInt("Stats Settings", "soccer_mod_ranking_points_interception", intnumber); }
+				else if (StrEqual(action, "ballloss"))		{ rankingPointsForBallLoss = intnumber; UpdateConfigInt("Stats Settings", "soccer_mod_ranking_points_ball_loss", intnumber); }
+				else if (StrEqual(action, "save"))			{ rankingPointsForSave = intnumber; UpdateConfigInt("Stats Settings", "soccer_mod_ranking_points_save", intnumber); }
+				else if (StrEqual(action, "roundwon"))		{ rankingPointsForRoundWon = intnumber; UpdateConfigInt("Stats Settings", "soccer_mod_ranking_points_round_won", intnumber); }
+				else if (StrEqual(action, "roundlost"))		{ rankingPointsForRoundLost = intnumber; UpdateConfigInt("Stats Settings", "soccer_mod_ranking_points_round_lost", intnumber); }
+				else if (StrEqual(action, "mvp"))			{ rankingPointsForMVP = intnumber; UpdateConfigInt("Stats Settings", "soccer_mod_ranking_points_mvp", intnumber); }
+				else if (StrEqual(action, "motm"))			{ rankingPointsForMOTM = intnumber; UpdateConfigInt("Stats Settings", "soccer_mod_ranking_points_motm", intnumber); }
+
+				CPrintToChat(client, "{%s}[%s] {%s}Point value updated to %i.", prefixcolor, prefix, textcolor, intnumber);
+			}
+			else CPrintToChat(client, "{%s}[%s] {red}Value must be between -100 and 100.", prefixcolor, prefix);
+			changeSetting[client] = "";
+			OpenPointValuesMenu(client);
 			return Plugin_Handled;
 		}
 		else if (StrEqual(changeSetting[client], "CustomPrefix"))

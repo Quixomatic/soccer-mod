@@ -572,6 +572,7 @@ public void OpenSettingsStats(int client)
 	menu.AddItem("rankmode", RankModeString);
 	menu.AddItem("rankspam", RankString);
 	menu.AddItem("loaddefaults", DefaultString);
+	menu.AddItem("pointvalues", "-> Point Values");
 
 	menu.ExitBackButton = true;
 	menu.Display(client, MENU_TIME_FOREVER);
@@ -622,8 +623,78 @@ public int SettingsStatsHandler(Menu menu, MenuAction action, int client, int ch
 			}
 			OpenSettingsStats(client);
 		}
+		else if(StrEqual(menuItem, "pointvalues"))
+		{
+			OpenPointValuesMenu(client);
+		}
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSettings(client);
+	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
+}
+
+public void OpenPointValuesMenu(int client)
+{
+	Menu menu = new Menu(PointValuesMenuHandler);
+
+	menu.SetTitle("Soccer Mod - Point Values");
+
+	char buf[48];
+
+	Format(buf, sizeof(buf), "Goal: %i", rankingPointsForGoal);
+	menu.AddItem("goal", buf);
+	Format(buf, sizeof(buf), "Assist: %i", rankingPointsForAssist);
+	menu.AddItem("assist", buf);
+	Format(buf, sizeof(buf), "Own Goal: %i", rankingPointsForOwnGoal);
+	menu.AddItem("owngoal", buf);
+	Format(buf, sizeof(buf), "Hit: %i", rankingPointsForHit);
+	menu.AddItem("hit", buf);
+	Format(buf, sizeof(buf), "Pass: %i", rankingPointsForPass);
+	menu.AddItem("pass", buf);
+	Format(buf, sizeof(buf), "Interception: %i", rankingPointsForInterception);
+	menu.AddItem("interception", buf);
+	Format(buf, sizeof(buf), "Ball Loss: %i", rankingPointsForBallLoss);
+	menu.AddItem("ballloss", buf);
+	Format(buf, sizeof(buf), "Save: %i", rankingPointsForSave);
+	menu.AddItem("save", buf);
+	Format(buf, sizeof(buf), "Round Won: %i", rankingPointsForRoundWon);
+	menu.AddItem("roundwon", buf);
+	Format(buf, sizeof(buf), "Round Lost: %i", rankingPointsForRoundLost);
+	menu.AddItem("roundlost", buf);
+	Format(buf, sizeof(buf), "MVP: %i", rankingPointsForMVP);
+	menu.AddItem("mvp", buf);
+	Format(buf, sizeof(buf), "MOTM: %i", rankingPointsForMOTM);
+	menu.AddItem("motm", buf);
+
+	menu.ExitBackButton = true;
+	menu.Display(client, MENU_TIME_FOREVER);
+}
+
+public int PointValuesMenuHandler(Menu menu, MenuAction action, int client, int choice)
+{
+	if (action == MenuAction_Select)
+	{
+		char menuItem[32];
+		menu.GetItem(choice, menuItem, sizeof(menuItem));
+
+		char label[32];
+		if (StrEqual(menuItem, "goal"))				label = "Goal";
+		else if (StrEqual(menuItem, "assist"))		label = "Assist";
+		else if (StrEqual(menuItem, "owngoal"))		label = "Own Goal";
+		else if (StrEqual(menuItem, "hit"))			label = "Hit";
+		else if (StrEqual(menuItem, "pass"))		label = "Pass";
+		else if (StrEqual(menuItem, "interception"))	label = "Interception";
+		else if (StrEqual(menuItem, "ballloss"))	label = "Ball Loss";
+		else if (StrEqual(menuItem, "save"))		label = "Save";
+		else if (StrEqual(menuItem, "roundwon"))	label = "Round Won";
+		else if (StrEqual(menuItem, "roundlost"))	label = "Round Lost";
+		else if (StrEqual(menuItem, "mvp"))			label = "MVP";
+		else if (StrEqual(menuItem, "motm"))		label = "MOTM";
+
+		CPrintToChat(client, "{%s}[%s] {%s}Type a point value for %s (-100 to 100).", prefixcolor, prefix, textcolor, label);
+		Format(changeSetting[client], sizeof(changeSetting[]), "PointValue_%s", menuItem);
+	}
+	else if (action == MenuAction_Cancel && choice == -6)   OpenSettingsStats(client);
 	else if (action == MenuAction_End)					  menu.Close();
 	return 0;
 }

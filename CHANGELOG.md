@@ -1,5 +1,12 @@
 # Soccer Mod Changelog
 
+## 1.5.23
+
+### New
+- **Point Values admin menu**: Configure ranking points for all 12 actions (goal, assist, save, etc.) from Admin > Settings > Stats & Ranking > Point Values
+
+---
+
 ## 1.5.22
 
 ### Fixes
