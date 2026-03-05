@@ -271,9 +271,8 @@ public void ReadPersonalCannonSettings(int client)
 
 public void PersonalTrainingCannonOn(int client)
 {
-	char entityName[32];
-	Format(entityName, sizeof(entityName), "soccer_mod_training_ball_%i", client);
-	
+	int clientUserId = GetClientUserId(client);
+
 	if (FileExists(trainingModelBall, true))
 	{
 		int index;
@@ -281,13 +280,10 @@ public void PersonalTrainingCannonOn(int client)
 
 		while ((index = FindEntityByClassname(index, "prop_physics")) != INVALID_ENT_REFERENCE)
 		{
-			char entPropString[32];
-			GetEntPropString(index, Prop_Data, "m_iName", entPropString, sizeof(entPropString));
-
-			if (StrEqual(entPropString, entityName))
+			if (GetEntProp(index, Prop_Data, "m_iHammerID") == clientUserId)
 			{
 				ballSpawned = true;
-				//AcceptEntityInput(index, "Kill");
+				pers_trainingCannonBallIndex[client] = index;
 			}
 		}
 
@@ -298,54 +294,38 @@ public void PersonalTrainingCannonOn(int client)
 			{
 				if (!IsModelPrecached(trainingModelBall)) PrecacheModel(trainingModelBall);
 
-				DispatchKeyValue(index, "targetname", entityName);
+				DispatchKeyValue(index, "targetname", "ballon");
 				DispatchKeyValue(index, "model", trainingModelBall);
 
 				DispatchKeyValueVector(index, "origin", pers_trainingCannonPosition[client]);
 
 				DispatchSpawn(index);
+				SetEntProp(index, Prop_Data, "m_iHammerID", clientUserId);
 				pers_trainingCannonBallIndex[client] = index;
 			}
 		}
 	}
-	
+
 	if (pers_trainingCannonTimer[client] == null)
 	{
-		char steamid[32];
-		GetClientAuthId(client, AuthId_Engine, steamid, sizeof(steamid));
-
 		if (!IsValidEntity(pers_trainingCannonBallIndex[client]))
 		{
+			// Try to find existing ball by HammerID
 			int index;
-
 			while ((index = FindEntityByClassname(index, "prop_physics")) != INVALID_ENT_REFERENCE)
 			{
-				char entPropString[64];
-				GetEntPropString(index, Prop_Data, "m_iName", entPropString, sizeof(entPropString));
-
-				if (StrEqual(entPropString, entityName))
+				if (GetEntProp(index, Prop_Data, "m_iHammerID") == clientUserId)
 				{
 					pers_trainingCannonBallIndex[client] = index;
 				}
-				
 			}
-
-			delete pers_trainingCannonTimer[client];
-			pers_trainingCannonTimer[client] = CreateTimer(0.0, PersonalTrainingCannonShoot, client);
-
-			CPrintToChat(client, "{%s}[%s] {%s}Turned on your personal cannon", prefixcolor, prefix, textcolor);
-
-			OpenPersonalTrainingCannonMenu(client);
 		}
-		else
-		{
-			delete pers_trainingCannonTimer[client];
-			pers_trainingCannonTimer[client] = CreateTimer(0.0, PersonalTrainingCannonShoot, client);
 
-			CPrintToChat(client, "{%s}[%s] {%s}Turned on your personal cannon", prefixcolor, prefix, textcolor);
+		delete pers_trainingCannonTimer[client];
+		pers_trainingCannonTimer[client] = CreateTimer(0.0, PersonalTrainingCannonShoot, client);
 
-			OpenPersonalTrainingCannonMenu(client);
-		}
+		CPrintToChat(client, "{%s}[%s] {%s}Turned on your personal cannon", prefixcolor, prefix, textcolor);
+		OpenPersonalTrainingCannonMenu(client);
 	}
 	else
 	{
@@ -359,22 +339,17 @@ public void PersonalTrainingCannonOff(int client)
 	if (pers_trainingCannonTimer[client] != null)
 	{
 		float vec[3] = {0.0, 0.0, 0.0};
-		
+		int clientUserId = GetClientUserId(client);
+
 		delete pers_trainingCannonTimer[client];
 		TeleportEntity(pers_trainingCannonBallIndex[client], NULL_VECTOR, NULL_VECTOR, vec);
 
 		CPrintToChat(client, "{%s}[%s] {%s}Turned off your personal cannon", prefixcolor, prefix, textcolor);
-		
+
 		int index;
-		char entityName[32];
-		Format(entityName, sizeof(entityName), "soccer_mod_training_ball_%i", client);
-		
 		while ((index = FindEntityByClassname(index, "prop_physics")) != INVALID_ENT_REFERENCE)
 		{
-			char entPropString[32];
-			GetEntPropString(index, Prop_Data, "m_iName", entPropString, sizeof(entPropString));
-
-			if (StrEqual(entPropString, entityName))
+			if (GetEntProp(index, Prop_Data, "m_iHammerID") == clientUserId)
 			{
 				AcceptEntityInput(index, "Kill");
 			}

@@ -536,6 +536,8 @@ public void TrainingEnableGoals(int client)
 public void TrainingSpawnBall(int client)
 {
 	int currentTime = GetTime();
+	int clientUserId = GetClientUserId(client);
+
 	if (trainingballCD[client] != -1 && trainingballCD[client] > currentTime)
 	{
 		int cdinfo[MAXPLAYERS+1]
@@ -552,41 +554,28 @@ public void TrainingSpawnBall(int client)
 		{
 			if(pers_trainingCannonTimer[client] != null)
 			{
-				char entityName[32];
-				Format(entityName, sizeof(entityName), "soccer_mod_training_ball_%i", client);
 				int index;
 				delete pers_trainingCannonTimer[client];
 				CPrintToChat(client, "{%s}[%s] {%s}Turned off your personal cannon", prefixcolor, prefix, textcolor);
 				while ((index = FindEntityByClassname(index, "prop_physics")) != INVALID_ENT_REFERENCE)
 				{
-					char entPropString[32];
-					GetEntPropString(index, Prop_Data, "m_iName", entPropString, sizeof(entPropString));
-
-					if (StrEqual(entPropString, entityName))
+					if (GetEntProp(index, Prop_Data, "m_iHammerID") == clientUserId)
 					{
 						AcceptEntityInput(index, "Kill");
-						
 						trainingballCD[client] = currentTime + 5;
 					}
 				}
 			}
-		
-			char entityName[32];
-			Format(entityName, sizeof(entityName), "soccer_mod_training_ball_%i", client);
 
 			int index;
-			bool ballSpawned = false;	
+			bool ballSpawned = false;
 
 			while ((index = FindEntityByClassname(index, "prop_physics")) != INVALID_ENT_REFERENCE)
 			{
-				char entPropString[32];
-				GetEntPropString(index, Prop_Data, "m_iName", entPropString, sizeof(entPropString));
-
-				if (StrEqual(entPropString, entityName))
+				if (GetEntProp(index, Prop_Data, "m_iHammerID") == clientUserId)
 				{
 					ballSpawned = true;
 					AcceptEntityInput(index, "Kill");
-					
 					trainingballCD[client] = currentTime + 5;
 				}
 			}
@@ -598,7 +587,7 @@ public void TrainingSpawnBall(int client)
 				{
 					if (!IsModelPrecached(trainingModelBall)) PrecacheModel(trainingModelBall);
 
-					DispatchKeyValue(index, "targetname", entityName);
+					DispatchKeyValue(index, "targetname", "ballon");
 					DispatchKeyValue(index, "model", trainingModelBall);
 
 					float aimPosition[3];
@@ -606,6 +595,7 @@ public void TrainingSpawnBall(int client)
 					DispatchKeyValueVector(index, "origin", aimPosition);
 
 					DispatchSpawn(index);
+					SetEntProp(index, Prop_Data, "m_iHammerID", clientUserId);
 				}
 			}
 		}

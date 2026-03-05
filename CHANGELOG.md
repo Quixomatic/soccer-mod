@@ -1,5 +1,12 @@
 # Soccer Mod Changelog
 
+## 1.5.22
+
+### Fixes
+- **Fix training balls passing through walls**: Training spawn ball and personal cannon ball now named `"ballon"` so map invisible walls filter them correctly. Ownership tracked via `m_iHammerID` instead of unique targetnames.
+
+---
+
 ## 1.5.21
 
 ### Fixes

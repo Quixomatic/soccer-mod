@@ -1,6 +1,6 @@
 {
   "name": "soccer-mod",
-  "version": "1.5.21",
+  "version": "1.5.22",
   "description": "Soccer Mod for Counter-Strike: Source",
   "scripts": {
     "setup": "powershell -ExecutionPolicy Bypass -File setup.ps1",
