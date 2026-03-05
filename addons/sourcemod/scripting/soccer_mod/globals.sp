@@ -187,6 +187,7 @@ int capFightHealth		= 101;
 int capPickNumber		= 0;
 int capFirstPicker		= 0;
 int capSnakeDraft		= 1;
+int capPickOrderChoice	= 0;
 int capPairIndex		= 0;		// Current position in captain pairs list
 int capVotesYes			= 0;	// Auto cap yes votes
 int capVotesNo			= 0;	// Auto cap no votes

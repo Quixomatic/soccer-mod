@@ -133,6 +133,7 @@ public void CreateSoccerModConfig()
 	kvConfig.JumpToKey("Cap Settings", true);
 	kvConfig.SetNum("soccer_mod_cap_fight_health",				capFightHealth);
 	kvConfig.SetNum("soccer_mod_cap_snake_draft",				capSnakeDraft);
+	kvConfig.SetNum("soccer_mod_cap_pick_order_choice",			capPickOrderChoice);
 	kvConfig.SetNum("soccer_mod_cap_pick_pool_mode",			capPickPoolMode);
 	kvConfig.SetNum("soccer_mod_cap_disallow_late_joiners",		capDisallowLateJoiners);
 	kvConfig.SetNum("soccer_mod_cap_vote_duration",				capVoteDuration);
@@ -548,6 +549,7 @@ public void ReadFromConfig()
 	kvConfig.JumpToKey("Cap Settings", true);
 	capFightHealth			= kvConfig.GetNum("soccer_mod_cap_fight_health", 101);
 	capSnakeDraft			= kvConfig.GetNum("soccer_mod_cap_snake_draft", 1);
+	capPickOrderChoice		= kvConfig.GetNum("soccer_mod_cap_pick_order_choice", 0);
 	capPickPoolMode			= kvConfig.GetNum("soccer_mod_cap_pick_pool_mode", 0);
 	capDisallowLateJoiners	= kvConfig.GetNum("soccer_mod_cap_disallow_late_joiners", 0);
 	capVoteDuration			= kvConfig.GetNum("soccer_mod_cap_vote_duration", 20);

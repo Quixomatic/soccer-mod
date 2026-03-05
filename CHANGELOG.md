@@ -1,5 +1,12 @@
 # Soccer Mod Changelog
 
+## 1.5.24
+
+### New
+- **Pick order choice**: Knife fight winner can choose to pick first or second. Toggle in Admin > Settings > Match Settings > Pick Order Choice (default OFF)
+
+---
+
 ## 1.5.23
 
 ### New

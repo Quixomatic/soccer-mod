@@ -1546,6 +1546,60 @@ public void CapEventPlayerDeath(Event event)
 	}
 }
 
+public void OpenPickOrderChoiceMenu(int winnerClient, int winnerTeam)
+{
+	Menu menu = new Menu(PickOrderChoiceHandler);
+
+	char winnerName[MAX_NAME_LENGTH];
+	GetClientName(winnerClient, winnerName, sizeof(winnerName));
+
+	menu.SetTitle("%s won the knife fight!\nChoose your pick order:", winnerName);
+
+	char firstStr[8], secondStr[8];
+	IntToString(winnerTeam, firstStr, sizeof(firstStr));
+	// Store the opposite team for "pick second"
+	int loserTeam = (winnerTeam == 2) ? 3 : 2;
+	IntToString(loserTeam, secondStr, sizeof(secondStr));
+
+	menu.AddItem(firstStr, "Pick first");
+	menu.AddItem(secondStr, "Pick second");
+
+	menu.ExitButton = false;
+	menu.Display(winnerClient, MENU_TIME_FOREVER);
+}
+
+public int PickOrderChoiceHandler(Menu menu, MenuAction action, int client, int choice)
+{
+	if (action == MenuAction_Select)
+	{
+		char menuItem[8];
+		menu.GetItem(choice, menuItem, sizeof(menuItem));
+
+		int chosenTeam = StringToInt(menuItem);
+		int firstPickClient = (chosenTeam == 2) ? capT : capCT;
+
+		capFirstPicker = firstPickClient;
+		capPicker = firstPickClient;
+
+		char pickerName[MAX_NAME_LENGTH];
+		GetClientName(client, pickerName, sizeof(pickerName));
+
+		if (firstPickClient == client)
+		{
+			CPrintToChatAll("{%s}[%s] {%s}%s chose to pick first.", prefixcolor, prefix, textcolor, pickerName);
+		}
+		else
+		{
+			CPrintToChatAll("{%s}[%s] {%s}%s chose to pick second.", prefixcolor, prefix, textcolor, pickerName);
+		}
+
+		OpenCapPickMenu(capFirstPicker);
+		CapPickHudStart();
+	}
+	else if (action == MenuAction_End) menu.Close();
+	return 0;
+}
+
 public void CapEventRoundEnd(Event event)
 {
 	if (capFightStarted)
@@ -1563,26 +1617,27 @@ public void CapEventRoundEnd(Event event)
 			InitializePickPool();
 		}
 
-		// Initialize snake draft - winner picks first
+		// Initialize snake draft
 		capPickNumber = 0;
 		int winner = event.GetInt("winner");
-		if (winner == 2)
-		{
-			capFirstPicker = capT;
-			capPicker = capT;
-			Discord_NotifyCapResult(CS_TEAM_T);
-			OpenCapPickMenu(capT);
-		}
-		else if (winner == 3)
-		{
-			capFirstPicker = capCT;
-			capPicker = capCT;
-			Discord_NotifyCapResult(CS_TEAM_CT);
-			OpenCapPickMenu(capCT);
-		}
+		int winnerClient = (winner == 2) ? capT : capCT;
+		int winnerTeam = winner;
 
-		// Start the pick HUD
-		CapPickHudStart();
+		Discord_NotifyCapResult(winnerTeam);
+
+		if (capPickOrderChoice)
+		{
+			// Let the winner choose pick order
+			OpenPickOrderChoiceMenu(winnerClient, winnerTeam);
+		}
+		else
+		{
+			// Winner picks first (default behavior)
+			capFirstPicker = winnerClient;
+			capPicker = winnerClient;
+			OpenCapPickMenu(winnerClient);
+			CapPickHudStart();
+		}
 	}
 }
 

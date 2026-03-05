@@ -185,6 +185,10 @@ public void OpenSettingsMatch(int client)
 	Format(snakeString, sizeof(snakeString), "Snake Draft: %s", capSnakeDraft ? "ON" : "OFF");
 	menu.AddItem("snakedraft", snakeString);
 
+	char pickOrderString[48];
+	Format(pickOrderString, sizeof(pickOrderString), "Pick Order Choice: %s", capPickOrderChoice ? "ON" : "OFF");
+	menu.AddItem("pickorderchoice", pickOrderString);
+
 	char poolString[48];
 	Format(poolString, sizeof(poolString), "Pick Pool Mode: %s", capPickPoolMode ? "Pool" : "Legacy");
 	menu.AddItem("pickpoolmode", poolString);
@@ -258,6 +262,13 @@ public int SettingsMatchHandler(Menu menu, MenuAction action, int client, int ch
 			capSnakeDraft = capSnakeDraft ? 0 : 1;
 			UpdateConfigInt("Cap Settings", "soccer_mod_cap_snake_draft", capSnakeDraft);
 			CPrintToChat(client, "{%s}[%s] {%s}Snake draft: %s", prefixcolor, prefix, textcolor, capSnakeDraft ? "ON" : "OFF");
+			OpenSettingsMatch(client);
+		}
+		else if (StrEqual(menuItem, "pickorderchoice"))
+		{
+			capPickOrderChoice = capPickOrderChoice ? 0 : 1;
+			UpdateConfigInt("Cap Settings", "soccer_mod_cap_pick_order_choice", capPickOrderChoice);
+			CPrintToChat(client, "{%s}[%s] {%s}Pick order choice: %s", prefixcolor, prefix, textcolor, capPickOrderChoice ? "ON" : "OFF");
 			OpenSettingsMatch(client);
 		}
 		else if (StrEqual(menuItem, "pickpoolmode"))
