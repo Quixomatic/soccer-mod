@@ -2020,7 +2020,13 @@ public void MatchStart(int client)
 				
 		for (int player = 1; player <= MaxClients; player++)
 		{
-			if (IsClientInGame(player) && IsClientConnected(player)) CPrintToChat(player, "{%s}[%s] {%s}%N has started a match", prefixcolor, prefix, textcolor, client);
+			if (IsClientInGame(player) && IsClientConnected(player))
+			{
+				if (client > 0 && IsClientInGame(client))
+					CPrintToChat(player, "{%s}[%s] {%s}%N has started a match", prefixcolor, prefix, textcolor, client);
+				else
+					CPrintToChat(player, "{%s}[%s] {%s}Match has been started", prefixcolor, prefix, textcolor);
+			}
 			if (IsClientInGame(player) && IsClientConnected(player)) CPrintToChat(player, "{%s}[%s] {%s}%s (CT) will face %s (T)", prefixcolor, prefix, textcolor, custom_name_ct, custom_name_t);
 			if (IsClientInGame(player) && IsClientConnected(player))
 			{
@@ -2063,11 +2069,18 @@ public void MatchStart(int client)
 		
 		HostName_Change_Status("Match");
 
-		char steamid[32];
-		GetClientAuthId(client, AuthId_Engine, steamid, sizeof(steamid));
-		LogMessage("%N <%s> has started a match", client, steamid);
+		if (client > 0 && IsClientInGame(client))
+		{
+			char steamid[32];
+			GetClientAuthId(client, AuthId_Engine, steamid, sizeof(steamid));
+			LogMessage("%N <%s> has started a match", client, steamid);
+		}
+		else
+		{
+			LogMessage("Match has been started (system)");
+		}
 	}
-	else CPrintToChat(client, "{%s}[%s] {%s}Match already started.", prefixcolor, prefix, textcolor);
+	else if (client > 0 && IsClientInGame(client)) CPrintToChat(client, "{%s}[%s] {%s}Match already started.", prefixcolor, prefix, textcolor);
 }
 
 public void MatchPause(int client)
@@ -2141,7 +2154,13 @@ public void MatchUnpause(int client)
 
 			for (int player = 1; player <= MaxClients; player++)
 			{
-				if (IsClientInGame(player) && IsClientConnected(player)) CPrintToChat(player, "{%s}[%s] {%s}%N has unpaused the match", prefixcolor, prefix, textcolor, client);
+				if (IsClientInGame(player) && IsClientConnected(player))
+				{
+					if (client > 0 && IsClientInGame(client))
+						CPrintToChat(player, "{%s}[%s] {%s}%N has unpaused the match", prefixcolor, prefix, textcolor, client);
+					else
+						CPrintToChat(player, "{%s}[%s] {%s}Match has been unpaused", prefixcolor, prefix, textcolor);
+				}
 			}
 			
 			//if(FileExists(tempReadyFileKV)) DeleteTempFile();
@@ -2153,9 +2172,9 @@ public void MatchUnpause(int client)
 				LogMessage("%N <%s> has unpaused the match", client, steamid);
 			}
 		}
-		else CPrintToChat(client, "{%s}[%s] {%s}Match already unpaused", prefixcolor, prefix, textcolor);
+		else if (client > 0 && IsClientInGame(client)) CPrintToChat(client, "{%s}[%s] {%s}Match already unpaused", prefixcolor, prefix, textcolor);
 	}
-	else CPrintToChat(client, "{%s}[%s] {%s}No match started", prefixcolor, prefix, textcolor);
+	else if (client > 0 && IsClientInGame(client)) CPrintToChat(client, "{%s}[%s] {%s}No match started", prefixcolor, prefix, textcolor);
 }
 
 public void MatchStop(int client)

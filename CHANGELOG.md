@@ -1,5 +1,13 @@
 # Soccer Mod Changelog
 
+## 1.5.25
+
+### Fixes
+- **Ready check system fix**: Removed `static` re-entrancy guard in `ReadyCheckEnd` that could permanently block the function if an error occurred mid-execution
+- **Client 0 safety**: Fixed `MatchStart` and `MatchUnpause` crashing when called with client index 0 (from ready check system) due to `%N` format specifier requiring a valid client
+
+---
+
 ## 1.5.24
 
 ### New

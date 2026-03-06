@@ -102,10 +102,7 @@ public void ReadyCheckStart(ReadyCheckContext context, int countdown, int caller
 // End the ready check
 public void ReadyCheckEnd(bool proceed)
 {
-	// Prevent re-entrancy and double-execution
-	static bool isEnding = false;
-	if (isEnding || !readyCheckActive) return;
-	isEnding = true;
+	if (!readyCheckActive) return;
 
 	ReadyCheckContext endedContext = readyCheckContext;
 
@@ -138,7 +135,6 @@ public void ReadyCheckEnd(bool proceed)
 			case READY_CONTEXT_PREMATCH:
 			{
 				CPrintToChatAll("{%s}[%s] {%s}Starting match...", prefixcolor, prefix, textcolor);
-				// Use existing MatchStart function
 				CreateTimer(1.0, Timer_AutoStartMatch);
 			}
 			case READY_CONTEXT_TIMEOUT:
@@ -161,8 +157,6 @@ public void ReadyCheckEnd(bool proceed)
 			HostName_Change_Status("Public");
 		}
 	}
-
-	isEnding = false;
 }
 
 // Check if all players are ready
