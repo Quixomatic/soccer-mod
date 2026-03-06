@@ -584,6 +584,7 @@ public void OpenSettingsStats(int client)
 	menu.AddItem("rankspam", RankString);
 	menu.AddItem("loaddefaults", DefaultString);
 	menu.AddItem("pointvalues", "-> Point Values");
+	menu.AddItem("statsync", "-> Stats Sync");
 
 	menu.ExitBackButton = true;
 	menu.Display(client, MENU_TIME_FOREVER);
@@ -637,6 +638,10 @@ public int SettingsStatsHandler(Menu menu, MenuAction action, int client, int ch
 		else if(StrEqual(menuItem, "pointvalues"))
 		{
 			OpenPointValuesMenu(client);
+		}
+		else if(StrEqual(menuItem, "statsync"))
+		{
+			OpenStatsSyncMenu(client);
 		}
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenMenuSettings(client);
@@ -704,6 +709,82 @@ public int PointValuesMenuHandler(Menu menu, MenuAction action, int client, int 
 
 		CPrintToChat(client, "{%s}[%s] {%s}Type a point value for %s (-100 to 100).", prefixcolor, prefix, textcolor, label);
 		Format(changeSetting[client], sizeof(changeSetting[]), "PointValue_%s", menuItem);
+	}
+	else if (action == MenuAction_Cancel && choice == -6)   OpenSettingsStats(client);
+	else if (action == MenuAction_End)					  menu.Close();
+	return 0;
+}
+
+// *******************************************************************************************************************
+// ************************************************ STATS SYNC SETTINGS **********************************************
+// *******************************************************************************************************************
+
+public void OpenStatsSyncMenu(int client)
+{
+	Menu menu = new Menu(StatsSyncMenuHandler);
+
+	menu.SetTitle("Soccer Mod - Stats Sync");
+
+	char enabledStr[32];
+	Format(enabledStr, sizeof(enabledStr), "Stats Sync: %s", statsSyncEnabled == 1 ? "ON" : "OFF");
+	menu.AddItem("toggle", enabledStr);
+
+	char urlStr[64];
+	if (statsSyncUrl[0] != '\0')
+		Format(urlStr, sizeof(urlStr), "API URL: Set");
+	else
+		Format(urlStr, sizeof(urlStr), "API URL: Not Set");
+	menu.AddItem("url", urlStr);
+
+	char keyStr[64];
+	if (statsSyncKey[0] != '\0')
+		Format(keyStr, sizeof(keyStr), "API Key: Set");
+	else
+		Format(keyStr, sizeof(keyStr), "API Key: Not Set");
+	menu.AddItem("key", keyStr);
+
+	menu.AddItem("fullsync", "Full Sync (push all local data)");
+
+	menu.ExitBackButton = true;
+	menu.Display(client, MENU_TIME_FOREVER);
+}
+
+public int StatsSyncMenuHandler(Menu menu, MenuAction action, int client, int choice)
+{
+	if (action == MenuAction_Select)
+	{
+		char menuItem[32];
+		menu.GetItem(choice, menuItem, sizeof(menuItem));
+
+		if (StrEqual(menuItem, "toggle"))
+		{
+			statsSyncEnabled = (statsSyncEnabled == 1) ? 0 : 1;
+			UpdateConfigInt("Stats Sync Settings", "soccer_mod_statsync_enabled", statsSyncEnabled);
+			OpenStatsSyncMenu(client);
+		}
+		else if (StrEqual(menuItem, "url"))
+		{
+			CPrintToChat(client, "{%s}[%s] {%s}Type the Stats Sync API URL (e.g. https://stats.example.com).", prefixcolor, prefix, textcolor);
+			changeSetting[client] = "StatsSyncUrl";
+		}
+		else if (StrEqual(menuItem, "key"))
+		{
+			CPrintToChat(client, "{%s}[%s] {%s}Type the Stats Sync API Key.", prefixcolor, prefix, textcolor);
+			changeSetting[client] = "StatsSyncKey";
+		}
+		else if (StrEqual(menuItem, "fullsync"))
+		{
+			if (statsSyncEnabled == 0 || statsSyncUrl[0] == '\0')
+			{
+				CPrintToChat(client, "{%s}[%s] {%s}Stats Sync must be enabled with a URL configured first.", prefixcolor, prefix, textcolor);
+				OpenStatsSyncMenu(client);
+			}
+			else
+			{
+				CPrintToChat(client, "{%s}[%s] {%s}Starting full sync of local database...", prefixcolor, prefix, textcolor);
+				StatsSyncFullSync(client);
+			}
+		}
 	}
 	else if (action == MenuAction_Cancel && choice == -6)   OpenSettingsStats(client);
 	else if (action == MenuAction_End)					  menu.Close();

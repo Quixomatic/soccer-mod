@@ -1,7 +1,7 @@
 // **************************************************************************************************************
 // ************************************************** DEFINES ***************************************************
 // ************************************************************************************************************** 
-#define PLUGIN_VERSION "1.5.25"
+#define PLUGIN_VERSION "1.5.26"
 #define MAX_NAMES 10
 #define MAXCONES_DYN 15
 #define MAXCONES_STA 15
@@ -70,6 +70,7 @@
 #include "soccer_mod/modules/joinleave.sp"
 #include "soccer_mod/modules/playervotes.sp"
 #include "soccer_mod/modules/selfupdater.sp"
+#include "soccer_mod/modules/statsync.sp"
 #include "soccer_mod/modules/discord.sp"
 
 #include "soccer_mod/fixes/join_team.sp"
@@ -164,6 +165,7 @@ public void OnPluginStart()
 	KickoffWalls_OnPluginStart();
 	PlayerVotesOnPluginStart();
 	SelfUpdaterOnPluginStart();
+	StatsSyncOnPluginStart();
 
 	// Join/Leave cookies
 	h_JOINLEAVE_SOUND_COOKIE = RegClientCookie("sm_joinleave_sound", "Join/Leave sound preference", CookieAccess_Protected);
@@ -515,6 +517,30 @@ public Action SayCommandListener(int client, char[] command, int argc)
 		else if (StrEqual(changeSetting[client], "SU_Interval"))
 		{
 			SelfUpdaterSet(client, "SU_Interval", intnumber, 600, 86400);
+			return Plugin_Handled;
+		}
+		else if (StrEqual(changeSetting[client], "StatsSyncUrl"))
+		{
+			char fullMsg[256];
+			GetCmdArg(1, fullMsg, sizeof(fullMsg));
+			StripQuotes(fullMsg);
+			strcopy(statsSyncUrl, sizeof(statsSyncUrl), fullMsg);
+			UpdateConfigString("Stats Sync Settings", "soccer_mod_statsync_url", statsSyncUrl);
+			CPrintToChat(client, "{%s}[%s] {%s}Stats Sync URL set.", prefixcolor, prefix, textcolor);
+			changeSetting[client] = "";
+			OpenStatsSyncMenu(client);
+			return Plugin_Handled;
+		}
+		else if (StrEqual(changeSetting[client], "StatsSyncKey"))
+		{
+			char fullMsg[128];
+			GetCmdArg(1, fullMsg, sizeof(fullMsg));
+			StripQuotes(fullMsg);
+			strcopy(statsSyncKey, sizeof(statsSyncKey), fullMsg);
+			UpdateConfigString("Stats Sync Settings", "soccer_mod_statsync_key", statsSyncKey);
+			CPrintToChat(client, "{%s}[%s] {%s}Stats Sync API Key set.", prefixcolor, prefix, textcolor);
+			changeSetting[client] = "";
+			OpenStatsSyncMenu(client);
 			return Plugin_Handled;
 		}
 		else if (StrEqual(changeSetting[client], "DiscordWebhook"))

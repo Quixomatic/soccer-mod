@@ -235,6 +235,12 @@ public void CreateSoccerModConfig()
 	kvConfig.SetNum("soccer_mod_su_check_interval",					suCheckInterval);
 	kvConfig.GoBack();
 
+	kvConfig.JumpToKey("Stats Sync Settings", true);
+	kvConfig.SetNum("soccer_mod_statsync_enabled",					statsSyncEnabled);
+	kvConfig.SetString("soccer_mod_statsync_url",					statsSyncUrl);
+	kvConfig.SetString("soccer_mod_statsync_key",					statsSyncKey);
+	kvConfig.GoBack();
+
 	kvConfig.JumpToKey("Discord Settings", true);
 	kvConfig.SetString("soccer_mod_discord_webhook",				discordWebhookUrl);
 	kvConfig.SetNum("soccer_mod_discord_match_start",				discordMatchStart);
@@ -653,6 +659,12 @@ public void ReadFromConfig()
 	kvConfig.JumpToKey("Updater Settings", true);
 	suAutoCheck				= kvConfig.GetNum("soccer_mod_su_autocheck", 0);
 	suCheckInterval			= kvConfig.GetNum("soccer_mod_su_check_interval", 3600);
+	kvConfig.GoBack();
+
+	kvConfig.JumpToKey("Stats Sync Settings", true);
+	statsSyncEnabled		= kvConfig.GetNum("soccer_mod_statsync_enabled", 0);
+	kvConfig.GetString("soccer_mod_statsync_url", statsSyncUrl, sizeof(statsSyncUrl), "");
+	kvConfig.GetString("soccer_mod_statsync_key", statsSyncKey, sizeof(statsSyncKey), "");
 	kvConfig.GoBack();
 
 	kvConfig.JumpToKey("Discord Settings", true);

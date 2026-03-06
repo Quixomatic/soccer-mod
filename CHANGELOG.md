@@ -1,5 +1,15 @@
 # Soccer Mod Changelog
 
+## 1.5.26
+
+### New
+- **Stats Sync**: Optional module to push stats to a remote API (soccer-stats server) in real-time via ripext HTTP
+- Syncs player connections, round stats, MVP/MOTM awards, and match counts alongside local DB writes
+- Full sync option to push entire local database to remote (Admin > Settings > Stats & Ranking > Stats Sync)
+- Admin menu to configure API URL, API key, and enable/disable sync
+
+---
+
 ## 1.5.25
 
 ### Fixes

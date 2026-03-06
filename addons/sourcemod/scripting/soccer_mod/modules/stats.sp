@@ -758,6 +758,8 @@ public void StatsEventRoundEnd(Event event)
 				rounds_lost = (rounds_lost + %i), hits = (hits + %i), saves = (saves + %i), passes = (passes + %i), interceptions = (interceptions + %i), ball_losses = (ball_losses + %i), \
 				points = (points + %i) WHERE steamid = '%s'", table, goals, assists, own_goals, rounds_won, rounds_lost, hits, saves, passes, interceptions, ball_losses, points, steamid);
 			ExecuteQuery(queryString);
+
+			StatsSyncRoundStats(steamid, matchStarted, goals, assists, own_goals, hits, passes, interceptions, ball_losses, saves, rounds_won, rounds_lost, points);
 		}
 	}
 	while (statsKeygroupRound.GotoNextKey());
@@ -1365,9 +1367,11 @@ public void ShowMVP()
 
 		if (EnoughPlayers())
 		{
-			Format(queryString, sizeof(queryString), "UPDATE %s SET mvp = (mvp + 1), points = (points + %i) WHERE steamid = '%s'", 
+			Format(queryString, sizeof(queryString), "UPDATE %s SET mvp = (mvp + 1), points = (points + %i) WHERE steamid = '%s'",
 				table, rankingPointsForMVP, steamidMVP);
 			ExecuteQuery(queryString);
+
+			StatsSyncAward(steamidMVP, roundMVP, "mvp", rankingPointsForMVP, matchStarted);
 		}
 
 		for (int player = 1; player <= MaxClients; player++)
@@ -1439,6 +1443,10 @@ public void AddMatchStat(char type[8])
 				{
 					Format(queryString, sizeof(queryString), "UPDATE soccer_mod_match_stats SET matches = (matches +1) WHERE steamid = '%s'", steamid);
 					ExecuteQuery(queryString);
+
+					char syncName[MAX_NAME_LENGTH];
+					statsKeygroupMatch.GetString("name", syncName, sizeof(syncName), "");
+					StatsSyncMatchCount(steamid, syncName);
 				}
 			}
 		}
@@ -1495,9 +1503,11 @@ public void ShowManOfTheMatch()
 
 		if (EnoughPlayers())
 		{
-			Format(queryString, sizeof(queryString), "UPDATE %s SET motm = (motm + 1), points = (points + %i) WHERE steamid = '%s'", 
+			Format(queryString, sizeof(queryString), "UPDATE %s SET motm = (motm + 1), points = (points + %i) WHERE steamid = '%s'",
 				table, rankingPointsForMOTM, steamidMVP);
 			ExecuteQuery(queryString);
+
+			StatsSyncAward(steamidMVP, matchMVP, "motm", rankingPointsForMOTM, matchStarted);
 		}
 
 		for (int player = 1; player <= MaxClients; player++)

@@ -166,13 +166,13 @@ public void DatabaseCheckPlayerCallback(Handle owner, Handle hndl, const char[] 
 		char queryString[512];
 		if (SQL_GetRowCount(hndl))
 		{
-			Format(queryString, sizeof(queryString), "UPDATE soccer_mod_players SET name = '%s', last_connected = '%s', player_ip = '%s', server_ip = '%s' WHERE steamid = '%s'", 
+			Format(queryString, sizeof(queryString), "UPDATE soccer_mod_players SET name = '%s', last_connected = '%s', player_ip = '%s', server_ip = '%s' WHERE steamid = '%s'",
 				name, lastConnected, playerIP, serverIP, steamid);
 			ExecuteQuery(queryString);
 		}
 		else
 		{
-			Format(queryString, sizeof(queryString), "INSERT INTO soccer_mod_players (name, steamid, created, player_ip, server_ip) VALUES ('%s', '%s', '%s', '%s', '%s')", 
+			Format(queryString, sizeof(queryString), "INSERT INTO soccer_mod_players (name, steamid, created, player_ip, server_ip) VALUES ('%s', '%s', '%s', '%s', '%s')",
 				name, steamid, lastConnected, playerIP, serverIP);
 			ExecuteQuery(queryString);
 			Format(queryString, sizeof(queryString), "INSERT INTO soccer_mod_match_stats (steamid) VALUES ('%s')", steamid);
@@ -180,5 +180,7 @@ public void DatabaseCheckPlayerCallback(Handle owner, Handle hndl, const char[] 
 			Format(queryString, sizeof(queryString), "INSERT INTO soccer_mod_public_stats (steamid) VALUES ('%s')", steamid);
 			ExecuteQuery(queryString);
 		}
+
+		StatsSyncPlayer(steamid, name, playerIP, serverIP, StringToInt(lastConnected));
 	}
 }

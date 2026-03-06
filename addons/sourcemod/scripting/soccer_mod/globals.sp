@@ -851,6 +851,12 @@ ArrayList suPendingFiles		= null;			// temp->dest file pairs waiting to be appli
 bool suRetrying				= false;		// true if this is an automatic retry after cache warming
 bool suWarmingCache			= false;		// true while cache warming in progress
 int suWarmCount				= 0;			// files remaining to warm
+
+// Stats Sync
+int statsSyncEnabled			= 0;			// 0=off, 1=on
+char statsSyncUrl[256];							// API base URL (e.g. https://stats.example.com)
+char statsSyncKey[128];							// Bearer token for auth
+bool statsSyncRipextAvailable	= false;		// true if ripext extension loaded
 int suWarmErrors			= 0;			// files that failed size verification during warming
 int suWarmTotal				= 0;			// total files being warmed
 
